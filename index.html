@@ -1,0 +1,214 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Lawn Legends</title>
+<!--
+  =====================================================================
+  index.html: the page STRUCTURE (what is on the screen).
+
+  Lawn Legends is a free fan game. It is not affiliated with PopCap
+  Games or Electronic Arts; Plants vs. Zombies and its characters
+  belong to them.
+
+  This file only lists the pieces of the page: screens, buttons and
+  empty boxes the game draws into. How they look lives in style.css,
+  and what they do lives in the js/ folder (loaded at the very bottom).
+
+  Note: there is no <!doctype>, <html>, <head> or <body> here on
+  purpose. The Artifact publisher wraps the page in those, and browsers
+  cope fine when you double-click this file to open it. The <meta>
+  lines at the very top are for that local case: "charset utf-8" makes
+  symbols like the sun display correctly, and "viewport" makes it fit a
+  phone screen.
+
+  Screens (only one is visible at a time; the others are `hidden`):
+    #scr-title    title screen
+    #scr-world    the overworld map you walk around
+    #scr-team     choose your team and their moves
+    #scr-shop     Crazy Dave's shop
+    #scr-almanac  every plant and zombie
+    #scr-ach      achievements
+    #scr-battle   a fight
+  Overlays that cover the screen: #dialog (people talking), #prebattle
+  (the "ready to fight?" box), #result (win or lose) and #howto.
+  =====================================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Silkscreen&display=swap">
+<link rel="stylesheet" href="style.css">
+
+<div class="app">
+  <header class="topbar">
+    <span class="brand">Lawn Legends <span class="fan">a Plants vs. Zombies fan RPG</span></span>
+    <span class="wallet" id="wallet"></span>
+    <button id="btnMute" type="button" class="small">Sound on</button>
+  </header>
+
+  <!-- ============ TITLE ============ -->
+  <section id="scr-title" class="screen title">
+    <pre class="title-art" id="titleArt" aria-label="Lawn Legends"></pre>
+    <p class="tagline">A turn-based garden RPG. Build a team of five, customize their moves, and take back the neighborhood.</p>
+    <div class="menu">
+      <button id="btnPlay" type="button" class="big">Story mode</button>
+      <button id="btnTeamT" type="button">Team</button>
+      <button id="btnShopT" type="button">Crazy Dave's shop</button>
+      <button id="btnAlmanacT" type="button">Almanac</button>
+      <button id="btnAchT" type="button">Achievements</button>
+      <button id="btnHowT" type="button">How to play</button>
+    </div>
+    <p class="disclaimer">Free fan game. Not affiliated with PopCap Games or Electronic Arts. Plants vs. Zombies belongs to them. All art, sounds and writing here are original.</p>
+  </section>
+
+  <!-- ============ OVERWORLD ============ -->
+  <section id="scr-world" class="screen" hidden>
+    <div class="bar">
+      <div class="chapters" id="chapterTabs"></div>
+    </div>
+    <div class="world-wrap">
+      <pre id="map" class="map" aria-label="Overworld map"></pre>
+    </div>
+    <p class="hint" id="worldHint"></p>
+    <div class="world-controls">
+      <div class="dpad" id="dpad" aria-label="Move">
+        <button type="button" data-dir="up" aria-label="Up">^</button>
+        <button type="button" data-dir="left" aria-label="Left">&lt;</button>
+        <button type="button" data-dir="right" aria-label="Right">&gt;</button>
+        <button type="button" data-dir="down" aria-label="Down">v</button>
+      </div>
+      <div class="world-buttons">
+        <button id="btnTeamW" type="button">Team</button>
+        <button id="btnAlmanacW" type="button">Almanac</button>
+        <button id="btnAchW" type="button">Achievements</button>
+        <button id="btnHowW" type="button">How to play</button>
+        <button id="btnTitleW" type="button">Title</button>
+      </div>
+    </div>
+    <p class="legend">
+      <span class="k-you">@</span> you
+      <span class="k-dave">D</span> Crazy Dave
+      <span class="k-zom">z</span> zombies
+      <span class="k-key">Z</span> has a plant
+      <span class="k-rogue">R</span> rogue plant
+      <span class="k-boss">B</span> boss
+      <span class="k-chest">C</span> chest
+      <span class="k-sign">a</span> sign
+      <span class="k-gate">G</span> gate
+    </p>
+  </section>
+
+  <!-- ============ TEAM ============ -->
+  <section id="scr-team" class="screen" hidden>
+    <div class="bar">
+      <button type="button" class="back small" data-back>Back</button>
+      <h2>Team</h2>
+    </div>
+    <p class="hint">Pick up to 5 plants. Click a plant to see it and choose its 4 moves.</p>
+    <div class="slots" id="teamSlots"></div>
+    <div class="filters" id="teamFilters"></div>
+    <div class="team-layout">
+      <div class="plant-grid" id="plantGrid"></div>
+      <div class="detail" id="plantDetail"></div>
+    </div>
+  </section>
+
+  <!-- ============ SHOP ============ -->
+  <section id="scr-shop" class="screen" hidden>
+    <div class="bar">
+      <button type="button" class="back small" data-back>Back</button>
+      <h2>Crazy Dave's shop</h2>
+    </div>
+    <p class="dave-line" id="shopTalk"></p>
+    <div class="shop-list" id="shopList"></div>
+  </section>
+
+  <!-- ============ ALMANAC ============ -->
+  <section id="scr-almanac" class="screen" hidden>
+    <div class="bar">
+      <button type="button" class="back small" data-back>Back</button>
+      <h2>Almanac</h2>
+      <div class="tabs" id="almTabs">
+        <button type="button" data-tab="plants" class="small">Plants</button>
+        <button type="button" data-tab="zombies" class="small">Zombies</button>
+        <button type="button" data-tab="gimmicks" class="small">Gimmicks</button>
+      </div>
+    </div>
+    <div class="team-layout">
+      <div class="plant-grid" id="almList"></div>
+      <div class="detail" id="almDetail"></div>
+    </div>
+  </section>
+
+  <!-- ============ ACHIEVEMENTS ============ -->
+  <section id="scr-ach" class="screen" hidden>
+    <div class="bar">
+      <button type="button" class="back small" data-back>Back</button>
+      <h2>Achievements <span id="achCount" class="dim"></span></h2>
+    </div>
+    <div class="ach-list" id="achList"></div>
+  </section>
+
+  <!-- ============ BATTLE ============ -->
+  <section id="scr-battle" class="screen battle" hidden>
+    <div class="btop" id="bTop"></div>
+    <div class="field">
+      <div class="side allies" id="bAllies"></div>
+      <div class="side foes" id="bFoes"></div>
+    </div>
+    <div class="panel" id="bPanel"></div>
+    <div class="blog" id="bLog" aria-live="polite"></div>
+  </section>
+</div>
+
+<!-- ============ OVERLAYS ============ -->
+<div id="dialog" class="overlay" hidden>
+  <div class="box talk">
+    <div class="speaker" id="dlgSpeaker"></div>
+    <p class="words" id="dlgText"></p>
+    <div class="choices" id="dlgChoices"></div>
+    <p class="dim small-print" id="dlgHint">Click or press Enter</p>
+  </div>
+</div>
+
+<div id="prebattle" class="overlay" hidden>
+  <div class="box" id="preBox"></div>
+</div>
+
+<div id="result" class="overlay" hidden>
+  <div class="box" id="resultBox"></div>
+</div>
+
+<div id="howto" class="overlay" hidden>
+  <div class="box scroll">
+    <h2>How to play</h2>
+    <h3>The overworld</h3>
+    <p>Walk with the <b>arrow keys</b>, <b>WASD</b> or the on-screen arrows. Walk into a zombie to fight it. Walk into Crazy Dave (<b>D</b>) to shop or practice, into a chest (<b>C</b>) to open it, and into a sign to read it. Beat every zombie in a chapter and the boss (<b>B</b>) will fight you. Beat the boss to open the gate (<b>G</b>) to the next chapter.</p>
+    <h3>Battles</h3>
+    <p>Your team of up to 5 plants fights waves of zombies. Every round, each plant and zombie gets one turn, fastest first. On a plant's turn, pick a move (click it or press <b>1</b>-<b>4</b>), then click the target.</p>
+    <p><b>Sun</b> is shared by the whole team. You get some every round. Basic moves are free; stronger ones cost sun, and many need a few turns to recharge. <b>Soak up sun</b> (<b>5</b>) skips a turn for +15 sun. <b>Plant Food</b> (<b>F</b>) makes a plant's next move free and twice as strong.</p>
+    <p><b>Armor</b> (cones, buckets, helmets) soaks up damage first. Moves that <b>pierce</b> go straight through. <b>Lobbed</b> moves fly over Screen Doors and reach diving zombies. Every plant has its own <b>ability</b>: read it on the Team screen.</p>
+    <h3>Classes</h3>
+    <p><span class="c-shooter">Shooters</span> are all-rounders. <span class="c-hearty">Hearty</span> plants are tanks. <span class="c-sunny">Sunny</span> plants make sun and heal. <span class="c-volatile">Volatile</span> plants deal burst damage. <span class="c-grower">Growers</span> are gimmicky plants that need a plan.</p>
+    <h3>Gimmicks</h3>
+    <p>Many battles have a gimmick that changes the rules: Night, Fog, Pool, Roof, Gravestones, Drought, Conveyor Belt, Storm and more. They're shown at the top of the battle and in the Almanac.</p>
+    <h3>Growing</h3>
+    <p>Plants earn XP and level up, learning new moves. Plants on the bench get some XP too. Unlock new plants by winning story battles, beating rogue plants, shopping with Crazy Dave, and earning tough or secret achievements.</p>
+    <button type="button" id="btnHowClose" class="big">Got it</button>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- The scripts, IN ORDER: each one can use what the ones above it made. -->
+<script src="js/helpers.js"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/world.js"></script>
+<script src="js/art.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/save.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/render.js"></script>
+<script src="js/screens.js"></script>
+<script src="js/input.js"></script>
+<script src="js/main.js"></script>
