@@ -7,7 +7,7 @@ This file holds everything a new Claude session, or a person, needs to keep work
 **Lawn Legends** is a free, browser-based **Plants vs. Zombies fan RPG**: turn-based battles drawn in ASCII art, a walkable ASCII overworld, a story mode, a team of five, classes, customizable movesets, unlockable plants, battle gimmicks and achievements. It was made on 2026-11-21.
 
 - **Owner:** the `imginova` GitHub account (Jake Harris's son), who also makes *Bare Bones Custom Night* and the ASCII FNAF games in `C:\git\bbcn`. They're new to programming, so explain changes in plain language and avoid jargon.
-- **Where it lives:** its own folder, `C:\git\pvz-rpg`, a git repository of its own (on request: "its own repo"), separate from bbcn. **No GitHub repository exists yet**; the first commit ("First version of Lawn Legends") was made locally on `main` on 2026-11-21. Creating one (and a GitHub Pages deploy like bbcn's) is a decision for the owner.
+- **Where it lives:** its own folder, `C:\git\pvz-rpg`, and the public GitHub repository https://github.com/imginova/pvz-rpg (on request: "its own repo"), separate from bbcn. The owner created the repo on 2026-11-21 and edits or commits in the browser too.
 - **Private Artifact link:** https://claude.ai/artifact/4c5fSL8CPDB1sndcHptmFS (only the owner and people they share it with through the page's Share menu can open it; see "Publishing" below).
 - **No build step, no dependencies, no sound files.** `index.html` works when double-clicked.
 
@@ -20,7 +20,7 @@ This file holds everything a new Claude session, or a person, needs to keep work
 ## Working agreements with the owner
 
 - **Make a plan before big features**, and ask about genuinely ambiguous design choices. The owner said "ask as many questions as you want whenever you need to ask". Small requests can be done directly.
-- **Commit only when asked.** After each change, ask "Commit these changes?". Commit as `imginova <107283216+imginova@users.noreply.github.com>` (already set in this repo's local git config; check `git config user.email` on a new computer). No work email may appear in files or commits.
+- **Land every change with a pull request** (owner's choice on 2026-11-21: "I make a pull request"). Work on a new branch, commit as `imginova <107283216+imginova@users.noreply.github.com>` (already set in this repo's local git config; check `git config user.email` on a new computer), push the branch, and give the owner the pull request link to open and **Merge** in the browser. This computer has no `gh` CLI, so give the compare link (`https://github.com/imginova/pvz-rpg/compare/main...<branch>?expand=1`): the owner clicks **Create pull request**, then **Merge**. Never push straight to `main`. Before starting, `git fetch` and branch from the latest `origin/main`, because the owner may have committed in the browser. No work email may appear in files or commits.
 - **No strict upgrades.** Every plant must be a sidegrade: better at something, worse at something else (owner's rule). See the stat budget below.
 - **Every zombie needs a counter**: a weakness the player can find and use, written in its `counter` field (owner's request: "cool zombies with unique attacks and counters").
 - **Never wipe saved progress.** Loading keeps every saved key, even unknown ones (`loadProgress` in `save.js`). Moves or plants that no longer exist are skipped when used, never deleted from the save. Test any save change with a fake old save.
@@ -78,7 +78,7 @@ There's no Node.js or Python on this Windows computer. What worked (2026-11-21):
 
 ## Hosting (the public website)
 
-- **Planned home:** GitHub repository `imginova/pvz-rpg` (public), website https://imginova.github.io/pvz-rpg/ (requested 2026-11-21: "link for browser (or at least to commit on browser)").
+- **Home:** GitHub repository `imginova/pvz-rpg` (public), website https://imginova.github.io/pvz-rpg/ (requested 2026-11-21: "link for browser (or at least to commit on browser)"). The first push built fine; the site goes live once the owner sets **Settings → Pages → Source = GitHub Actions** (not done as of 2026-11-21), then re-runs the workflow or merges any change.
 - `.github/workflows/deploy.yml` checks every script, runs `tools/build.js` (which wraps the `index.html` fragment in a real page in `dist/`, gitignored) and, on a push to `main`, deploys `dist/` to GitHub Pages. One-time setting on github.com: repo Settings → Pages → Source = **GitHub Actions**.
 - `tools/build.js` is bbcn's build without the Google Analytics part (this game has no analytics). It was not run locally (this computer has no Node.js); GitHub runs it on every push.
 - This computer has no `gh` CLI; pushing works through Git Credential Manager as `imginova` (same as bbcn).
