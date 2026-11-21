@@ -7,7 +7,7 @@ This file holds everything a new Claude session, or a person, needs to keep work
 **Lawn Legends** is a free, browser-based **Plants vs. Zombies fan RPG**: turn-based battles drawn in ASCII art, a walkable ASCII overworld, a story mode, a team of five, classes, customizable movesets, unlockable plants, battle gimmicks and achievements. It was made on 2026-11-21.
 
 - **Owner:** the `imginova` GitHub account (Jake Harris's son), who also makes *Bare Bones Custom Night* and the ASCII FNAF games in `C:\git\bbcn`. They're new to programming, so explain changes in plain language and avoid jargon.
-- **Where it lives:** its own folder, `C:\git\pvz-rpg`, a git repository of its own (on request: "its own repo"), separate from bbcn. **No GitHub repository exists yet** and nothing has been committed. Creating one (and a GitHub Pages deploy like bbcn's) is a decision for the owner.
+- **Where it lives:** its own folder, `C:\git\pvz-rpg`, a git repository of its own (on request: "its own repo"), separate from bbcn. **No GitHub repository exists yet**; the first commit ("First version of Lawn Legends") was made locally on `main` on 2026-11-21. Creating one (and a GitHub Pages deploy like bbcn's) is a decision for the owner.
 - **Private Artifact link:** https://claude.ai/artifact/4c5fSL8CPDB1sndcHptmFS (only the owner and people they share it with through the page's Share menu can open it; see "Publishing" below).
 - **No build step, no dependencies, no sound files.** `index.html` works when double-clicked.
 
