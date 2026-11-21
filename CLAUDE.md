@@ -78,7 +78,7 @@ There's no Node.js or Python on this Windows computer. What worked (2026-11-21):
 
 ## Hosting (the public website)
 
-- **Home:** GitHub repository `imginova/pvz-rpg` (public), website https://imginova.github.io/pvz-rpg/ (requested 2026-11-21: "link for browser (or at least to commit on browser)"). The first push built fine; the site goes live once the owner sets **Settings → Pages → Source = GitHub Actions** (not done as of 2026-11-21), then re-runs the workflow or merges any change.
+- **Home:** GitHub repository `imginova/pvz-rpg` (public), website https://imginova.github.io/pvz-rpg/ (requested 2026-11-21: "link for browser (or at least to commit on browser)"). **Live since 2026-11-21**: the owner set **Settings → Pages → Source = GitHub Actions** and re-ran the workflow; checked in a browser (standards mode, all scripts loaded, no console errors). Every merge into `main` redeploys it. Claude can't re-run a workflow from this computer (no `gh`), so if a deploy needs re-running, the owner clicks **Re-run all jobs** on the run's page.
 - `.github/workflows/deploy.yml` checks every script, runs `tools/build.js` (which wraps the `index.html` fragment in a real page in `dist/`, gitignored) and, on a push to `main`, deploys `dist/` to GitHub Pages. One-time setting on github.com: repo Settings → Pages → Source = **GitHub Actions**.
 - `tools/build.js` is bbcn's build without the Google Analytics part (this game has no analytics). It was not run locally (this computer has no Node.js); GitHub runs it on every push.
 - This computer has no `gh` CLI; pushing works through Git Credential Manager as `imginova` (same as bbcn).
