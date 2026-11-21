@@ -76,6 +76,13 @@ There's no Node.js or Python on this Windows computer. What worked (2026-11-21):
 - **Simulated playthrough** (fresh save, a simple bot that picks random usable moves, best 5 plants by level, a practice battle after each loss): it finished all 6 chapters. Front Lawn: 0 losses, best plant Lv5; Night: 0, Lv8; Pool: 0, Lv10; Roof: 0, Lv13; Lair: 3 losses (all Dr. Zomboss), Lv15; Time Rift: 0, Lv19. 16 achievements along the way. Bosses with random teams of 5 at a fixed level: Dr. Zomboss 2/6 at Lv13 and 5/6 at Lv15; Tomorrow-tron 4/6 at Lv17. The early chapters are probably easy for a person; coins pile up (about 13,000 by the end, the shop needs about 2,250).
 - **Not checked by a person yet:** how it feels to play, the balance with real decisions, the sounds, the phone layout beyond a look at the battle screen.
 
+## Hosting (the public website)
+
+- **Planned home:** GitHub repository `imginova/pvz-rpg` (public), website https://imginova.github.io/pvz-rpg/ (requested 2026-11-21: "link for browser (or at least to commit on browser)").
+- `.github/workflows/deploy.yml` checks every script, runs `tools/build.js` (which wraps the `index.html` fragment in a real page in `dist/`, gitignored) and, on a push to `main`, deploys `dist/` to GitHub Pages. One-time setting on github.com: repo Settings → Pages → Source = **GitHub Actions**.
+- `tools/build.js` is bbcn's build without the Google Analytics part (this game has no analytics). It was not run locally (this computer has no Node.js); GitHub runs it on every push.
+- This computer has no `gh` CLI; pushing works through Git Credential Manager as `imginova` (same as bbcn).
+
 ## Publishing (the private Artifact link)
 
 Publish `index.html` with every other file in `files` (`style.css` and all 12 `js/*.js`, each mapped to the same path). From a new session, first `read` the artifact URL, then publish with that `url`. The Artifact tool only publishes files inside the session's working folder or its scratchpad: a session started in `C:\git\pvz-rpg` can publish directly; the first publish (from a session in `C:\git\bbcn`) copied the files into the scratchpad first.
