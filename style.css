@@ -31,6 +31,8 @@
   --c-grower: #c497ff;
   --c-zombie: #a9bc9c;
   --c-boss: #ff79c6;
+  --team1: #5ec8ff;       /* versus: Player 1 (left) */
+  --team2: #ff8a9a;       /* versus: Player 2 (right) */
 
   --font-display: 'Silkscreen', 'Courier New', monospace;
   --font-body: 'IBM Plex Mono', ui-monospace, 'Consolas', monospace;
@@ -253,6 +255,24 @@ button.on { border-color: var(--sun); color: var(--sun); }
 .ach .reward { color: var(--sun); font-size: 12px; text-align: right; }
 .gimmick-row { grid-column: 1 / -1; padding: 6px 0; border-bottom: 1px dashed var(--line); }
 
+/* ---- Versus setup and versus battles ---- */
+.team1 { color: var(--team1); } .team2 { color: var(--team2); }
+.vs-opts { display: grid; gap: 6px; margin: 8px 0; }
+.vs-opt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.vs-opt select { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
+.vs-teams { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.vs-team { border: 1px dashed var(--line); border-radius: 6px; padding: 8px 10px; cursor: pointer; min-width: 0; }
+.vs-team.editing { border-style: solid; border-color: currentColor; background: var(--panel); }
+.vs-team-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; }
+.vs-team-btns { display: flex; gap: 6px; margin-left: auto; }
+.vs-slots { display: grid; gap: 4px; }
+.vs-slots .slot { text-align: left; font-size: 13px; padding: 5px 8px; }
+.vs-slots .slot.on { outline: 1px solid currentColor; }
+.vs-go { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.vs-head { font-family: var(--font-display); font-size: 13px; }
+.btop .sun.team1 { color: var(--team1); } .btop .sun.team2 { color: var(--team2); }
+.card.team1 { border-left: 3px solid var(--team1); } .card.team2 { border-left: 3px solid var(--team2); }
+
 /* ---- Toasts ---- */
 .toasts {
   position: fixed; z-index: 30; display: grid; gap: 6px;
@@ -272,6 +292,7 @@ button.on { border-color: var(--sun); color: var(--sun); }
   .card .cname { font-size: 12px; }
   .card .hp, .card .armor { font-size: 10px; }
   .team-layout { grid-template-columns: 1fr; }
+  .vs-teams { grid-template-columns: 1fr; }
   .detail { position: static; }
   .shop-item { grid-template-columns: 1fr auto; }
   .shop-item .spr { display: none; }

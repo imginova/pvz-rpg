@@ -10,12 +10,20 @@
        intelligence: a few simple rules that pick a move and a target).
      - Beat every wave to win. If every plant wilts, you lose.
 
+   VERSUS battles (versus.js) use the same rules with plants on BOTH
+   sides. Then B.versus is set, each side has its own sun and Plant
+   Food, and each side is played by a person or by the versus AI.
+   Checks like "u.side === 'ally'" below mean "your team" in story mode;
+   where a rule should work for both teams in versus, it says
+   "|| B.versus".
+
    Everything about the current fight is in one object, B. This file
    changes B; render.js draws it; screens.js shows the results.
 
    Words used here:
      unit   one plant or zombie in the fight
-     side   'ally' (your team) or 'foe' (the enemies)
+     side   'ally' (your team, or Player 1 in versus) or 'foe' (the
+            enemies, or Player 2 in versus)
      hook   a function in a plant's passive that runs at a set moment
    ===================================================================== */
 
@@ -33,9 +41,10 @@ function later(fn, ms) {
 function makeUnit(kind, id, side, lvl, opts = {}) {
   const data = kind === 'plant' ? PLANTS[id] : ZOMBIES[id];
   const [hp, atk, dfn, spd] = data.stats;
-  const s = statScale(side);
+  // In versus both teams are plants at full strength (opts.versus).
+  const s = opts.versus ? PLANT_STAT_SCALE : statScale(side);
   const u = {
-    uid: ++uidCounter, kind, id, data, side, lvl, name: data.name,
+    uid: ++uidCounter, kind, id, data, side, lvl, name: data.name, scale: s,
     maxHp: Math.round(hp * s), atk: atk * s, dfn, spd,
     armor: 0, armorMax: 0, armorKind: null,
     st: {}, cd: {}, moves: [], flags: {}, boss: !!opts.boss, rogue: !!opts.rogue,
@@ -48,6 +57,7 @@ function makeUnit(kind, id, side, lvl, opts = {}) {
   if (opts.rogue) { u.atk *= ROGUE_ATK; u.name = 'Rogue ' + u.name; }
   u.hp = u.maxHp;
   if (kind === 'zombie') u.moves = data.moves.slice();
+  else if (opts.moves) u.moves = opts.moves.slice();   // a versus team's chosen moves
   else u.moves = side === 'ally' ? equipped(id) : learnedAt(id, lvl);
   return u;
 }
@@ -110,11 +120,29 @@ function pop(u, text, cls) {
 }
 
 // ---- Sun -------------------------------------------------------------------------------
-function gainSun(n, src) {
-  if (src && src.side !== 'ally') return;   // rogue plants don't make you sun
-  B.sun = Math.min(SUN_MAX, B.sun + Math.round(n));
-  if (B.sun >= 500) award('sunhoard');
+// B.suns holds each side's sun: { ally: 50, foe: 0 }. In story mode only
+// your side ever has any. gainSun(n, src) gives it to src's side, or to
+// `side` when no unit made it (the income every round).
+function gainSun(n, src, side = 'ally') {
+  if (src) side = src.side;
+  if (side !== 'ally' && !B.versus) return;   // rogue plants don't make you sun
+  B.suns[side] = Math.min(SUN_MAX, B.suns[side] + Math.round(n));
+  if (side === 'ally' && B.suns.ally >= 500) award('sunhoard');
 }
+
+// How much sun a side starts with (a gimmick like Drought can change it).
+function startSun(gimmicks) {
+  let sun = SUN_START;
+  for (const g of gimmicks) if (GIMMICKS[g].startSun != null) sun = GIMMICKS[g].startSun;
+  return sun;
+}
+
+// Plant Food left for a side: your stock in story mode, a free
+// per-battle amount for each side in versus.
+const foodLeft = side => B.versus ? B.versus.food[side] : side === 'ally' ? progress.plantFood : 0;
+
+// Should this count toward your story stats and achievements? (Never in versus.)
+const mine = u => u.side === 'ally' && !B.versus;
 
 // ---- Damage ------------------------------------------------------------------------------
 const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet: 'helmet', door: 'screen door', mech: 'robot armor', crown: 'knight armor', robo: 'future armor', ladder: 'ladder', pogo: 'pogo stick', ice: 'ice block', boombox: 'boombox', barrel: 'barrel', sarcophagus: 'sarcophagus' };
@@ -140,8 +168,8 @@ function hit(src, t, power, mv = {}) {
     if (guard && guard.hp > 0 && guard !== src && guard !== t) { log(`${guard.name} takes the hit for ${t.name}!`, 'good'); t = guard; }
   }
   // Umbrella Leaf catches lobbed enemy attacks meant for its team, at half damage.
-  if (lob && t.side === 'ally' && src.side === 'foe' && !mv.counter) {
-    const brolly = B.plants.find(p => p.hp > 0 && p.data.passive?.umbrella);
+  if (lob && t.side !== src.side && (t.side === 'ally' || B.versus) && !mv.counter) {
+    const brolly = sideList(t.side).find(p => p.hp > 0 && p.data.passive?.umbrella);
     if (brolly) { if (brolly !== t) log(`${brolly.name} catches it!`, 'good'); t = brolly; mult *= 0.5; }
   }
   const TP = t.data.passive || {};
@@ -155,15 +183,15 @@ function hit(src, t, power, mv = {}) {
   if (single && TP.dodge && chance(TP.dodge)) { log(`${t.name} dodged!`); pop(t, 'DODGE', 'miss'); return 0; }
   if (single && t.st.evade && chance(EVADE_CHANCE)) { log(`${t.name} evades!`); pop(t, 'DODGE', 'miss'); return 0; }
   if (single && straight && TP.dodgeStraight && chance(TP.dodgeStraight)) { log(`${t.name} flies out of the way!`); pop(t, 'DODGE', 'miss'); return 0; }
-  if (single && B.g.has('fog') && src.side === 'ally' && chance(0.15)) { log(`${src.name} missed in the fog.`); pop(t, 'MISS', 'miss'); return 0; }
+  if (single && B.g.has('fog') && (src.side === 'ally' || B.versus) && chance(0.15)) { log(`${src.name} missed in the fog.`); pop(t, 'MISS', 'miss'); return 0; }
 
   // The damage formula (see config.js). Wall-nut's Roll uses defense instead of attack.
-  const atk = mv.useDef ? (src.dfn + 4) * statScale(src.side) : src.atk;
+  const atk = mv.useDef ? (src.dfn + 4) * src.scale : src.atk;
   let dmg = power * (atk / 10) * (DEF_K / (DEF_K + t.dfn));
 
-  // Torchwood sets your straight shots on fire.
+  // Torchwood sets its team's straight shots on fire.
   let torchBurn = false;
-  if (straight && src.side === 'ally' && src.kind === 'plant' && !src.st.hypno && B.plants.some(p => p.hp > 0 && p.data.passive?.torch)) {
+  if (straight && (src.side === 'ally' || B.versus) && src.kind === 'plant' && !src.st.hypno && sideList(src.side).some(p => p.hp > 0 && p.data.passive?.torch)) {
     dmg *= FIRE_BONUS; fire = true; torchBurn = chance(0.3);
   }
 
@@ -205,7 +233,7 @@ function hit(src, t, power, mv = {}) {
     t.armor -= soak; left -= soak;
     if (t.armor <= 0) {
       log(`${t.name}'s ${ARMOR_NAMES[t.armorKind]} broke!`, 'good');
-      if (src.side === 'ally') progress.stats.armorBroken++;
+      if (mine(src)) progress.stats.armorBroken++;
       TP.armorBreak?.(t);
     }
   }
@@ -260,12 +288,13 @@ function fallUnit(u, killer) {
   u.fallen = true;
   u.hp = 0;
   // Citron's Bounty pays out when a marked enemy goes down.
-  if (u.st.bounty) { log(`Bounty collected! +${BOUNTY_SUN} sun.`, 'good'); gainSun(BOUNTY_SUN); }
+  // (It pays the side that placed it: the other side from the one that fell.)
+  if (u.st.bounty) { log(`Bounty collected! +${BOUNTY_SUN} sun.`, 'good'); gainSun(BOUNTY_SUN, null, u.side === 'ally' ? 'foe' : 'ally'); }
   u.st = {};
   u.flags.under = false;
-  if (u.side === 'ally') {
+  if (u.side === 'ally' || B.versus) {
     log(`${u.name} wilted!`, 'bad');
-    B.stats.wilted++;
+    if (u.side === 'ally') B.stats.wilted++;
     for (const a of alliesOf(u)) a.data.passive?.onAllyFall?.(a, u);
   } else {
     log(`${u.name} is defeated!`, 'good');
@@ -330,7 +359,7 @@ function addStatus(t, name, turns, o = {}) {
   if (icy && o.src) turns += o.src.data.passive?.icyBonus || 0;
   if (name === 'burn' && o.src?.data.passive?.scorch) turns += 1;
   if (name === 'chill' && B.g.has('pool')) turns += 1;
-  if (icy && o.src?.side === 'ally' && t.side === 'foe') progress.stats.chilled++;
+  if (icy && o.src && mine(o.src) && t.side === 'foe') progress.stats.chilled++;
   if (t === B.actor) turns += 1;
   t.st[name] = Math.max(t.st[name] || 0, turns);
   if (name === 'stun') t.stunLabel = o.label || 'Stunned';
@@ -361,14 +390,12 @@ function startBattle(enc, chapterIdx, key) {
   B = {
     enc, chapterIdx, key, lvl: enc.lvl,
     g: new Set([ch.gimmick, ...(enc.gimmicks || [])]),
-    wave: 0, round: 0, sun: 0, queue: [], actor: null,
+    wave: 0, round: 0, suns: null, queue: [], actor: null,
     plants: [], foes: [], defeated: [],
     lines: [], fx: [], phase: 'wait', choice: null, allowed: null,
     stats: { wilted: 0, waits: 0 }, moveKills: 0, over: false, speed: B?.speed || 1,
   };
-  // Starting sun: a gimmick can change it.
-  B.sun = SUN_START;
-  for (const g of B.g) if (GIMMICKS[g].startSun != null) B.sun = GIMMICKS[g].startSun;
+  B.suns = { ally: startSun(B.g), foe: 0 };
 
   const team = progress.team.filter(owns).slice(0, MAX_TEAM);
   B.plants = team.map(id => makeUnit('plant', id, 'ally', progress.owned[id].lvl));
@@ -407,6 +434,7 @@ function startRound() {
   let income = SUN_INCOME;
   for (const g of B.g) if (GIMMICKS[g].income != null) income = Math.min(income, GIMMICKS[g].income);
   gainSun(income);
+  if (B.versus) gainSun(income, null, 'foe');   // in versus both sides earn sun
 
   // Gravestones: a zombie climbs out every 3 rounds.
   if (B.g.has('graves') && B.round % 3 === 0) {
@@ -419,10 +447,12 @@ function startRound() {
     const t = pick(allUnits().filter(u => u.hp > 0));
     if (t) zap(t, t.maxHp * 0.12, 'is struck by lightning');
   }
+  // Versus overtime: everyone wilts a little more every round (versus.js).
+  if (B.versus && B.round > VS_OVERTIME_ROUND) versusOvertime();
 
-  // Freezing Wind: a random plant gets chilled.
+  // Freezing Wind: a random plant gets chilled (from either team in versus).
   if (B.g.has('frostwind')) {
-    const t = pick(B.plants.filter(p => p.hp > 0));
+    const t = pick((B.versus ? allUnits() : B.plants).filter(p => p.hp > 0));
     if (t && addStatus(t, 'chill', 1)) log(`A freezing wind chills ${t.name}.`, 'bad');
   }
   // Neon Jams: the music switches every 2 rounds.
@@ -433,7 +463,7 @@ function startRound() {
   }
 
   // Infi-nut rebuilding itself.
-  for (const u of B.plants) {
+  for (const u of allUnits()) {
     if (u.hp <= 0 && u.flags.rebuildAt && B.round >= u.flags.rebuildAt) { u.flags.rebuildAt = null; revive(u, 0.5); }
   }
 
@@ -481,9 +511,12 @@ function beginTurn(u) {
     render();
     return later(() => { u.flags.charging = false; useMove(u, 'z_beam', null); finishTurn(u); }, DELAY_FOE);
   }
-  if (u.side === 'ally' && !u.st.hypno) {
-    // Your turn! Conveyor Belt only lets 2 random moves through.
-    B.allowed = B.g.has('conveyor') ? shuffle(u.moves).slice(0, 2) : null;
+  // Is a person playing this unit? (Your team in story mode; in versus it depends on the side.)
+  const human = B.versus ? B.versus.ctrl[u.side] === 'human' : u.side === 'ally';
+  // Conveyor Belt only lets 2 random moves through (for every plant in versus).
+  B.allowed = B.g.has('conveyor') && (human || B.versus) ? shuffle(u.moves).slice(0, 2) : null;
+  if (human && !u.st.hypno) {
+    // Your turn!
     B.phase = 'player';
     sfx.blip();
     render();
@@ -491,7 +524,9 @@ function beginTurn(u) {
   }
   B.phase = 'enemy';
   render();
-  later(() => { aiAct(u); finishTurn(u); }, DELAY_FOE);
+  // Versus plants use the versus AI (versus.js). A hypnotized plant just
+  // lashes out at its own team with the simple enemy AI, like in story mode.
+  later(() => { if (B.versus && !u.st.hypno) versusAct(u); else aiAct(u); finishTurn(u); }, DELAY_FOE);
 }
 
 function finishTurn(u) {
@@ -515,7 +550,7 @@ function whyNot(u, id) {
   if (B.allowed && !B.allowed.includes(id)) return 'Not on the belt';
   if (u.cd[id]) return mv.cd >= ONCE_PER_BATTLE ? 'Used this battle' : `Ready in ${u.cd[id]}`;
   if (u.st.silence && !mv.power) return 'Silenced';
-  if (!u.st.fed && B.sun < mv.cost) return 'Not enough sun';
+  if (!u.st.fed && B.suns[u.side] < mv.cost) return 'Not enough sun';
   const t = validTargets(u, mv);
   if (t && !t.length) return mv.target === 'fallen' ? 'Nobody wilted' : 'No target';
   return null;
@@ -524,12 +559,13 @@ function whyNot(u, id) {
 function useMove(u, id, chosen) {
   const mv = MOVES[id];
   const P = u.data.passive || {};
-  const fed = u.side === 'ally' && !!u.st.fed;
+  const pays = u.side === 'ally' || B.versus;   // story enemies never pay sun
+  const fed = pays && !!u.st.fed;
   const boost = fed ? 2 : 1;
-  if (u.side === 'ally' && !u.st.hypno) B.sun -= fed ? 0 : mv.cost;
+  if (pays && !u.st.hypno) B.suns[u.side] -= fed ? 0 : mv.cost;
   if (fed) { delete u.st.fed; log('Plant Food! Double power!', 'good'); }
   // Enemies don't pay sun, so their sun moves get a cooldown of at least 2 instead.
-  const cd = Math.max(mv.cd || 0, u.side === 'foe' && mv.cost ? 2 : 0);
+  const cd = Math.max(mv.cd || 0, !pays && mv.cost ? 2 : 0);
   if (cd) u.cd[id] = cd + 1;
 
   log(`${u.name} used ${mv.name}!`, u.side === 'ally' ? 'move' : 'foe');
@@ -646,7 +682,7 @@ function playerTarget(uid) {
 function playerWait() {
   if (B?.phase !== 'player') return;
   B.stats.waits++;
-  gainSun(WAIT_SUN);
+  gainSun(WAIT_SUN, B.actor);
   log(`${B.actor.name} soaks up the sun (+${WAIT_SUN}).`);
   B.phase = 'acting';
   finishTurn(B.actor);
@@ -654,9 +690,9 @@ function playerWait() {
 
 // Plant Food doesn't use up the turn: it powers up the plant's next move.
 function playerFeed() {
-  if (B?.phase !== 'player' || progress.plantFood <= 0 || B.actor.st.fed) return;
-  progress.plantFood--;
-  saveProgress();
+  if (B?.phase !== 'player' || foodLeft(B.actor.side) <= 0 || B.actor.st.fed) return;
+  if (B.versus) B.versus.food[B.actor.side]--;   // versus Plant Food is free and never touches your save
+  else { progress.plantFood--; saveProgress(); }
   B.actor.st.fed = 1;
   log(`${B.actor.name} ate Plant Food! Its next move is free and twice as strong.`, 'good');
   sfx.sun();
@@ -707,6 +743,13 @@ function aiAct(u) {
 // ---- Winning and losing --------------------------------------------------------------------------
 function checkEnd() {
   if (B.over) return true;
+  // Versus: the last team with a plant standing wins (both gone at once is a draw).
+  if (B.versus) {
+    const p1 = B.plants.some(p => p.hp > 0), p2 = B.foes.some(p => p.hp > 0);
+    if (p1 && p2) return false;
+    endVersus(p1 ? 'ally' : p2 ? 'foe' : null);
+    return true;
+  }
   if (B.plants.every(p => p.hp <= 0)) { loseBattle(); return true; }
   if (B.foes.every(f => f.hp <= 0)) {
     if (B.wave < B.enc.waves.length - 1) {

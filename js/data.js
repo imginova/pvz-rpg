@@ -413,7 +413,7 @@ const MOVES = {
   // ---- Zombies from across the series ----
   z_wrap:       { name: 'Mummy Wrap', cd: 3, target: 'foe', power: 5, status: ['stun', 1, 1], label: 'Wrapped', w: 2 },
   z_torch:      { name: 'Torch Swing', target: 'foe', power: 10, special: torchSwing },
-  z_sunsteal:   { name: 'Sun Steal', cd: 2, target: 'self', special: sunSteal, can: () => B.sun > 0, w: 3 },
+  z_sunsteal:   { name: 'Sun Steal', cd: 2, target: 'self', special: sunSteal, can: u => B.suns[u.side === 'ally' ? 'foe' : 'ally'] > 0, w: 3 },
   z_piano:      { name: 'Piano Smash', target: 'foe', power: 12 },
   z_ragtime:    { name: 'Ragtime', cd: 3, target: 'allies', status: ['power', 2, 1], w: 2 },
   z_swing:      { name: 'Rope Swing', cd: 3, target: 'foe', power: 12, vault: true, ai: 'back', w: 3 },
@@ -467,8 +467,9 @@ function torchSwing(u, targets) {
 
 // Ra Zombie: takes sun from you. You get it all back when it's defeated.
 function sunSteal(u) {
-  const n = Math.min(25, B.sun);
-  B.sun -= n;
+  const from = u.side === 'ally' ? 'foe' : 'ally';
+  const n = Math.min(25, B.suns[from]);
+  B.suns[from] -= n;
   u.flags.stolen = (u.flags.stolen || 0) + n;
   log(`${u.name} stole ${n} sun!`, 'bad');
 }
@@ -519,7 +520,7 @@ function devour(u, targets, boost) {
     log(`${u.name} swallowed ${t.name} whole!`, 'good');
     t.hp = 0;
     fallUnit(t, u);
-    if (u.side === 'ally') progress.stats.devoured++;
+    if (mine(u)) progress.stats.devoured++;
     if (u.data.passive?.onDevour) u.data.passive.onDevour(u);
   } else {
     log(`${t.name} is too big to swallow!`);
@@ -533,7 +534,7 @@ function snatch(u, targets) {
   const t = targets[0];
   if (!t || t.hp <= 0) return;
   // Bungee Zombies are lobbed in, so an Umbrella Leaf bounces them off.
-  if (t.side === 'ally' && B.plants.some(p => p.hp > 0 && p.data.passive?.umbrella)) { log(`${u.name} bounces off the umbrella!`, 'good'); return; }
+  if ((t.side === 'ally' || B.versus) && sideList(t.side).some(p => p.hp > 0 && p.data.passive?.umbrella)) { log(`${u.name} bounces off the umbrella!`, 'good'); return; }
   for (const s of ['shield', 'power', 'guard', 'taunt', 'thorns', 'fed']) delete t.st[s];
   log(`${u.name} snatched ${t.name}'s buffs!`, 'bad');
   addStatus(t, 'stun', 1, { label: 'Snatched' });
@@ -571,9 +572,9 @@ function garlicBulb(u) {
 
 // Sunflower's Solar Flare: turns all your saved-up sun into damage.
 function solarFlare(u) {
-  const spent = B.sun;
+  const spent = B.suns[u.side];
   if (spent < 10) return log('Not enough sun to flare!');
-  B.sun = 0;
+  B.suns[u.side] = 0;
   log(`${u.name} spends ${spent} sun on a SOLAR FLARE!`, 'good');
   for (const f of foesOf(u)) hit(u, f, spent / 10, { aoe: true, fire: true });
 }
@@ -601,7 +602,7 @@ function megaChomp(u, targets) {
     log(`${u.name} swallows ${t.name} in one MEGA CHOMP!`, 'good');
     t.hp = 0;
     fallUnit(t, u);
-    if (u.side === 'ally') progress.stats.devoured++;
+    if (mine(u)) progress.stats.devoured++;
     u.data.passive?.onDevour?.(u);
   } else {
     log(`${t.name} is too big even for a Mega Chomp!`);
@@ -699,7 +700,7 @@ function ripMetal(u, t, amount) {
   if (t.armor <= 0) {
     u.flags.metal = (u.flags.metal || 0) + 1;
     log(`${u.name} pulls off ${t.name}'s ${ARMOR_NAMES[t.armorKind]}!`, 'good');
-    if (u.side === 'ally') progress.stats.armorBroken++;
+    if (mine(u)) progress.stats.armorBroken++;
     t.data.passive?.armorBreak?.(t);
   }
   return true;
@@ -939,7 +940,7 @@ const PLANTS = {
     name: 'Hypno-shroom', cls: 'grower', shroom: true, stats: [58, 8, 5, 13],
     passive: {
       name: 'Mesmerize', desc: 'Zombies that hit it have a 30% chance to be hypnotized for a turn (not bosses).',
-      onHurt(u, src) { if (src && src.kind === 'zombie' && src.hp > 0 && !src.boss && chance(0.3)) addStatus(src, 'hypno', 1); },
+      onHurt(u, src) { if (src && (src.kind === 'zombie' || B.versus) && src.side !== u.side && src.hp > 0 && !src.boss && chance(0.3)) addStatus(src, 'hypno', 1); },
     },
     learn: [['hyp_swirl', 1], ['hyp_hypno', 1], ['puff_cloud', 2], ['hyp_trance', 4], ['hyp_dazzle', 6], ['hyp_calm', 8], ['hyp_mass', 10]],
     unlock: { how: 'rogue' }, flavor: 'Look into its eyes...',

@@ -76,6 +76,13 @@ const ROGUE_ATK = 1.15;    // ...and 15% more attack
 const PLANT_FOOD_MAX = 5;
 const PLANT_FOOD_PRICE = 60;
 
+// ---- Versus (plants vs plants, versus.js) ------------------------------
+// Two tanky teams that heal and shield can stall forever, so versus has
+// OVERTIME: after this round, every plant wilts a little each round, more
+// every round (4% of max HP in the first overtime round, 8% in the second...).
+const VS_OVERTIME_ROUND = 30;
+const VS_OVERTIME_PART = 0.04;
+
 // ---- Speed of the battle animation (milliseconds) ---------------------
 const DELAY_FOE = 700;     // pause before an enemy acts
 const DELAY_NEXT = 300;    // pause between turns

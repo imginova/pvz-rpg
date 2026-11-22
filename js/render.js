@@ -43,8 +43,17 @@ function unitTags(u) {
   return tags.join('');
 }
 
+// Does Fog hide this unit's health? In story mode it hides the zombies'.
+// In versus it hides the AI's team when one person plays against it.
+function fogHides(u) {
+  if (!B.g.has('fog')) return false;
+  if (!B.versus) return u.side === 'foe';
+  const c = B.versus.ctrl;
+  return c[u.side] === 'ai' && c[u.side === 'ally' ? 'foe' : 'ally'] === 'human';
+}
+
 function cardHtml(u) {
-  const fog = B.g.has('fog') && u.side === 'foe';
+  const fog = fogHides(u);
   const targets = B.choice ? validTargets(B.actor, MOVES[B.choice]) : null;
   const isTarget = targets && targets.includes(u);
   const cls = ['card', unitColor(u)];
@@ -52,6 +61,7 @@ function cardHtml(u) {
   if (B.actor === u) cls.push('active');
   if (isTarget) cls.push('target');
   if (u.rogue) cls.push('rogue');
+  if (B.versus) cls.push(u.side === 'ally' ? 'team1' : 'team2');
   if (u.flags.under) cls.push('under');
   if (B.inspect === u.uid) cls.push('inspected');
 
@@ -93,7 +103,7 @@ function moveButton(u, id, n) {
 function inspectHtml() {
   const u = B.inspect && unitById(B.inspect);
   if (!u) return '';
-  const fog = B.g.has('fog') && u.side === 'foe';
+  const fog = fogHides(u);
   const p = u.data.passive;
   const about = u.kind === 'plant'
     ? `${CLASSES[u.data.cls].name}. <b>${esc(p.name)}:</b> ${esc(p.desc)}`
@@ -102,23 +112,35 @@ function inspectHtml() {
   return `<div class="inspect"><b>${esc(u.name)}</b> Lv${u.lvl} · ATK ${Math.round(u.atk)} · DEF ${u.dfn} · SPD ${Math.round(effSpeed(u))}${fog ? '' : ` · HP ${u.hp}/${u.maxHp}`}<br>${about}</div>`;
 }
 
+// In versus, "Player 1 · " in that team's color before a name.
+const sideTag = side => B.versus ? `<b class="${side === 'ally' ? 'team1' : 'team2'}">${esc(vsName(side))}</b> · ` : '';
+
 function render() {
   if (!B || currentScreen !== 'battle') return;
-  const ch = CHAPTERS[B.chapterIdx];
 
   // ---- Top bar ----
   const chips = [...B.g].map(g => `<span class="chip" title="${esc(GIMMICKS[g].desc)}">${esc(GIMMICKS[g].name)}</span>`).join('');
-  setHtml($('bTop'), `
-    <span class="bname">${esc(B.enc.name)} <span class="dim">· ${esc(ch.name)}</span></span>
+  if (B.versus) setHtml($('bTop'), `
+    <span class="bname">Versus <span class="dim">· ${esc(vsName('ally'))} vs ${esc(vsName('foe'))}</span></span>
+    <span>Round ${B.round}</span>
+    <span class="sun team1">${esc(vsName('ally'))} &#9728; ${B.suns.ally}</span>
+    <span class="sun team2">${esc(vsName('foe'))} &#9728; ${B.suns.foe}</span>
+    <span class="chips">${chips}</span>
+    <button type="button" class="small" id="btnSpeed">${B.speed > 1 ? 'Fast' : 'Normal'} speed</button>
+    <button type="button" class="small" id="btnFlee">Quit</button>`);
+  else setHtml($('bTop'), `
+    <span class="bname">${esc(B.enc.name)} <span class="dim">· ${esc(CHAPTERS[B.chapterIdx].name)}</span></span>
     <span>Wave ${B.wave + 1}/${B.enc.waves.length} · Round ${B.round}</span>
-    <span class="sun">&#9728; ${B.sun}</span>
+    <span class="sun">&#9728; ${B.suns.ally}</span>
     <span class="chips">${chips}</span>
     <button type="button" class="small" id="btnSpeed">${B.speed > 1 ? 'Fast' : 'Normal'} speed</button>
     <button type="button" class="small" id="btnFlee">Run away</button>`);
 
   // ---- The field ----
-  setHtml($('bAllies'), B.plants.map(cardHtml).join(''));
-  setHtml($('bFoes'), B.foes.map(cardHtml).join(''));
+  // In versus each column gets a heading saying whose team it is.
+  const head = side => B.versus ? `<div class="vs-head ${side === 'ally' ? 'team1' : 'team2'}">${esc(vsName(side))}</div>` : '';
+  setHtml($('bAllies'), head('ally') + B.plants.map(cardHtml).join(''));
+  setHtml($('bFoes'), head('foe') + B.foes.map(cardHtml).join(''));
 
   // ---- The move panel ----
   let panel = '';
@@ -127,18 +149,22 @@ function render() {
     const p = u.data.passive;
     const head = B.choice
       ? `<div class="phead">Choose a target for <b>${esc(MOVES[B.choice].name)}</b> <button type="button" class="small" id="btnCancel">Cancel (Esc)</button></div>`
-      : `<div class="phead"><b class="${CLASSES[u.data.cls].color}">${esc(u.name)}</b>'s turn <span class="dim">· ${esc(p.name)}: ${esc(p.desc)}</span></div>`;
+      : `<div class="phead">${sideTag(u.side)}<b class="${CLASSES[u.data.cls].color}">${esc(u.name)}</b>'s turn <span class="dim">· ${esc(p.name)}: ${esc(p.desc)}</span></div>`;
     const fed = u.st.fed ? '<span class="tag good">FED: next move free, x2</span>' : '';
+    const food = foodLeft(u.side);
+    // Versus with Plant Food switched off has no Plant Food button at all.
+    const feedBtn = B.versus && !B.versus.foodMax ? ''
+      : `<button type="button" id="btnFeed" ${food > 0 && !u.st.fed ? '' : 'disabled'}><kbd>F</kbd> Plant Food (${food})</button>`;
     panel = `${head}
       <div class="moves">${u.moves.map((id, i) => moveButton(u, id, i + 1)).join('')}</div>
       <div class="extras">
         <button type="button" id="btnWait"><kbd>5</kbd> Soak up sun (+${WAIT_SUN})</button>
-        <button type="button" id="btnFeed" ${progress.plantFood > 0 && !u.st.fed ? '' : 'disabled'}><kbd>F</kbd> Plant Food (${progress.plantFood})</button>
+        ${feedBtn}
         ${fed}
         ${B.allowed ? '<span class="tag">CONVEYOR: 2 moves this turn</span>' : ''}
       </div>`;
   } else if (B.phase === 'enemy' && u) {
-    panel = `<div class="phead"><b class="${unitColor(u)}">${esc(u.name)}</b> is up...</div>`;
+    panel = `<div class="phead">${sideTag(u.side)}<b class="${unitColor(u)}">${esc(u.name)}</b> is up...</div>`;
   } else {
     panel = '<div class="phead dim">...</div>';
   }

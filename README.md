@@ -1,6 +1,6 @@
 # Lawn Legends
 
-A free **Plants vs. Zombies fan RPG** you play in the browser: turn-based battles drawn in ASCII art, an overworld you walk around, a story with six chapters, a team of five plants with their own abilities and customizable moves, battle gimmicks, rogue plants to recruit, a shop and achievements.
+A free **Plants vs. Zombies fan RPG** you play in the browser: turn-based battles drawn in ASCII art, an overworld you walk around, a story with six chapters, a team of five plants with their own abilities and customizable moves, battle gimmicks, rogue plants to recruit, a shop, achievements, and a versus mode where plants fight plants.
 
 *Not affiliated with PopCap Games or Electronic Arts. Plants vs. Zombies belongs to them. All the art, sounds and writing here are original.*
 
@@ -18,6 +18,7 @@ Your progress is saved in your browser, so you can close it and come back later.
 - **Sun** is shared by the team and refills every round. Big moves cost sun.
 - **Click any zombie** in a battle to see what it does and **how to beat it**.
 - On the **Team** screen, pick up to 5 plants and choose 4 moves for each.
+- **Versus** (on the title screen): two teams of plants fight each other. Play against the computer (Easy, Normal or Hard), against a friend on the same computer, or watch the computer play itself. Every plant is unlocked there, and it never changes your story save.
 
 The game's own "How to play" button explains the rest.
 
@@ -39,6 +40,7 @@ The game is split into files by job, so each file is small enough to read:
 | `js/battle.js` | The battle rules |
 | `js/render.js` | Draws the battle screen |
 | `js/screens.js` | Every other screen: title, map, team, shop, almanac |
+| `js/versus.js` | Versus mode: its setup screen, starting and ending versus battles, and the versus AI |
 | `js/input.js` | Mouse clicks and keys |
 | `js/main.js` | Starts the game |
 
