@@ -13,7 +13,7 @@ Your progress is saved in your browser, so you can close it and come back later.
 ## How to play
 
 - **Walk** with the arrow keys, WASD, or the on-screen arrows.
-- **Walk into a zombie** to start a battle. Walk into Crazy Dave (`D`) to shop, practice or get tips.
+- **Walk into a zombie** to start a battle. Once you beat a world's boss, its beaten battles show up as dim letters: step on one to fight it again for XP and coins. Walk into Crazy Dave (`D`) to shop, practice or get tips.
 - In battle, each plant gets a turn. Click a move (or press `1`-`4`), then click who to use it on.
 - **Sun** is shared by the team and refills every round. Big moves cost sun.
 - **Click any zombie** in a battle to see what it does and **how to beat it**.

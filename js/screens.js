@@ -135,13 +135,17 @@ function tileLook(x, y) {
   const enc = ch.enc[c];
   const floor = ch.gimmick === 'roof' ? (ch.id === 'lair' ? '_' : '^') : '.';
   if (enc) {
-    if (progress.cleared[encKey(i, c)]) return [floor, TILE_STYLE[floor]];
-    if (enc.kind === 'secret') return ['T', 't-tree'];   // shh, it looks like a tree
-    if (enc.kind === 'boss') return ['B', 'k-boss' + (bossReady(i) ? ' ready' : '')];
-    if (enc.kind === 'rogue') return ['R', 'k-rogue'];
-    if (enc.kind === 'hero') return ['S', 'k-boss'];
-    if (enc.kind === 'key') return ['Z', 'k-key'];
-    return ['z', 'k-zom'];
+    // A beaten battle is just floor, until the chapter's boss is beaten:
+    // then it comes back, drawn dim, and you can refight it (see moveWorld).
+    const done = progress.cleared[encKey(i, c)];
+    if (done && !bossBeaten(i)) return [floor, TILE_STYLE[floor]];
+    const dim = done ? ' k-done' : '';
+    if (enc.kind === 'secret') return done ? ['Y', 'k-boss' + dim] : ['T', 't-tree'];   // shh, it looks like a tree
+    if (enc.kind === 'boss') return ['B', 'k-boss' + (bossReady(i) && !done ? ' ready' : '') + dim];
+    if (enc.kind === 'rogue') return ['R', 'k-rogue' + dim];
+    if (enc.kind === 'hero') return ['S', 'k-boss' + dim];
+    if (enc.kind === 'key') return ['Z', 'k-key' + dim];
+    return ['z', 'k-zom' + dim];
   }
   if (c === 'D') return ['D', 'k-dave'];
   if (c === 'C') return progress.chests[`${ch.id}:${x},${y}`] ? [floor, TILE_STYLE[floor]] : ['C', 'k-chest'];
@@ -171,7 +175,8 @@ function renderWorld() {
 
   const left = Object.keys(ch.enc).filter(c => !['boss', 'secret'].includes(ch.enc[c].kind) && !progress.cleared[encKey(i, c)]).length;
   $('worldHint').textContent = bossBeaten(i)
-    ? (i === CHAPTERS.length - 1 ? 'You beat Dr. Zomboss! Keep battling to level up and collect every plant.' : 'Boss beaten! Walk to the gate (G) to go on.')
+    ? (i === CHAPTERS.length - 1 ? 'You beat Tomorrow-tron! Keep battling to level up and collect every plant.' : 'Boss beaten! Walk to the gate (G) to go on.')
+      + ' Dim letters are battles you can fight again: step on one.'
     : left ? `${left} battle${left > 1 ? 's' : ''} left before the boss. Battle: ${GIMMICKS[ch.gimmick].name} (${GIMMICKS[ch.gimmick].desc})`
       : 'The boss (B) is ready for you.';
 
@@ -205,6 +210,10 @@ function moveWorld(dx, dy) {
   saveProgress();
   sfx.step();
   renderWorld();
+  // Stepping onto a beaten battle in a beaten chapter offers a rematch
+  // (owner, 2026-11-22: "once you beat a world you can infinitely refight
+  // the zombies there"). "Not yet" just leaves you standing there.
+  if (enc && bossBeaten(i)) openPrebattle(enc, i, encKey(i, c));
 }
 
 function openChest(x, y) {
@@ -257,7 +266,7 @@ const DAVE_TIPS = [
   'Click a zombie in battle to read what it does.',
   'Plant Food makes the next move free AND twice as strong. Save it for the big ones!',
   'I once saw something furry hiding behind a tree in my backyard. At night. Probably nothing.',
-  'Some achievements are secret. Try weird teams! All nuts? All sunshine?',
+  'Some achievements want weird teams. All nuts? All sunshine? Check the list!',
 ];
 
 function daveMenu() {
@@ -289,12 +298,15 @@ function enemyName(spec) {
 function openPrebattle(enc, chapterIdx, key) {
   pendingFight = { enc, chapterIdx, key };
   const g = [CHAPTERS[chapterIdx].gimmick, ...(enc.gimmicks || [])];
+  // A rematch: a story battle you've already won (it gives XP and coins
+  // again, but not the first-win prize).
+  const rematch = key && progress.cleared[key];
   const team = progress.team.filter(owns);
   const reward = enc.reward && key && !progress.cleared[key]
     ? `<p>First win: ${enc.reward.plant ? `<b class="${CLASSES[PLANTS[enc.reward.plant].cls].color}">${esc(PLANTS[enc.reward.plant].name)}</b>` : ''}${enc.reward.coins ? ` <span class="coins">$${enc.reward.coins}</span>` : ''}</p>` : '';
   $('preBox').innerHTML = `
-    <h2>${esc(enc.name)}</h2>
-    <p class="dim">Enemy level ${enc.lvl}</p>
+    <h2>${rematch ? 'Rematch: ' : ''}${esc(enc.name)}</h2>
+    <p class="dim">Enemy level ${enc.lvl}${rematch ? ' · XP and coins as usual, no first-win prize' : ''}</p>
     <div class="gimmick-list">${g.map(id => `<div><span class="chip">${esc(GIMMICKS[id].name)}</span> ${esc(GIMMICKS[id].desc)}</div>`).join('')}</div>
     <h3>Enemies</h3>
     ${enc.waves.map((w, n) => `<p>Wave ${n + 1}: ${w.map(s => esc(enemyName(s))).join(', ')}</p>`).join('')}
@@ -535,13 +547,12 @@ function renderAch() {
   $('achList').innerHTML = ids.map(id => {
     const a = ACHIEVEMENTS[id];
     const got = progress.ach[id];
-    const hide = a.secret && !got;
     const reward = a.reward.plant ? `Unlocks ${PLANTS[a.reward.plant].name}` : `$${a.reward.coins}`;
     return `<div class="ach ${got ? 'got' : ''}">
       <span class="mark">${got ? '[&#10003;]' : '[ ]'}</span>
-      <div><b>${hide ? '??? (secret)' : esc(a.name)}</b>${got ? ` <span class="dim">${esc(got)}</span>` : ''}<br>
-      <span class="dim">${hide ? 'Keep playing in odd ways to find it.' : esc(a.desc)}</span></div>
-      <span class="reward">${hide ? '' : esc(reward)}</span>
+      <div><b>${esc(a.name)}</b>${got ? ` <span class="dim">${esc(got)}</span>` : ''}<br>
+      <span class="dim">${esc(a.desc)}</span></div>
+      <span class="reward">${esc(reward)}</span>
     </div>`;
   }).join('');
 }

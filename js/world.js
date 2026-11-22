@@ -351,8 +351,10 @@ const TILE_STYLE = {
 const SHOP_PLANTS = PLANT_ORDER.filter(id => PLANTS[id].unlock.how === 'shop');
 
 /* ---- Achievements ------------------------------------------------------------------
-   secret: the name and description stay hidden ("???") until you earn it.
-   reward: { coins } or { plant }. The tough ones and a few secret ones
+   Every achievement shows its name and how to earn it. (A few used to be
+   secret, hidden as "???" until earned; the owner asked on 2026-11-22
+   for them to be shown like the rest.)
+   reward: { coins } or { plant }. The tough ones and a few others
    unlock plants (see the plants' unlock in data.js).
    The checks themselves happen in battle.js and save.js, which call
    award('id') when something is done.
@@ -378,11 +380,11 @@ const ACHIEVEMENTS = {
   purebreed:   { name: 'Pure Breed', desc: 'TOUGH: Win a story battle with 5 plants that are all the same class.', reward: { coins: 300 } },
   seedvault:   { name: 'Seed Vault', desc: 'TOUGH: Own 20 different plants.', reward: { plant: 'cactus' } },
   almanac:     { name: 'Almanac Complete', desc: 'TOUGH: Own every plant.', reward: { coins: 1000 } },
-  yeti:        { name: 'Abominable', desc: 'Defeat the Zombie Yeti hiding in the backyard.', secret: true, reward: { coins: 200 } },
-  nuts:        { name: 'Nuts About Nuts', desc: 'Win a battle where every plant on your team is Hearty.', secret: true, reward: { coins: 200 } },
-  sunnyside:   { name: 'Sunny Side Up', desc: 'Win a battle using only Sunny plants.', secret: true, reward: { plant: 'goldbloom' } },
-  overkill:    { name: 'Overkill', desc: 'Deal 150 damage with a single hit.', secret: true, reward: { coins: 200 } },
-  lazy:        { name: 'Lazy Gardener', desc: 'Soak up sun 5 times in one battle and still win.', secret: true, reward: { coins: 150 } },
+  yeti:        { name: 'Abominable', desc: 'Defeat the Zombie Yeti hiding in the backyard.', reward: { coins: 200 } },
+  nuts:        { name: 'Nuts About Nuts', desc: 'Win a battle where every plant on your team is Hearty.', reward: { coins: 200 } },
+  sunnyside:   { name: 'Sunny Side Up', desc: 'Win a battle using only Sunny plants.', reward: { plant: 'goldbloom' } },
+  overkill:    { name: 'Overkill', desc: 'Deal 150 damage with a single hit.', reward: { coins: 200 } },
+  lazy:        { name: 'Lazy Gardener', desc: 'Soak up sun 5 times in one battle and still win.', reward: { coins: 150 } },
   stormchaser: { name: 'Storm Chaser', desc: 'TOUGH: Win a Storm battle without any plant wilting.', reward: { plant: 'lightningreed' } },
   scrapper:    { name: 'Scrap Collector', desc: 'Break 30 pieces of zombie armor.', reward: { plant: 'magnetshroom' } },
   dunk:        { name: 'Rejected!', desc: 'Defeat 10 Catapult Zombies.', reward: { plant: 'umbrellaleaf' } },
