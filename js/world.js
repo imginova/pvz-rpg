@@ -383,4 +383,7 @@ const ACHIEVEMENTS = {
   sunnyside:   { name: 'Sunny Side Up', desc: 'Win a battle using only Sunny plants.', secret: true, reward: { plant: 'goldbloom' } },
   overkill:    { name: 'Overkill', desc: 'Deal 150 damage with a single hit.', secret: true, reward: { coins: 200 } },
   lazy:        { name: 'Lazy Gardener', desc: 'Soak up sun 5 times in one battle and still win.', secret: true, reward: { coins: 150 } },
+  stormchaser: { name: 'Storm Chaser', desc: 'TOUGH: Win a Storm battle without any plant wilting.', reward: { plant: 'lightningreed' } },
+  scrapper:    { name: 'Scrap Collector', desc: 'Break 30 pieces of zombie armor.', reward: { plant: 'magnetshroom' } },
+  dunk:        { name: 'Rejected!', desc: 'Defeat 10 Catapult Zombies.', reward: { plant: 'umbrellaleaf' } },
 };

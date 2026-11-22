@@ -48,7 +48,12 @@ const WEAK_MULT = 0.7;     // "Weak" status: 30% less damage
 const GUARD_MULT = 0.6;    // "Guard" status: 40% less damage taken
 const THORNS_PART = 0.3;   // "Thorns" status: 30% of damage bounces back
 const CHILL_SPEED = 0.5;   // "Chill" status: half speed
-const BOSS_RESIST = 0.5;   // bosses shrug off stuns and freezes half the time
+const BOSS_RESIST = 0.5;   // bosses shrug off stuns, freezes and sleep half the time
+const MARK_MULT = 1.3;     // "Marked" status: takes 30% more damage
+const EVADE_CHANCE = 0.5;  // "Evade" status: dodges half of the attacks aimed at it
+const REGEN_PART = 0.08;   // "Regen" status: heals 8% of max HP each turn
+const COUNTER_POWER = 12;  // "Counter" status: the power of the hit back
+const BOUNTY_SUN = 50;     // Citron's Bounty: sun for defeating the marked enemy
 
 // ---- Between waves and after battles ----------------------------------
 const WAVE_HEAL = 0.2;     // plants heal 20% of max HP between waves

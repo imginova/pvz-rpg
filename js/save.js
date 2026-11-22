@@ -11,12 +11,21 @@
    is and written back. If a saved move or plant no longer exists, it is
    just skipped when the game USES it (see equipped()), but it stays in
    the save. That way an older or newer version can't erase progress.
+
+   THE ONE EXCEPTION is SAVE_VERSION. The owner can ask for a full reset:
+   then SAVE_VERSION goes up by one, and a save from an older version is
+   deleted on load so everyone starts over. That happened once, on
+   2026-11-21 (version 1 to 2, on request: "have this update reset all
+   progress", "wipe completely"). Never raise it without being asked.
    ===================================================================== */
+
+const SAVE_VERSION = 2;
 
 const STARTERS = PLANT_ORDER.filter(id => PLANTS[id].unlock.how === 'start');
 
 function defaultProgress() {
   return {
+    version: SAVE_VERSION,
     owned: {},           // { plantId: { lvl, xp, moves: [move ids] } }
     team: STARTERS.slice(),
     coins: 0,
@@ -29,14 +38,19 @@ function defaultProgress() {
     ach: {},             // { achievementId: date earned }
     seen: {},            // { zombieId: true } zombies met (for the Almanac)
     introSeen: {},       // { lawn: true } chapter intros already shown
-    stats: { chilled: 0, devoured: 0, spent: 0, wins: 0, battles: 0 },
+    stats: { chilled: 0, devoured: 0, spent: 0, wins: 0, battles: 0, armorBroken: 0, catapults: 0 },
   };
 }
 
 // Load the save and fill in anything missing with the defaults.
 function loadProgress() {
   const p = defaultProgress();
-  const saved = store.get('save', null);
+  let saved = store.get('save', null);
+  // A save from before the last full reset is deleted (see SAVE_VERSION).
+  if (saved && typeof saved === 'object' && (saved.version || 1) < SAVE_VERSION) {
+    store.remove('save');
+    saved = null;
+  }
   if (saved && typeof saved === 'object') {
     for (const key in saved) {
       // Objects are merged key by key (so new counters get a default),

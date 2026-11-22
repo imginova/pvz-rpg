@@ -123,16 +123,33 @@ const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet
 function hit(src, t, power, mv = {}) {
   if (!t || t.hp <= 0) return 0;
   const P = src.data.passive || {};
-  const TP = t.data.passive || {};
   const lob = isLob(src, mv);
   const straight = !!mv.straight && !lob;
   const pierce = mv.pierce || P.pierceAll;
-  let fire = !!mv.fire;
+  let fire = !!mv.fire || !!src.st.fiery;
+  const aimed = !mv.aoe && !mv.counter;   // aimed at this one unit
+  let mult = 1;
+
+  // Protectors step in front of attacks aimed at one ally ("Block for You").
+  if (aimed && t.st.cover) {
+    const guard = unitById(t.coverBy);
+    if (guard && guard.hp > 0 && guard !== src && guard !== t) { log(`${guard.name} takes the hit for ${t.name}!`, 'good'); t = guard; }
+  }
+  // Umbrella Leaf catches lobbed enemy attacks meant for its team, at half damage.
+  if (lob && t.side === 'ally' && src.side === 'foe' && !mv.counter) {
+    const brolly = B.plants.find(p => p.hp > 0 && p.data.passive?.umbrella);
+    if (brolly) { if (brolly !== t) log(`${brolly.name} catches it!`, 'good'); t = brolly; mult *= 0.5; }
+  }
+  const TP = t.data.passive || {};
+
+  // A blinded attacker's next aimed attack misses.
+  if (aimed && src.st.blind) { delete src.st.blind; log(`${src.name} can't see and misses!`, 'good'); pop(t, 'MISS', 'miss'); return 0; }
 
   // Dodges and fog misses only happen to attacks aimed at one unit.
-  const single = !mv.aoe && !mv.counter && !mv.sure;
+  const single = aimed && !mv.sure;
   if (single && t.st.invuln) { log(`The rainbow protects ${t.name}!`); pop(t, 'BLOCKED', 'miss'); return 0; }
   if (single && TP.dodge && chance(TP.dodge)) { log(`${t.name} dodged!`); pop(t, 'DODGE', 'miss'); return 0; }
+  if (single && t.st.evade && chance(EVADE_CHANCE)) { log(`${t.name} evades!`); pop(t, 'DODGE', 'miss'); return 0; }
   if (single && straight && TP.dodgeStraight && chance(TP.dodgeStraight)) { log(`${t.name} flies out of the way!`); pop(t, 'DODGE', 'miss'); return 0; }
   if (single && B.g.has('fog') && src.side === 'ally' && chance(0.15)) { log(`${src.name} missed in the fog.`); pop(t, 'MISS', 'miss'); return 0; }
 
@@ -151,6 +168,10 @@ function hit(src, t, power, mv = {}) {
   if (src.st.weak) dmg *= WEAK_MULT;
   if (t.st.guard) dmg *= GUARD_MULT;
   if (t.st.sheep) dmg *= 1.3;
+  if (t.st.marked) dmg *= MARK_MULT;
+  // Finishing moves (Squash's "Hmm...") hit much harder on badly hurt enemies.
+  if (mv.execute && t.hp < t.maxHp * 0.4) dmg *= mv.execute;
+  dmg *= mult;
 
   // Battle gimmicks.
   if (src.data.shroom) dmg *= B.g.has('night') ? 1.3 : B.g.has('day') ? 0.85 : 1;
@@ -178,6 +199,7 @@ function hit(src, t, power, mv = {}) {
     t.armor -= soak; left -= soak;
     if (t.armor <= 0) {
       log(`${t.name}'s ${ARMOR_NAMES[t.armorKind]} broke!`, 'good');
+      if (src.side === 'ally') progress.stats.armorBroken++;
       TP.armorBreak?.(t);
     }
   }
@@ -187,8 +209,19 @@ function hit(src, t, power, mv = {}) {
   sfx.hit(crit);
 
   if (fire) { delete t.st.chill; delete t.st.freeze; }   // fire melts ice
-  if (torchBurn) addStatus(t, 'burn', 2, { src });
+  if (torchBurn || (src.st.fiery && chance(0.3))) addStatus(t, 'burn', 2, { src });
   if (src.side === 'ally' && dmg >= 150) award('overkill');
+  if (t.st.sleep && t.hp > 0) { delete t.st.sleep; log(`${t.name} wakes up!`); }
+  // Life-stealing moves (Chomper's Lunge) heal the attacker.
+  if (mv.lifesteal) healUnit(src, dmg * mv.lifesteal);
+  P.onHit?.(src, t, dmg, mv);
+
+  // Counter stance: the next attack aimed at it gets hit straight back.
+  if (aimed && t.st.counter && src !== t && src.hp > 0 && t.hp > 0) {
+    delete t.st.counter;
+    log(`${t.name} counters!`, 'good');
+    hit(t, src, COUNTER_POWER, { counter: true });
+  }
 
   // Spiky plants and Thorns bounce some damage back (never bounces twice).
   const bounce = (t.st.thorns ? THORNS_PART : 0) + (TP.reflect || 0);
@@ -220,6 +253,8 @@ function fallUnit(u, killer) {
   if (u.fallen) return;
   u.fallen = true;
   u.hp = 0;
+  // Citron's Bounty pays out when a marked enemy goes down.
+  if (u.st.bounty) { log(`Bounty collected! +${BOUNTY_SUN} sun.`, 'good'); gainSun(BOUNTY_SUN); }
   u.st = {};
   u.flags.under = false;
   if (u.side === 'ally') {
@@ -231,6 +266,7 @@ function fallUnit(u, killer) {
     B.defeated.push(u);
     B.moveKills++;
     if (u.kind === 'zombie') progress.seen[u.id] = true;
+    if (u.id === 'catapult') progress.stats.catapults++;
     if (killer && killer.st.hypno && killer.side === 'foe') award('turncoat');
   }
   sfx.fall(u.side === 'ally');
@@ -277,11 +313,14 @@ function addStatus(t, name, turns, o = {}) {
   const icy = name === 'chill' || name === 'freeze';
   if (TP.immune?.includes(name)) { log(`${t.name} can't be ${STATUS[name].tag.toLowerCase()}!`); return false; }
   if (icy && B.g.has('heatwave')) return false;
-  if ((name === 'stun' || name === 'freeze') && TP.noStun) { log(`${t.name} is too tall to stun!`); return false; }
+  const stopsTurn = name === 'stun' || name === 'freeze' || name === 'sleep';
+  // A Ward (Garlic) keeps new bad statuses off.
+  if (STATUS[name].bad && t.st.ward) { log(`${t.name}'s ward blocks it!`, t.side === 'ally' ? 'good' : ''); return false; }
+  if (stopsTurn && TP.noStun) { log(`${t.name} is too tall to stun!`); return false; }
   if (name === 'hypno' && t.boss) { log(`${t.name} resists the hypnosis!`); return false; }
   // E.M.Peach's stuns always work on machines, even boss machines.
   const emp = o.src?.data.passive?.emp && t.data.vehicle;
-  if (t.boss && !emp && (name === 'stun' || name === 'freeze') && chance(BOSS_RESIST)) { log(`${t.name} shrugs it off!`); return false; }
+  if (t.boss && !emp && stopsTurn && chance(BOSS_RESIST)) { log(`${t.name} shrugs it off!`); return false; }
   if (icy && o.src) turns += o.src.data.passive?.icyBonus || 0;
   if (name === 'burn' && o.src?.data.passive?.scorch) turns += 1;
   if (name === 'chill' && B.g.has('pool')) turns += 1;
@@ -421,8 +460,11 @@ function beginTurn(u) {
     zap(u, Math.max(2, u.maxHp * BURN_PART), 'burns');
     if (u.hp <= 0) return finishTurn(u);
   }
-  if (u.st.freeze || u.st.stun || u.st.sheep) {
+  // Regenerating units heal a little at the start of each of their turns.
+  if (u.st.regen) healUnit(u, u.maxHp * REGEN_PART);
+  if (u.st.freeze || u.st.stun || u.st.sheep || u.st.sleep) {
     if (u.st.sheep) log(`${u.name} is a sheep. Baa.`);
+    else if (u.st.sleep) log(`${u.name} is fast asleep. Zzz.`);
     else log(`${u.name} is ${u.st.freeze ? 'frozen' : (u.stunLabel || 'stunned').toLowerCase()} and can't move.`);
     if (u.flags.charging) { u.flags.charging = false; log(`${u.name}'s charge is cancelled!`, 'good'); }
     return finishTurn(u);
@@ -466,6 +508,7 @@ function whyNot(u, id) {
   const mv = MOVES[id];
   if (B.allowed && !B.allowed.includes(id)) return 'Not on the belt';
   if (u.cd[id]) return `Ready in ${u.cd[id]}`;
+  if (u.st.silence && !mv.power) return 'Silenced';
   if (!u.st.fed && B.sun < mv.cost) return 'Not enough sun';
   const t = validTargets(u, mv);
   if (t && !t.length) return mv.target === 'fallen' ? 'Nobody wilted' : 'No target';
@@ -543,8 +586,11 @@ function useMove(u, id, chosen) {
     }
     if (mv.power && mv.status && !STATUS[mv.status[0]].bad) addStatus(t, mv.status[0], mv.status[1]);
     if (mv.cleanse) cleanse(t);
-    if (mv.heal) healUnit(t, t.maxHp * mv.heal * boost, u);
-    if (mv.shield) addShield(t, u.maxHp * mv.shield * boost);
+    // Rogue plants have ROGUE_HP times the health, so their heals and
+    // shields are worked out from their normal health instead (otherwise
+    // a rogue Spikeweed shielding itself could drag a fight on forever).
+    if (mv.heal) healUnit(t, t.maxHp / (t.rogue ? ROGUE_HP : 1) * mv.heal * boost, u);
+    if (mv.shield) addShield(t, u.maxHp / (u.rogue ? ROGUE_HP : 1) * mv.shield * boost);
     if (mv.revive) revive(t, mv.revive * boost);
   }
   if (mv.power && P.afterAttack) P.afterAttack(u, targets[0] || u, mv);
@@ -612,6 +658,7 @@ function aiAct(u) {
     if (mv.heal && mv.target !== 'self' && !hurt) return false;
     if (mv.can && !mv.can(u)) return false;
     if (mv.w === 0) return false;
+    if (u.st.silence && !mv.power) return false;   // silenced: plain attacks only
     if (mv.target === 'fallen' && !sideList(u.side).some(x => x.hp <= 0)) return false;
     const t = validTargets(u, mv);
     return !t || t.length > 0;
@@ -711,6 +758,9 @@ function winBattle() {
   if (progress.stats.chilled >= 25) award('chillout');
   if (progress.stats.devoured >= 10) award('bottomless');
   if (enc.kind === 'secret') award('yeti');
+  if (B.g.has('storm') && B.stats.wilted === 0) award('stormchaser');
+  if (progress.stats.armorBroken >= 30) award('scrapper');
+  if (progress.stats.catapults >= 10) award('dunk');
   if (B.key && enc.kind === 'boss') {
     award(CHAPTERS[B.chapterIdx].bossAch);
     if (B.stats.wilted === 0) award('untouchable');

@@ -32,6 +32,8 @@ function unitTags(u) {
   if (u.flags.grudge) tags.push('<span class="tag good">GRUDGE</span>');
   if (u.flags.ticks) tags.push(`<span class="tag bad">POP IN ${3 - u.flags.ticks}</span>`);
   if (u.flags.charging) tags.push('<span class="tag bad">CHARGING!</span>');
+  if (u.flags.charge) tags.push(`<span class="tag good">CHARGE ${u.flags.charge}/3</span>`);
+  if (u.flags.metal) tags.push(`<span class="tag good">METAL ${u.flags.metal}</span>`);
   if (u.flags.loaded) tags.push('<span class="tag good">LOADED</span>');
   if (u.flags.icy) tags.push('<span class="tag good">COLD FEET</span>');
   if (u.flags.torchOut) tags.push('<span class="tag">TORCH OUT</span>');
