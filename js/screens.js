@@ -404,7 +404,7 @@ function plantDetail(id, editable) {
     const m = MOVES[mv];
     const known = entry && at <= lvl;
     const on = eq.includes(mv);
-    const info = `${m.cost ? '&#9728;' + m.cost : 'free'}${m.cd ? ' · cooldown ' + m.cd : ''}${m.power ? ' · power ' + m.power + (m.hits > 1 ? ' x' + m.hits : '') : ''}`;
+    const info = `${m.cost ? '&#9728;' + m.cost : 'free'}${m.cd ? (m.cd >= ONCE_PER_BATTLE ? ' · once per battle' : ' · cooldown ' + m.cd) : ''}${m.power ? ' · power ' + m.power + (m.hits > 1 ? ' x' + m.hits : '') : ''}`;
     return `<button type="button" class="mrow ${on ? 'on' : ''}" ${editable && known ? `data-equip="${mv}"` : 'disabled'}>
       <span class="mcheck">${on ? '[x]' : known ? '[ ]' : '   '}</span>
       <span><b>${esc(m.name)}</b> <span class="dim">${info}</span><br>${esc(m.desc)}${known ? '' : ` <i>(learned at Lv${at})</i>`}</span>

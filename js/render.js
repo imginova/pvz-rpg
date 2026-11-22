@@ -33,6 +33,8 @@ function unitTags(u) {
   if (u.flags.ticks) tags.push(`<span class="tag bad">POP IN ${3 - u.flags.ticks}</span>`);
   if (u.flags.charging) tags.push('<span class="tag bad">CHARGING!</span>');
   if (u.flags.charge) tags.push(`<span class="tag good">CHARGE ${u.flags.charge}/3</span>`);
+  if (u.flags.windup) tags.push('<span class="tag good">WOUND UP</span>');
+  if (u.flags.fullBeam) tags.push('<span class="tag good">FULL BEAM</span>');
   if (u.flags.metal) tags.push(`<span class="tag good">METAL ${u.flags.metal}</span>`);
   if (u.flags.loaded) tags.push('<span class="tag good">LOADED</span>');
   if (u.flags.icy) tags.push('<span class="tag good">COLD FEET</span>');
@@ -77,7 +79,7 @@ function moveButton(u, id, n) {
   const cost = mv.cost ? `&#9728;${mv.cost}` : 'free';
   const bits = [];
   if (mv.power) bits.push(`power ${mv.power}${mv.hits > 1 ? ' x' + mv.hits : ''}`);
-  if (mv.cd) bits.push(`cooldown ${mv.cd}`);
+  if (mv.cd) bits.push(mv.cd >= ONCE_PER_BATTLE ? 'once per battle' : `cooldown ${mv.cd}`);
   if (mv.pierce) bits.push('pierces');
   if (mv.lob || u.data.passive?.lobAll) bits.push('lobbed');
   return `<button type="button" class="move ${B.choice === id ? 'picked' : ''}" data-move="${id}" ${why ? 'disabled' : ''}>

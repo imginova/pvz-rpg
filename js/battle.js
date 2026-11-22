@@ -507,7 +507,7 @@ function finishTurn(u) {
 function whyNot(u, id) {
   const mv = MOVES[id];
   if (B.allowed && !B.allowed.includes(id)) return 'Not on the belt';
-  if (u.cd[id]) return `Ready in ${u.cd[id]}`;
+  if (u.cd[id]) return mv.cd >= ONCE_PER_BATTLE ? 'Used this battle' : `Ready in ${u.cd[id]}`;
   if (u.st.silence && !mv.power) return 'Silenced';
   if (!u.st.fed && B.sun < mv.cost) return 'Not enough sun';
   const t = validTargets(u, mv);
@@ -528,6 +528,8 @@ function useMove(u, id, chosen) {
 
   log(`${u.name} used ${mv.name}!`, u.side === 'ally' ? 'move' : 'foe');
   B.moveKills = 0;
+  // Some moves set something up before they hit (Coconut Cannon loads itself).
+  mv.pre?.(u);
 
   // Who gets hit.
   let targets = [];
@@ -541,8 +543,12 @@ function useMove(u, id, chosen) {
 
   // Laser Bean's Beam: an attack on one enemy hits every enemy at half power.
   let mult = boost;
+  // Its Charge Up move makes the next beam full power.
   const beam = !!(P.beam && mv.power && mv.target === 'foe');
-  if (beam) { targets = foesOf(u); mult *= P.beam; }
+  if (beam) {
+    targets = foesOf(u);
+    if (u.flags.fullBeam) { u.flags.fullBeam = false; log('Full power beam!', 'good'); } else mult *= P.beam;
+  }
 
   const aoe = beam || mv.target === 'foes' || mv.target === 'foe2';
   const single = mv.target === 'foe' && !beam;
@@ -569,9 +575,11 @@ function useMove(u, id, chosen) {
     if (mv.power) {
       for (let h = 0; h < (mv.hits || 1) && t.hp > 0; h++) {
         strike(t, mv.power * mult);
-        // Bloomerang's Comeback: each throw bounces on to 2 other enemies.
+        // Bloomerang's Comeback: each throw bounces on to 2 other enemies
+        // (or to every other enemy after Wind Up).
         if (P.ricochet && single) {
-          for (const o of shuffle(foesOf(u).filter(x => x !== t)).slice(0, 2)) hit(u, o, mv.power * mult * P.ricochet, { ...mv, aoe: true });
+          const bounces = u.flags.windup ? 99 : 2;
+          for (const o of shuffle(foesOf(u).filter(x => x !== t)).slice(0, bounces)) hit(u, o, mv.power * mult * P.ricochet, { ...mv, aoe: true });
         }
       }
       // Repeater's Double Tap: a second, weaker pea.
@@ -594,6 +602,7 @@ function useMove(u, id, chosen) {
     if (mv.revive) revive(t, mv.revive * boost);
   }
   if (mv.power && P.afterAttack) P.afterAttack(u, targets[0] || u, mv);
+  if (mv.power && single) u.flags.windup = false;   // Wind Up is used up
   if (mv.self) addStatus(u, mv.self[0], mv.self[1] * boost);
   if (mv.sun) gainSun(mv.sun * boost, u);
   if (mv.special) mv.special(u, targets, boost);

@@ -69,3 +69,7 @@ const PLANT_FOOD_PRICE = 60;
 // ---- Speed of the battle animation (milliseconds) ---------------------
 const DELAY_FOE = 700;     // pause before an enemy acts
 const DELAY_NEXT = 300;    // pause between turns
+
+// A move whose cooldown is this long or longer can only be used once per
+// battle (Spikerock, Second Burst). The game shows it as "once per battle".
+const ONCE_PER_BATTLE = 99;
