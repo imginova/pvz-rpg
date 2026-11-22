@@ -12,7 +12,7 @@ let backTo = 'title';          // where the Back buttons go
 let pendingFight = null;       // a fight waiting while you edit your team
 
 function show(name) {
-  for (const s of ['title', 'world', 'team', 'shop', 'almanac', 'ach', 'battle']) $('scr-' + s).hidden = s !== name;
+  for (const s of ['title', 'world', 'team', 'shop', 'almanac', 'ach', 'versus', 'battle']) $('scr-' + s).hidden = s !== name;
   currentScreen = name;
   renderWallet();
   if (name === 'world') renderWorld();
@@ -20,6 +20,7 @@ function show(name) {
   if (name === 'shop') renderShop();
   if (name === 'almanac') renderAlmanac();
   if (name === 'ach') renderAch();
+  if (name === 'versus') renderVersus();   // in versus.js
   if (name === 'battle') render();
 }
 

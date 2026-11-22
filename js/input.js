@@ -10,6 +10,7 @@
 
 // ---- Title screen ----
 $('btnPlay').onclick = () => show('world');
+$('btnVersusT').onclick = () => show('versus');
 $('btnTeamT').onclick = () => openSide('team');
 $('btnShopT').onclick = () => openSide('shop');
 $('btnAlmanacT').onclick = () => openSide('almanac');
@@ -61,6 +62,8 @@ $('prebattle').onclick = e => {
 $('result').onclick = e => {
   if (e.target.id === 'btnContinue') leaveBattle();
   if (e.target.id === 'btnRetry') retryBattle();
+  if (e.target.id === 'btnRematch') startVersus();
+  if (e.target.id === 'btnVsSetup') leaveVersus();
 };
 
 // ---- Team screen ----
@@ -91,6 +94,54 @@ $('plantDetail').onclick = e => {
 $('shopList').onclick = e => {
   const b = e.target.closest('[data-buy]');
   if (b && !b.disabled) buy(b.dataset.buy);
+};
+
+// ---- Versus setup (versus.js) ----
+$('btnVsBack').onclick = () => show('title');
+$('vsOpts').onclick = e => {
+  const b = e.target.closest('[data-vsmode], [data-vsfood], [data-vsdiff]');
+  if (!b) return;
+  if (b.dataset.vsmode) vs.mode = b.dataset.vsmode;
+  if (b.dataset.vsfood) vs.food = +b.dataset.vsfood;
+  if (b.dataset.vsdiff) { const [side, level] = b.dataset.vsdiff.split(':'); vs.diff[side] = level; }
+  saveVersus();
+  renderVersus();
+};
+$('vsOpts').onchange = e => {
+  if (e.target.id === 'vsGimmick') { vs.gimmick = e.target.value; saveVersus(); renderVersus(); }
+};
+$('vsTeams').onclick = e => {
+  if (e.target.id === 'btnVsFight') return startVersus();
+  const random = e.target.closest('[data-vsrandom]');
+  if (random) return randomizeTeam(random.dataset.vsrandom);
+  const clear = e.target.closest('[data-vsclear]');
+  if (clear) { vs.teams[clear.dataset.vsclear] = []; saveVersus(); return renderVersus(); }
+  const slot = e.target.closest('[data-vsslot]');
+  if (slot) [vs.edit, vsSel] = slot.dataset.vsslot.split(':');
+  else {
+    // Clicking a team box edits that team and shows its first plant.
+    const box = e.target.closest('[data-vsedit]');
+    if (box && box.dataset.vsedit !== vs.edit) { vs.edit = box.dataset.vsedit; vsSel = vsTeam(vs.edit)[0] || vsSel; }
+  }
+  saveVersus();
+  renderVersus();
+};
+$('vsFilters').onclick = e => {
+  const b = e.target.closest('[data-vsfilter]');
+  if (b) { vsFilter = b.dataset.vsfilter; renderVersus(); }
+};
+$('vsGrid').onclick = e => {
+  const b = e.target.closest('[data-vsplant]');
+  if (b) { vsSel = b.dataset.vsplant; renderVersus(); }
+};
+$('vsDetail').onclick = e => {
+  const eq = e.target.closest('[data-vsequip]');
+  if (eq) {
+    const problem = toggleVsMove(vs.edit, vsSel, eq.dataset.vsequip);
+    if (problem) toast(problem);
+    renderVersus();
+  }
+  if (e.target.id === 'btnVsToggle') toggleVsTeam(vs.edit, vsSel);
 };
 
 // ---- Almanac ----
@@ -130,6 +181,7 @@ $('bPanel').onclick = e => {
 $('bTop').onclick = e => {
   if (!B) return;
   if (e.target.id === 'btnSpeed') { B.speed = B.speed > 1 ? 1 : 2.5; render(); }
+  if (e.target.id === 'btnFlee' && B.versus) return leaveVersus();   // "Quit" in versus
   if (e.target.id === 'btnFlee') {
     // Running away ends the fight with no rewards (and no penalty).
     B.over = true;
@@ -172,7 +224,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if (!$('result').hidden) {
-    if (k === 'Enter') { e.preventDefault(); leaveBattle(); }
+    if (k === 'Enter') { e.preventDefault(); if (B?.versus) startVersus(); else leaveBattle(); }
     return;
   }
 
@@ -200,4 +252,5 @@ document.addEventListener('keydown', e => {
   }
 
   if (['team', 'shop', 'almanac', 'ach'].includes(currentScreen) && k === 'Escape') goBack();
+  if (currentScreen === 'versus' && k === 'Escape') show('title');
 });

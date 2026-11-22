@@ -158,6 +158,7 @@ function giveXp(id, amount) {
 function award(id) {
   const a = ACHIEVEMENTS[id];
   if (!a || progress.ach[id]) return;
+  if (B?.versus) return;   // versus has everything unlocked, so it can't earn achievements
   progress.ach[id] = new Date().toISOString().slice(0, 10);
   toast(`Achievement: ${a.name}!`, 'ach');
   if (a.reward.coins) progress.coins += a.reward.coins;
