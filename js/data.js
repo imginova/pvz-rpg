@@ -83,45 +83,152 @@ const STATUS = {
      can             (enemies) a function: the AI only picks the move when it says true
 */
 const MOVES = {
-  // ======== Class moves: SHOOTERS ========
-  sh_shot:   { name: 'Quick Shot', cost: 0, target: 'foe', power: 9, straight: true, desc: 'A plain, reliable shot.' },
-  sh_focus:  { name: 'Focus', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Power up for 2 turns.' },
-  sh_spread: { name: 'Spread Shot', cost: 50, cd: 2, target: 'foes', power: 6, straight: true, desc: 'Hits every enemy.' },
-  sh_snipe:  { name: 'Snipe', cost: 50, cd: 2, target: 'foe', power: 16, straight: true, sure: true, desc: 'A big shot that never misses.' },
-  sh_cover:  { name: 'Covering Fire', cost: 25, cd: 2, target: 'foe', power: 7, straight: true, self: ['guard', 1], desc: 'Shoot, then Guard for a turn.' },
-  sh_rally:  { name: 'Battle Cry', cost: 75, cd: 4, target: 'allies', status: ['power', 1, 1], desc: 'Every ally gets Power for a turn.' },
+  // ======== Family moves ========
+  // A few moves are shared, but only by plants of the same family (all the
+  // peas, all the nuts, all the mushrooms...), so they always fit the plant.
+  // Peas: Peashooter, Repeater, Snow Pea
+  pea_volley:  { name: 'Pea Volley', cost: 50, cd: 2, target: 'foes', power: 6, straight: true, desc: 'Peas at every enemy.' },
+  pea_aim:     { name: 'Take Aim', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Lines up its shots: Power for 2 turns.' },
+  // Pults: Cabbage-pult, Melon-pult, Kernel-pult
+  pult_arc:    { name: 'Arc Shot', cost: 50, cd: 2, target: 'foe', power: 16, lob: true, sure: true, desc: 'A high, careful lob that never misses.' },
+  // Nuts: Wall-nut, Tall-nut, Infi-nut
+  nut_shell:   { name: 'Shell Up', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Shield itself for 25% of its max HP.' },
+  nut_wall:    { name: 'Nut Wall', cost: 75, cd: 4, target: 'allies', status: ['guard', 1, 1], desc: 'Stands in front of everyone: every ally Guards for a turn.' },
+  // Flowers: Sunflower, Marigold, Gold Bloom
+  flower_bloom:  { name: 'Bloom', cost: 75, cd: 3, target: 'allies', heal: 0.15, desc: 'Heal every ally 15%.' },
+  flower_revive: { name: 'Second Bloom', cost: 100, cd: 5, target: 'fallen', revive: 0.4, desc: 'Bring a wilted ally back with 40% HP.' },
+  // Mushrooms: Puff-shroom, Sun-shroom, Fume-shroom, Hypno-shroom, Ice-shroom
+  puff_cloud:  { name: 'Spore Cloud', cost: 25, cd: 2, target: 'foes', power: 4, status: ['weak', 2, 1], desc: 'Weakens every enemy for 2 turns.' },
+  // Icy plants: Snow Pea, Ice-shroom, Iceberg Lettuce
+  frost_snare: { name: 'Frostbite', cost: 25, cd: 2, target: 'foe', power: 5, status: ['chill', 2, 1], desc: 'Chill an enemy for 2 turns.' },
+  // Fire plants: Jalapeno, Snapdragon, Torchwood
+  fire_ignite: { name: 'Ignite', cost: 25, cd: 1, target: 'foe', power: 5, fire: true, status: ['burn', 3, 1], desc: 'Always burns for 3 turns.' },
+  // Explosives: Cherry Bomb, Coconut Cannon, Potato Mine
+  boom_fuse:   { name: 'Short Fuse', cost: 25, target: 'foe', power: 17, recoil: 0.1, desc: 'Big hit, but costs 10% of its own max HP.' },
+  boom_kaboom: { name: 'Kaboom', cost: 100, cd: 4, target: 'foe', power: 26, splash: 0.5, desc: 'Huge hit; half of it splashes the other enemies.' },
+  // Far Future plants: Laser Bean, Citron, Infi-nut
+  future_overclock: { name: 'Overclock', cost: 75, cd: 4, target: 'allies', status: ['power', 1, 1], desc: 'Boosts everyone\'s power: every ally gets Power for a turn.' },
 
-  // ======== Class moves: HEARTY ========
-  he_bonk:   { name: 'Bonk', cost: 0, target: 'foe', power: 7, desc: 'A sturdy whack.' },
-  he_taunt:  { name: 'Come At Me', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'Taunt for 2 turns: enemies must attack this plant.' },
-  he_harden: { name: 'Harden', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Shield itself for 25% of its max HP.' },
-  he_cover:  { name: 'Bodyguard', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Shield an ally for 30% of THIS plant\'s max HP.' },
-  he_thorns: { name: 'Bark Spikes', cost: 25, cd: 3, target: 'self', self: ['thorns', 3], desc: 'Thorns for 3 turns.' },
-  he_wall:   { name: 'Hold the Line', cost: 75, cd: 4, target: 'allies', status: ['guard', 1, 1], desc: 'Every ally Guards for a turn.' },
+  // ======== Each plant's own moves ========
+  // SHOOTERS
+  pea_head:      { name: 'Headshot', cost: 50, cd: 2, target: 'foe', power: 16, straight: true, sure: true, desc: 'A big pea that never misses.' },
+  pea_duck:      { name: 'Duck and Shoot', cost: 25, cd: 2, target: 'foe', power: 7, straight: true, self: ['guard', 1], desc: 'Shoot, then duck down: Guard for a turn.' },
+  rep_grit:      { name: 'Grit Teeth', cost: 25, cd: 2, target: 'self', self: ['guard', 1], special: u => addStatus(u, 'power', 1), desc: 'Gets angry: Power and Guard for a turn.' },
+  rep_rapid:     { name: 'Rapid Fire', cost: 50, cd: 3, target: 'foe', power: 5, hits: 4, straight: true, desc: 'Four peas at one enemy.' },
+  snow_icicle:   { name: 'Icicle', cost: 50, cd: 2, target: 'foe', power: 15, straight: true, sure: true, status: ['chill', 1, 1], desc: 'A sharp icicle that never misses and chills.' },
+  cab_crisp:     { name: 'Crisp Up', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Freshens its leaves: Power for 2 turns.' },
+  cab_slaw:      { name: 'Coleslaw', cost: 50, cd: 2, target: 'foes', power: 6, lob: true, desc: 'Shredded cabbage on every enemy.' },
+  cab_salad:     { name: 'Salad Bar', cost: 75, cd: 4, target: 'allies', heal: 0.12, desc: 'Shares fresh leaves: heal every ally 12%.' },
+  cac_bristle:   { name: 'Bristle', cost: 25, cd: 3, target: 'self', self: ['thorns', 3], desc: 'Puffs out its spines: Thorns for 3 turns.' },
+  cac_needle:    { name: 'Long Needle', cost: 50, cd: 2, target: 'foe', power: 16, straight: true, sure: true, desc: 'A long needle that never misses.' },
+  cac_hug:       { name: 'Prickly Hug', cost: 25, cd: 2, target: 'foe', power: 7, self: ['guard', 1], desc: 'Hugs a zombie (ouch!), then Guards for a turn.' },
+  cac_heat:      { name: 'Desert Heat', cost: 75, cd: 4, target: 'allies', status: ['power', 1, 1], desc: 'Desert sun fires everyone up: every ally gets Power for a turn.' },
+  puff_scatter:  { name: 'Scatter Spores', cost: 50, cd: 2, target: 'foes', power: 6, desc: 'Tiny puffs at every enemy.' },
+  puff_hide:     { name: 'Hide Under Cap', cost: 25, cd: 2, target: 'foe', power: 7, self: ['guard', 1], desc: 'Puff, then hide under its cap: Guard for a turn.' },
+  puff_pep:      { name: 'Pep Up', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Small but fired up: Power for 2 turns.' },
+  puff_shot:     { name: 'Spore Shot', cost: 50, cd: 2, target: 'foe', power: 16, sure: true, desc: 'A big spore that never misses.' },
+  bloom_wind:    { name: 'Wind Up', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Winds up a big throw: Power for 2 turns.' },
+  bloom_curve:   { name: 'Curveball', cost: 50, cd: 2, target: 'foe', power: 16, sure: true, desc: 'Curves around anything in the way. Never misses.' },
+  bloom_catch:   { name: 'Catch', cost: 25, cd: 2, target: 'foe', power: 7, self: ['guard', 1], desc: 'Throws, catches, then Guards for a turn.' },
+  bloom_storm:   { name: 'Petal Storm', cost: 50, cd: 2, target: 'foes', power: 6, desc: 'Petals at every enemy.' },
+  laser_scope:   { name: 'Targeting Scope', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Locks on: Power for 2 turns.' },
+  laser_deflect: { name: 'Deflector', cost: 25, cd: 2, target: 'foe', power: 7, self: ['guard', 1], desc: 'Fires, then raises a deflector: Guard for a turn.' },
+  laser_focus:   { name: 'Focus Beam', cost: 50, cd: 2, target: 'foe', power: 16, sure: true, desc: 'A tight beam that never misses.' },
 
-  // ======== Class moves: SUNNY ========
-  su_beam:   { name: 'Sunbeam', cost: 0, target: 'foe', power: 6, sun: 5, desc: 'A warm zap. +5 sun.' },
-  su_heal:   { name: 'Warm Glow', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
-  su_bloom:  { name: 'Bloom', cost: 75, cd: 3, target: 'allies', heal: 0.15, desc: 'Heal every ally 15%.' },
-  su_gift:   { name: 'Sun Gift', cost: 0, cd: 3, target: 'self', sun: 35, desc: '+35 sun.' },
-  su_revive: { name: 'Second Bloom', cost: 100, cd: 5, target: 'fallen', revive: 0.4, desc: 'Bring a wilted ally back with 40% HP.' },
-  su_cheer:  { name: 'Cheer Up', cost: 25, cd: 2, target: 'ally', cleanse: true, status: ['power', 1, 1], desc: 'Cleanse an ally and give it Power for a turn.' },
+  // HEARTY
+  nut_stare:     { name: 'Big Stare', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'Stares down the zombies: Taunt for 2 turns.' },
+  nut_block:     { name: 'Block for You', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Shield an ally for 30% of Wall-nut\'s max HP.' },
+  tall_thump:    { name: 'Thump', cost: 0, target: 'foe', power: 7, desc: 'A heavy lean onto a zombie.' },
+  tall_shade:    { name: 'Tall Shadow', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Shield an ally for 30% of Tall-nut\'s max HP.' },
+  pump_grin:     { name: 'Spooky Grin', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'A jack-o\'-lantern grin: Taunt for 2 turns.' },
+  pump_vines:    { name: 'Prickly Vines', cost: 25, cd: 3, target: 'self', self: ['thorns', 3], desc: 'Grows prickly vines: Thorns for 3 turns.' },
+  pump_hollow:   { name: 'Hollow Shell', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Shield itself for 25% of its max HP.' },
+  pump_harvest:  { name: 'Harvest Wall', cost: 75, cd: 4, target: 'allies', status: ['guard', 1, 1], desc: 'A wall of pumpkins: every ally Guards for a turn.' },
+  gar_reek:      { name: 'Reek', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'Smells SO bad they can\'t look away: Taunt for 2 turns.' },
+  gar_clove:     { name: 'Clove Armor', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Shield itself for 25% of its max HP.' },
+  gar_bitter:    { name: 'Bitter Taste', cost: 25, cd: 3, target: 'self', self: ['thorns', 3], desc: 'Tastes awful: Thorns for 3 turns.' },
+  gar_ward:      { name: 'Garlic Ward', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Ward an ally: a shield of 30% of Garlic\'s max HP.' },
+  spike_sharpen: { name: 'Sharpen', cost: 25, cd: 3, target: 'self', self: ['thorns', 3], desc: 'Sharpens its spikes: Thorns for 3 turns.' },
+  spike_dig:     { name: 'Dig In', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Digs into the dirt: a shield of 25% of its max HP.' },
+  spike_trap:    { name: 'Tire Trap', cost: 50, cd: 2, target: 'foe', power: 14, pierce: true, desc: 'A big spike that pierces armor. Pops vehicles!' },
+  spike_field:   { name: 'Spike Field', cost: 75, cd: 4, target: 'allies', status: ['thorns', 2, 1], desc: 'Spikes all around the team: every ally gets Thorns for 2 turns.' },
+  cit_lock:      { name: 'Lock On', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'Draws fire like a bounty hunter: Taunt for 2 turns.' },
+  cit_peel:      { name: 'Peel Back', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Closes its peel: a shield of 25% of its max HP.' },
+  cit_cover:     { name: 'Cover Fire', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Shield an ally for 30% of Citron\'s max HP.' },
+  infi_lure:     { name: 'Hologram Lure', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'A flashy hologram: Taunt for 2 turns.' },
+  infi_project:  { name: 'Project Shield', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Projects a shield onto an ally: 30% of Infi-nut\'s max HP.' },
 
-  // ======== Class moves: VOLATILE ========
-  vo_spark:    { name: 'Spark', cost: 0, target: 'foe', power: 8, fire: true, status: ['burn', 2, 0.25], desc: '25% chance to burn.' },
-  vo_blast:    { name: 'Blast Radius', cost: 50, cd: 2, target: 'foes', power: 8, desc: 'Hits every enemy.' },
-  vo_fuse:     { name: 'Short Fuse', cost: 25, target: 'foe', power: 17, recoil: 0.1, desc: 'Big hit, but costs 10% of its own max HP.' },
-  vo_ignite:   { name: 'Ignite', cost: 25, cd: 1, target: 'foe', power: 5, fire: true, status: ['burn', 3, 1], desc: 'Always burns for 3 turns.' },
-  vo_kaboom:   { name: 'Kaboom', cost: 100, cd: 4, target: 'foe', power: 26, splash: 0.5, desc: 'Huge hit; half of it splashes the other enemies.' },
-  vo_overheat: { name: 'Overheat', cost: 50, cd: 3, target: 'self', self: ['power', 3], special: u => addStatus(u, 'burn', 2), desc: 'Power for 3 turns, but burns itself.' },
+  // SUNNY
+  sun_glow:      { name: 'Warm Glow', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
+  sun_smile:     { name: 'Sunny Smile', cost: 25, cd: 2, target: 'ally', cleanse: true, status: ['power', 1, 1], desc: 'Cheer an ally up: cleanse it and give it Power for a turn.' },
+  ss_glow:       { name: 'Spore Glow', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
+  ss_moon:       { name: 'Moon Sun', cost: 0, cd: 3, target: 'self', sun: 35, desc: 'Makes sun even in the dark: +35 sun.' },
+  ss_dawn:       { name: 'Dawn Spores', cost: 100, cd: 5, target: 'fallen', revive: 0.4, desc: 'Spores that wake a wilted ally: back with 40% HP.' },
+  mari_coin:     { name: 'Lucky Coin', cost: 0, cd: 3, target: 'self', sun: 35, desc: 'Finds a lucky gold coin: +35 sun.' },
+  mari_polish:   { name: 'Polish Petals', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
+  gold_glint:    { name: 'Golden Glint', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
+  gold_gleam:    { name: 'Gleam', cost: 25, cd: 2, target: 'ally', cleanse: true, status: ['power', 1, 1], desc: 'A shining gleam: cleanse an ally and give it Power for a turn.' },
+  aloe_gel:      { name: 'Cooling Gel', cost: 75, cd: 3, target: 'allies', heal: 0.15, desc: 'Gel for everyone: heal every ally 15%.' },
+  aloe_rub:      { name: 'Soothing Rub', cost: 25, cd: 2, target: 'ally', cleanse: true, status: ['power', 1, 1], desc: 'Cleanse an ally and give it Power for a turn.' },
+  aloe_regrow:   { name: 'Regrow', cost: 100, cd: 5, target: 'fallen', revive: 0.4, desc: 'Aloe heals anything: a wilted ally comes back with 40% HP.' },
+  aloe_dew:      { name: 'Morning Dew', cost: 0, cd: 3, target: 'self', sun: 35, desc: 'Catches the morning sun: +35 sun.' },
+  bean_shine:    { name: 'Bean Shine', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
+  bean_sprout:   { name: 'Sun Sprout', cost: 0, cd: 3, target: 'self', sun: 35, desc: 'Sprouts a little sun: +35 sun.' },
+  bean_huddle:   { name: 'Sunny Huddle', cost: 75, cd: 3, target: 'allies', heal: 0.15, desc: 'A warm huddle: heal every ally 15%.' },
+  bean_skin:     { name: 'Tough Skin', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Shield itself for 25% of its max HP.' },
 
-  // ======== Class moves: GROWERS ========
-  gr_vine:  { name: 'Tangle Vine', cost: 0, target: 'foe', power: 7, status: ['chill', 1, 0.3], desc: '30% chance to chill.' },
-  gr_spore: { name: 'Wilt Spores', cost: 25, cd: 1, target: 'foe', power: 4, status: ['weak', 2, 1], desc: 'Makes an enemy Weak for 2 turns.' },
-  gr_seed:  { name: 'Seed Bomb', cost: 50, cd: 2, target: 'foes', power: 5, status: ['weak', 1, 0.4], desc: 'Hits every enemy; 40% chance each to Weaken.' },
-  gr_daze:  { name: 'Pollen Daze', cost: 50, cd: 3, target: 'foe', status: ['stun', 1, 1], desc: 'Stun an enemy for a turn.' },
-  gr_root:  { name: 'Root Snare', cost: 25, cd: 2, target: 'foe', power: 5, status: ['chill', 2, 1], desc: 'Chill an enemy for 2 turns.' },
-  gr_mulch: { name: 'Mulch', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
+  // VOLATILE
+  cherry_double: { name: 'Double Trouble', cost: 50, cd: 2, target: 'foe', power: 9, hits: 2, fire: true, desc: 'Both cherries pop on one enemy.' },
+  cherry_temper: { name: 'Hot Temper', cost: 50, cd: 3, target: 'self', self: ['power', 3], special: u => addStatus(u, 'burn', 2), desc: 'Power for 3 turns, but its fuse burns it.' },
+  jal_spicy:     { name: 'Extra Spicy', cost: 50, cd: 3, target: 'self', self: ['power', 3], special: u => addStatus(u, 'burn', 2), desc: 'Power for 3 turns, but it burns itself.' },
+  jal_kick:      { name: 'Spicy Kick', cost: 25, target: 'foe', power: 17, recoil: 0.1, fire: true, desc: 'A big fiery kick that costs 10% of its own max HP.' },
+  jal_wave:      { name: 'Heat Wave', cost: 50, cd: 2, target: 'foes', power: 8, fire: true, desc: 'Hot air at every enemy.' },
+  sq_belly:      { name: 'Belly Flop', cost: 50, cd: 2, target: 'foes', power: 8, desc: 'Flops on the whole crowd: hits every enemy.' },
+  sq_glare:      { name: 'Hmm...', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Stares at a zombie, getting ready: Power for 2 turns.' },
+  sq_slam:       { name: 'Body Slam', cost: 75, cd: 3, target: 'foe', power: 20, status: ['stun', 1, 0.5], desc: 'A huge slam. 50% chance to stun.' },
+  sq_bounce:     { name: 'Bounce', cost: 25, cd: 1, target: 'foe', power: 9, hits: 2, desc: 'Bounces on an enemy twice.' },
+  mel_rind:      { name: 'Thick Rind', cost: 25, cd: 2, target: 'self', shield: 0.2, desc: 'Hides behind its rind: a shield of 20% of its max HP.' },
+  mel_smash:     { name: 'Watermelon Smash', cost: 100, cd: 4, target: 'foe', power: 26, splash: 0.5, desc: 'The biggest melon. Half of it splashes the other enemies.' },
+  mel_juice:     { name: 'Sticky Juice', cost: 50, cd: 2, target: 'foes', power: 6, status: ['chill', 1, 0.5], desc: 'Hits every enemy; 50% chance each to chill.' },
+  fume_blast:    { name: 'Fume Blast', cost: 25, cd: 1, target: 'foe', power: 14, desc: 'A strong blast of fumes.' },
+  fume_breath:   { name: 'Deep Breath', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Breathes in: Power for 2 turns.' },
+  fume_storm:    { name: 'Stink Storm', cost: 100, cd: 4, target: 'foes', power: 14, desc: 'A huge cloud that hits every enemy hard.' },
+  bonk_hay:      { name: 'Haymaker', cost: 50, cd: 2, target: 'foe', power: 20, desc: 'One huge punch.' },
+  bonk_pump:     { name: 'Pump Up', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Gets pumped: Power for 2 turns.' },
+  bonk_combo:    { name: 'Combo', cost: 75, cd: 3, target: 'foe', power: 6, hits: 4, desc: 'A four-punch combo.' },
+  bonk_rope:     { name: 'Rope-a-dope', cost: 25, cd: 2, target: 'self', self: ['guard', 1], special: u => addStatus(u, 'taunt', 1), desc: 'Leans back and lets them swing: Guard and Taunt for a turn.' },
+  snap_roar:     { name: 'Dragon Roar', cost: 25, cd: 2, target: 'foes', status: ['weak', 1, 1], desc: 'A scary roar: every enemy is Weak for a turn.' },
+  snap_bite:     { name: 'Dragon Bite', cost: 25, cd: 1, target: 'foe', power: 15, desc: 'A big chomp.' },
+  snap_stoke:    { name: 'Stoke the Flames', cost: 50, cd: 3, target: 'self', self: ['power', 3], desc: 'Builds up its fire: Power for 3 turns.' },
+  coco_broadside:{ name: 'Broadside', cost: 50, cd: 2, target: 'foes', power: 8, desc: 'A cannon volley at every enemy.' },
+  coco_reload:   { name: 'Reload', cost: 25, cd: 3, target: 'self', special: u => { u.flags.loaded = true; log(`${u.name} is loaded again!`); }, desc: 'Loads a fresh coconut: its next attack does double damage.' },
+
+  // GROWERS
+  chomp_burp:    { name: 'Burp', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'A big burp: heal itself 20% and cleanse.' },
+  chomp_drool:   { name: 'Drool', cost: 25, cd: 1, target: 'foe', power: 4, status: ['weak', 2, 1], desc: 'Slimy drool makes an enemy Weak for 2 turns.' },
+  chomp_snap:    { name: 'Snap Jaws', cost: 50, cd: 3, target: 'foe', status: ['stun', 1, 1], desc: 'Snaps its jaws shut on an enemy: stun for a turn.' },
+  chomp_lunge:   { name: 'Lunge', cost: 25, cd: 1, target: 'foe', power: 14, desc: 'Lunges with its big mouth.' },
+  hyp_trance:    { name: 'Trance', cost: 50, cd: 3, target: 'foe', status: ['stun', 1, 1], desc: 'Puts an enemy in a trance: stun for a turn.' },
+  hyp_dazzle:    { name: 'Dazzle', cost: 50, cd: 2, target: 'foes', power: 5, status: ['weak', 1, 0.4], desc: 'Rainbow sparkles at every enemy; 40% chance each to Weaken.' },
+  hyp_calm:      { name: 'Calm Mind', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
+  ice_shiver:    { name: 'Shiver', cost: 50, cd: 2, target: 'foes', power: 5, status: ['chill', 1, 0.4], desc: 'A cold wave at every enemy; 40% chance each to chill.' },
+  ice_pack:      { name: 'Ice Pack', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
+  torch_bark:    { name: 'Charred Bark', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
+  torch_smoke:   { name: 'Smoke Screen', cost: 50, cd: 2, target: 'foes', power: 5, status: ['weak', 1, 0.4], desc: 'Smoke at every enemy; 40% chance each to Weaken.' },
+  torch_flare:   { name: 'Flare', cost: 50, cd: 2, target: 'foe', power: 14, fire: true, desc: 'A burst of flame.' },
+  ker_husk:      { name: 'Husk Up', cost: 25, cd: 2, target: 'self', shield: 0.2, desc: 'Wraps up in its husk: a shield of 20% of its max HP.' },
+  ker_pop:       { name: 'Popcorn', cost: 50, cd: 2, target: 'foes', power: 5, lob: true, status: ['weak', 1, 0.4], desc: 'Popcorn on every enemy; 40% chance each to Weaken.' },
+  ker_slick:     { name: 'Butter Slick', cost: 50, cd: 3, target: 'foes', power: 3, lob: true, status: ['chill', 1, 1], desc: 'Slippery butter everywhere: every enemy is chilled.' },
+  pm_pop:        { name: 'Pop Up', cost: 0, target: 'foe', power: 9, desc: 'Pops out of the dirt for a quick hit.' },
+  pm_dirt:       { name: 'Kick Up Dirt', cost: 50, cd: 2, target: 'foes', power: 5, status: ['weak', 1, 0.4], desc: 'Dirt at every enemy; 40% chance each to Weaken.' },
+  pm_burrow:     { name: 'Burrow', cost: 25, cd: 2, target: 'self', shield: 0.2, special: u => addStatus(u, 'guard', 1), desc: 'Digs down: a small shield and Guard for a turn.' },
+  berg_slide:    { name: 'Ice Slide', cost: 50, cd: 2, target: 'foes', power: 4, status: ['chill', 1, 1], desc: 'Slippery ice under every enemy: all chilled.' },
+  berg_crunch:   { name: 'Crunch', cost: 25, cd: 1, target: 'foe', power: 13, desc: 'A crunchy leaf slap.' },
+  berg_chill:    { name: 'Chill Out', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
+  emp_short:     { name: 'Short Circuit', cost: 50, cd: 3, target: 'foe', status: ['stun', 1, 1], desc: 'Fries an enemy\'s nerves: stun for a turn.' },
+  emp_static:    { name: 'Static Field', cost: 25, cd: 1, target: 'foe', power: 4, status: ['weak', 2, 1], desc: 'Static makes an enemy Weak for 2 turns.' },
+  emp_overload:  { name: 'Overload', cost: 25, cd: 1, target: 'foe', power: 14, desc: 'A big zap.' },
+  emp_recharge:  { name: 'Recharge', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
 
   // ======== Signature moves (each belongs to one plant) ========
   pea_shot:    { name: 'Pea Shot', cost: 0, target: 'foe', power: 10, straight: true, desc: 'The classic pea.' },
@@ -344,8 +451,9 @@ function snatch(u, targets) {
 
 /* ---- Plants -------------------------------------------------------------------
    stats: [max HP, attack, defense, speed] at level 1.
-   learn: [move id, level it's learned at]. Two signature moves, four from
-          its class. You equip any four of the ones it has learned.
+   learn: [move id, level it's learned at]. Six moves that fit the plant:
+          mostly its own, plus a few shared with its family (see "Family
+          moves" in MOVES). You equip any four of the ones it has learned.
    shroom: mushrooms are 30% stronger at Night and 15% weaker in daytime.
    unlock: how you get it (shown in the Almanac).
 */
@@ -361,7 +469,7 @@ const PLANTS = {
         u.flags.lastTarget = t.uid;
       },
     },
-    learn: [['pea_shot', 1], ['sh_focus', 1], ['sh_spread', 2], ['pea_barrage', 3], ['sh_snipe', 5], ['sh_cover', 7]],
+    learn: [['pea_shot', 1], ['pea_aim', 1], ['pea_volley', 2], ['pea_barrage', 3], ['pea_head', 5], ['pea_duck', 7]],
     unlock: { how: 'start' }, flavor: 'Doesn\'t do much, but does it every turn.',
   },
   repeater: {
@@ -370,7 +478,7 @@ const PLANTS = {
       name: 'Double Tap', desc: 'Single-hit attacks on one enemy fire a second pea at 40% power. Slower than Peashooter.',
       echo: 0.4,
     },
-    learn: [['rep_double', 1], ['sh_cover', 1], ['sh_focus', 2], ['rep_storm', 4], ['sh_spread', 6], ['sh_rally', 8]],
+    learn: [['rep_double', 1], ['rep_grit', 1], ['pea_aim', 2], ['rep_storm', 4], ['pea_volley', 6], ['rep_rapid', 8]],
     unlock: { how: 'shop', price: 400 }, flavor: 'Two peas are better than one, if you can wait for them.',
   },
   snowpea: {
@@ -379,13 +487,13 @@ const PLANTS = {
       name: 'Cold Snap', desc: 'Deals 30% more damage to chilled or frozen enemies.',
       dealMult(u, t) { return (t.st.chill || t.st.freeze) ? 1.3 : 1; },
     },
-    learn: [['snow_pea', 1], ['sh_cover', 1], ['sh_focus', 3], ['snow_volley', 4], ['sh_snipe', 6], ['sh_spread', 8]],
+    learn: [['snow_pea', 1], ['frost_snare', 1], ['pea_aim', 3], ['snow_volley', 4], ['snow_icicle', 6], ['pea_volley', 8]],
     unlock: { how: 'story' }, flavor: 'Cool, calm and very, very cold.',
   },
   cabbagepult: {
     name: 'Cabbage-pult', cls: 'shooter', stats: [60, 12, 4, 13],
     passive: { name: 'Lobber', desc: 'All its attacks are lobbed: they fly over Screen Doors and reach diving or dug-in zombies.', lobAll: true },
-    learn: [['cab_lob', 1], ['sh_focus', 1], ['cab_rain', 3], ['sh_snipe', 5], ['sh_spread', 6], ['sh_rally', 8]],
+    learn: [['cab_lob', 1], ['cab_crisp', 1], ['cab_rain', 3], ['pult_arc', 5], ['cab_slaw', 6], ['cab_salad', 8]],
     unlock: { how: 'story' }, flavor: 'Throws cabbages. Nobody asked why.',
   },
   cactus: {
@@ -395,13 +503,13 @@ const PLANTS = {
       pierceAll: true,
       dealMult(u, t) { return t.armor > 0 ? 1 : 0.85; },
     },
-    learn: [['cac_spike', 1], ['sh_focus', 1], ['cac_rain', 3], ['sh_snipe', 5], ['sh_cover', 6], ['sh_rally', 8]],
+    learn: [['cac_spike', 1], ['cac_bristle', 1], ['cac_rain', 3], ['cac_needle', 5], ['cac_hug', 6], ['cac_heat', 8]],
     unlock: { how: 'achievement', id: 'seedvault' }, flavor: 'Hugs not recommended.',
   },
   puffshroom: {
     name: 'Puff-shroom', cls: 'shooter', shroom: true, stats: [40, 10, 2, 20],
     passive: { name: 'Tiny', desc: '30% chance to dodge attacks aimed at it alone. Very fragile.', dodge: 0.3 },
-    learn: [['puff', 1], ['sh_spread', 1], ['puff_cloud', 3], ['sh_focus', 4], ['sh_cover', 6], ['sh_snipe', 8]],
+    learn: [['puff', 1], ['puff_scatter', 1], ['puff_cloud', 3], ['puff_pep', 4], ['puff_hide', 6], ['puff_shot', 8]],
     unlock: { how: 'story' }, flavor: 'Small, fast and hard to hit.',
   },
 
@@ -412,7 +520,7 @@ const PLANTS = {
       name: 'Tough Shell', desc: 'Takes 25% less damage while above half HP.',
       takeMult(u) { return u.hp > u.maxHp / 2 ? 0.75 : 1; },
     },
-    learn: [['nut_roll', 1], ['he_taunt', 1], ['he_harden', 2], ['nut_regrow', 3], ['he_cover', 5], ['he_wall', 7]],
+    learn: [['nut_roll', 1], ['nut_stare', 1], ['nut_shell', 2], ['nut_regrow', 3], ['nut_block', 5], ['nut_wall', 7]],
     unlock: { how: 'start' }, flavor: 'A nut that refuses to crack.',
   },
   tallnut: {
@@ -421,7 +529,7 @@ const PLANTS = {
       name: 'Towering', desc: 'Leaping and vaulting attacks must hit it, and it can\'t be stunned. No Tough Shell, and very slow.',
       blocksVault: true, noStun: true,
     },
-    learn: [['tall_stand', 1], ['he_bonk', 1], ['he_harden', 2], ['tall_topple', 4], ['he_cover', 6], ['he_wall', 8]],
+    learn: [['tall_stand', 1], ['tall_thump', 1], ['nut_shell', 2], ['tall_topple', 4], ['tall_shade', 6], ['nut_wall', 8]],
     unlock: { how: 'story' }, flavor: 'Nobody jumps over Tall-nut.',
   },
   pumpkin: {
@@ -433,7 +541,7 @@ const PLANTS = {
         if (hurt) addShield(hurt, u.maxHp * 0.08);
       },
     },
-    learn: [['pump_bash', 1], ['pump_shell', 1], ['he_taunt', 2], ['he_thorns', 4], ['he_harden', 5], ['he_wall', 7]],
+    learn: [['pump_bash', 1], ['pump_shell', 1], ['pump_grin', 2], ['pump_vines', 4], ['pump_hollow', 5], ['pump_harvest', 7]],
     unlock: { how: 'story' }, flavor: 'A plant that wears a plant.',
   },
   garlic: {
@@ -442,7 +550,7 @@ const PLANTS = {
       name: 'Stinky', desc: 'Enemies that hit Garlic become Weak for a turn.',
       onHurt(u, src) { if (src && src.hp > 0 && src !== u) addStatus(src, 'weak', 1); },
     },
-    learn: [['gar_breath', 1], ['he_taunt', 1], ['gar_stench', 3], ['he_harden', 4], ['he_thorns', 6], ['he_cover', 8]],
+    learn: [['gar_breath', 1], ['gar_reek', 1], ['gar_stench', 3], ['gar_clove', 4], ['gar_bitter', 6], ['gar_ward', 8]],
     unlock: { how: 'shop', price: 450 }, flavor: 'Smells awful. That\'s the point.',
   },
   spikeweed: {
@@ -452,7 +560,7 @@ const PLANTS = {
       reflect: 0.3,
       dealMult(u, t) { return t.data.vehicle ? 2 : 1; },
     },
-    learn: [['spike_prick', 1], ['he_taunt', 1], ['spike_strip', 3], ['he_thorns', 4], ['he_harden', 6], ['he_wall', 8]],
+    learn: [['spike_prick', 1], ['spike_sharpen', 1], ['spike_strip', 3], ['spike_dig', 4], ['spike_trap', 6], ['spike_field', 8]],
     unlock: { how: 'rogue' }, flavor: 'Pops tires for fun.',
   },
 
@@ -463,7 +571,7 @@ const PLANTS = {
       name: 'Sunny Disposition', desc: '+10 sun at the start of every round.',
       roundStart(u) { gainSun(10, u); },
     },
-    learn: [['sun_petal', 1], ['sun_make', 1], ['su_heal', 2], ['su_bloom', 4], ['su_cheer', 6], ['su_revive', 8]],
+    learn: [['sun_petal', 1], ['sun_make', 1], ['sun_glow', 2], ['flower_bloom', 4], ['sun_smile', 6], ['flower_revive', 8]],
     unlock: { how: 'start' }, flavor: 'Always smiling, always making sun.',
   },
   sunshroom: {
@@ -475,7 +583,7 @@ const PLANTS = {
         gainSun(u.flags.grown ? 15 : 5, u);
       },
     },
-    learn: [['ss_puff', 1], ['ss_spurt', 1], ['su_heal', 2], ['su_gift', 4], ['su_bloom', 6], ['su_revive', 8]],
+    learn: [['ss_puff', 1], ['ss_spurt', 1], ['ss_glow', 2], ['ss_moon', 4], ['puff_cloud', 6], ['ss_dawn', 8]],
     unlock: { how: 'story' }, flavor: 'Starts small. Doesn\'t stay small.',
   },
   marigold: {
@@ -485,7 +593,7 @@ const PLANTS = {
       coinBonus: 0.5,
       roundStart(u) { if (chance(0.25)) gainSun(20, u); },
     },
-    learn: [['mari_petal', 1], ['mari_bright', 1], ['su_heal', 2], ['su_gift', 3], ['su_cheer', 5], ['su_revive', 7]],
+    learn: [['mari_petal', 1], ['mari_bright', 1], ['mari_polish', 2], ['mari_coin', 3], ['flower_bloom', 5], ['flower_revive', 7]],
     unlock: { how: 'shop', price: 300 }, flavor: 'Pretty, and pretty rich.',
   },
   aloe: {
@@ -495,7 +603,7 @@ const PLANTS = {
       healBoost: 1.3,
       roundStart(u) { healUnit(u, u.maxHp * 0.08); },
     },
-    learn: [['aloe_spray', 1], ['aloe_squirt', 1], ['su_bloom', 3], ['su_cheer', 4], ['su_revive', 6], ['su_gift', 8]],
+    learn: [['aloe_spray', 1], ['aloe_squirt', 1], ['aloe_gel', 3], ['aloe_rub', 4], ['aloe_regrow', 6], ['aloe_dew', 8]],
     unlock: { how: 'shop', price: 350 }, flavor: 'Good for sunburns and zombie bites.',
   },
 
@@ -509,7 +617,7 @@ const PLANTS = {
         for (const f of foesOf(u)) hit(u, f, 20, { aoe: true });
       },
     },
-    learn: [['cherry_fizz', 1], ['cherry_blast', 1], ['vo_fuse', 2], ['vo_ignite', 4], ['vo_kaboom', 6], ['vo_overheat', 8]],
+    learn: [['cherry_fizz', 1], ['cherry_blast', 1], ['boom_fuse', 2], ['cherry_double', 4], ['boom_kaboom', 6], ['cherry_temper', 8]],
     unlock: { how: 'story' }, flavor: 'Two cherries, one very short temper.',
   },
   jalapeno: {
@@ -518,7 +626,7 @@ const PLANTS = {
       name: 'Hot Headed', desc: '+50% damage to burning enemies. Careful: its fire melts chill and freeze.',
       dealMult(u, t) { return t.st.burn ? 1.5 : 1; },
     },
-    learn: [['jal_sauce', 1], ['vo_ignite', 1], ['jal_row', 3], ['vo_blast', 4], ['vo_overheat', 6], ['vo_fuse', 8]],
+    learn: [['jal_sauce', 1], ['fire_ignite', 1], ['jal_row', 3], ['jal_wave', 4], ['jal_spicy', 6], ['jal_kick', 8]],
     unlock: { how: 'story' }, flavor: 'Hot. Very hot.',
   },
   squash: {
@@ -529,19 +637,19 @@ const PLANTS = {
       dealMult(u) { return u.flags.grudge ? 2 : 1; },
       afterAttack(u) { u.flags.grudge = false; },
     },
-    learn: [['sq_leap', 1], ['sq_squash', 1], ['vo_fuse', 2], ['vo_blast', 4], ['vo_kaboom', 6], ['vo_overheat', 8]],
+    learn: [['sq_leap', 1], ['sq_squash', 1], ['sq_bounce', 2], ['sq_belly', 4], ['sq_slam', 6], ['sq_glare', 8]],
     unlock: { how: 'achievement', id: 'untouchable' }, flavor: 'Hmm? HMM!',
   },
   melonpult: {
     name: 'Melon-pult', cls: 'volatile', stats: [72, 17, 5, 5],
     passive: { name: 'Heavy Lob', desc: 'All its attacks are lobbed, and 30% of the damage splashes the other enemies. The slowest attacker.', lobAll: true, splashAll: 0.3 },
-    learn: [['mel_seed', 1], ['mel_melon', 1], ['vo_spark', 2], ['vo_blast', 4], ['vo_kaboom', 6], ['vo_fuse', 8]],
+    learn: [['mel_seed', 1], ['mel_melon', 1], ['mel_rind', 2], ['pult_arc', 4], ['mel_smash', 6], ['mel_juice', 8]],
     unlock: { how: 'rogue' }, flavor: 'One melon. Big trouble.',
   },
   fumeshroom: {
     name: 'Fume-shroom', cls: 'volatile', shroom: true, stats: [66, 12, 5, 9],
     passive: { name: 'Fumes', desc: 'All its attacks pierce armor and go through Screen Doors.', pierceAll: true },
-    learn: [['fume_puff', 1], ['vo_spark', 1], ['fume_cloud', 3], ['vo_ignite', 4], ['vo_blast', 6], ['vo_kaboom', 8]],
+    learn: [['fume_puff', 1], ['puff_cloud', 1], ['fume_cloud', 3], ['fume_blast', 4], ['fume_breath', 6], ['fume_storm', 8]],
     unlock: { how: 'story' }, flavor: 'Bad breath, armor-proof.',
   },
   bonkchoy: {
@@ -550,7 +658,7 @@ const PLANTS = {
       name: 'Counterpunch', desc: 'When an enemy hits it, 35% chance to punch back for 6 power.',
       onHurt(u, src) { if (src && src.hp > 0 && src !== u && u.hp > 0 && chance(0.35)) { log(`${u.name} punches back!`); hit(u, src, 6, { counter: true }); } },
     },
-    learn: [['bonk_rapid', 1], ['bonk_upper', 1], ['vo_fuse', 2], ['vo_overheat', 4], ['vo_kaboom', 6], ['vo_spark', 8]],
+    learn: [['bonk_rapid', 1], ['bonk_upper', 1], ['bonk_hay', 2], ['bonk_pump', 4], ['bonk_combo', 6], ['bonk_rope', 8]],
     unlock: { how: 'shop', price: 500 }, flavor: 'Float like a leaf, punch like a cabbage.',
   },
 
@@ -561,7 +669,7 @@ const PLANTS = {
       name: 'Big Appetite', desc: 'Swallowing an enemy with Devour heals it 30%.',
       onDevour(u) { healUnit(u, u.maxHp * 0.3); },
     },
-    learn: [['chomp_bite', 1], ['chomp_devour', 1], ['gr_mulch', 2], ['gr_spore', 4], ['gr_daze', 6], ['gr_root', 8]],
+    learn: [['chomp_bite', 1], ['chomp_devour', 1], ['chomp_burp', 2], ['chomp_drool', 4], ['chomp_snap', 6], ['chomp_lunge', 8]],
     unlock: { how: 'rogue' }, flavor: 'Chews slowly. Eats anything.',
   },
   hypnoshroom: {
@@ -570,25 +678,25 @@ const PLANTS = {
       name: 'Mesmerize', desc: 'Zombies that hit it have a 30% chance to be hypnotized for a turn (not bosses).',
       onHurt(u, src) { if (src && src.kind === 'zombie' && src.hp > 0 && !src.boss && chance(0.3)) addStatus(src, 'hypno', 1); },
     },
-    learn: [['hyp_swirl', 1], ['hyp_hypno', 1], ['gr_spore', 2], ['gr_daze', 4], ['gr_seed', 6], ['gr_mulch', 8]],
+    learn: [['hyp_swirl', 1], ['hyp_hypno', 1], ['puff_cloud', 2], ['hyp_trance', 4], ['hyp_dazzle', 6], ['hyp_calm', 8]],
     unlock: { how: 'rogue' }, flavor: 'Look into its eyes...',
   },
   iceshroom: {
     name: 'Ice-shroom', cls: 'grower', shroom: true, stats: [60, 9, 6, 8],
     passive: { name: 'Permafrost', desc: 'Its chills and freezes last 1 turn longer.', icyBonus: 1 },
-    learn: [['ice_chip', 1], ['gr_root', 1], ['ice_deep', 2], ['gr_spore', 4], ['gr_seed', 6], ['gr_mulch', 8]],
+    learn: [['ice_chip', 1], ['frost_snare', 1], ['ice_deep', 2], ['puff_cloud', 4], ['ice_shiver', 6], ['ice_pack', 8]],
     unlock: { how: 'rogue' }, flavor: 'Brrr.',
   },
   torchwood: {
     name: 'Torchwood', cls: 'grower', stats: [80, 8, 7, 8],
     passive: { name: 'Flaming Peas', desc: 'While it stands, allies\' straight shots catch fire: +40% damage and a 30% chance to burn.', torch: true },
-    learn: [['torch_ember', 1], ['gr_mulch', 1], ['torch_bonfire', 2], ['gr_spore', 4], ['gr_seed', 6], ['gr_daze', 8]],
+    learn: [['torch_ember', 1], ['torch_bark', 1], ['torch_bonfire', 2], ['fire_ignite', 4], ['torch_smoke', 6], ['torch_flare', 8]],
     unlock: { how: 'rogue' }, flavor: 'Best friends with every Peashooter.',
   },
   kernelpult: {
     name: 'Kernel-pult', cls: 'grower', stats: [58, 10, 4, 12],
     passive: { name: 'Butter Luck', desc: 'All its attacks are lobbed and have a 25% chance to butter (stun) for a turn.', lobAll: true, butter: 0.25 },
-    learn: [['ker_kernel', 1], ['gr_vine', 1], ['ker_butter', 2], ['gr_root', 4], ['gr_spore', 6], ['gr_seed', 8]],
+    learn: [['ker_kernel', 1], ['ker_husk', 1], ['ker_butter', 2], ['pult_arc', 4], ['ker_pop', 6], ['ker_slick', 8]],
     unlock: { how: 'story' }, flavor: 'Corn or butter? It\'s a surprise.',
   },
   potatomine: {
@@ -604,7 +712,7 @@ const PLANTS = {
         }
       },
     },
-    learn: [['gr_vine', 1], ['pm_rearm', 1], ['pm_spudow', 2], ['gr_root', 4], ['gr_seed', 6], ['gr_spore', 8]],
+    learn: [['pm_pop', 1], ['pm_rearm', 1], ['pm_spudow', 2], ['boom_fuse', 4], ['pm_dirt', 6], ['pm_burrow', 8]],
     unlock: { how: 'story' }, flavor: 'Step on it. We dare you.',
   },
 
@@ -614,13 +722,13 @@ const PLANTS = {
   bloomerang: {
     name: 'Bloomerang', cls: 'shooter', stats: [62, 12, 4, 14],
     passive: { name: 'Comeback', desc: 'Its attacks on one enemy bounce on to 2 other enemies for 40% damage.', ricochet: 0.4 },
-    learn: [['bloom_throw', 1], ['sh_focus', 1], ['bloom_spin', 3], ['sh_snipe', 5], ['sh_cover', 6], ['sh_rally', 8]],
+    learn: [['bloom_throw', 1], ['bloom_wind', 1], ['bloom_spin', 3], ['bloom_curve', 5], ['bloom_catch', 6], ['bloom_storm', 8]],
     unlock: { how: 'story' }, flavor: 'What goes around comes around. Usually into a zombie.',
   },
   laserbean: {
     name: 'Laser Bean', cls: 'shooter', stats: [58, 11, 4, 12],
     passive: { name: 'Beam', desc: 'Its attacks on one enemy hit EVERY enemy instead, but at half power, and they never land critical hits.', beam: 0.5 },
-    learn: [['laser', 1], ['sh_focus', 1], ['laser_burst', 3], ['sh_cover', 5], ['sh_snipe', 6], ['sh_rally', 8]],
+    learn: [['laser', 1], ['laser_scope', 1], ['laser_burst', 3], ['laser_deflect', 5], ['laser_focus', 6], ['future_overclock', 8]],
     unlock: { how: 'story' }, flavor: 'From the future. Still a bean.',
   },
   citron: {
@@ -629,7 +737,7 @@ const PLANTS = {
       name: 'Peel Shield', desc: 'Starts every wave with a shield of 25% of its max HP. Hits harder than other Hearty plants.',
       waveStart(u) { addShield(u, u.maxHp * 0.25); },
     },
-    learn: [['cit_plasma', 1], ['he_taunt', 1], ['cit_charge', 3], ['he_harden', 4], ['he_cover', 6], ['he_wall', 8]],
+    learn: [['cit_plasma', 1], ['cit_lock', 1], ['cit_charge', 3], ['cit_peel', 4], ['cit_cover', 6], ['future_overclock', 8]],
     unlock: { how: 'shop', price: 600 }, flavor: 'A bounty-hunting orange from the future.',
   },
   infinut: {
@@ -643,7 +751,7 @@ const PLANTS = {
         log(`${u.name}'s hologram flickers... it will rebuild!`, 'good');
       },
     },
-    learn: [['infi_zap', 1], ['he_taunt', 1], ['infi_barrier', 3], ['he_harden', 4], ['he_thorns', 6], ['he_cover', 8]],
+    learn: [['infi_zap', 1], ['infi_lure', 1], ['infi_barrier', 3], ['nut_shell', 4], ['infi_project', 6], ['future_overclock', 8]],
     unlock: { how: 'story' }, flavor: 'A wall-nut made of light. Hard to get rid of.',
   },
   goldbloom: {
@@ -652,7 +760,7 @@ const PLANTS = {
       name: 'Golden Burst', desc: '+100 sun in the first round of every battle, and no sun after that.',
       roundStart(u) { if (B.round === 1) { gainSun(100, u); log(`${u.name} bursts with gold! +100 sun.`, 'good'); } },
     },
-    learn: [['gold_flash', 1], ['su_heal', 1], ['gold_shower', 3], ['su_cheer', 4], ['su_revive', 6], ['su_bloom', 8]],
+    learn: [['gold_flash', 1], ['gold_glint', 1], ['gold_shower', 3], ['gold_gleam', 4], ['flower_revive', 6], ['flower_bloom', 8]],
     unlock: { how: 'achievement', id: 'sunnyside' }, flavor: 'Blooms once. Blooms BIG.',
   },
   sunbean: {
@@ -661,13 +769,13 @@ const PLANTS = {
       name: 'Sunny Bruise', desc: 'Every time an enemy hits it, you get 10 sun. Tougher than other Sunny plants, but makes no sun on its own.',
       onHurt(u, src) { if (src) gainSun(10, u); },
     },
-    learn: [['bean_bonk', 1], ['bean_bait', 1], ['su_heal', 2], ['su_gift', 4], ['su_bloom', 6], ['su_revive', 8]],
+    learn: [['bean_bonk', 1], ['bean_bait', 1], ['bean_shine', 2], ['bean_sprout', 4], ['bean_huddle', 6], ['bean_skin', 8]],
     unlock: { how: 'shop', price: 400 }, flavor: 'Hit it. Go on. It wants you to.',
   },
   snapdragon: {
     name: 'Snapdragon', cls: 'volatile', stats: [64, 14, 4, 11],
     passive: { name: 'Firebreather', desc: 'Its fire attacks on one enemy also scorch one more enemy for 50%, and its burns last a turn longer.', scorch: 0.5 },
-    learn: [['snap_breath', 1], ['vo_ignite', 1], ['snap_inferno', 3], ['vo_fuse', 4], ['vo_overheat', 6], ['vo_blast', 8]],
+    learn: [['snap_breath', 1], ['fire_ignite', 1], ['snap_inferno', 3], ['snap_bite', 4], ['snap_stoke', 6], ['snap_roar', 8]],
     unlock: { how: 'story' }, flavor: 'A dragon. A small one. Still a dragon.',
   },
   coconut: {
@@ -678,7 +786,7 @@ const PLANTS = {
       dealMult(u) { return u.flags.loaded ? 2 : 1; },
       afterAttack(u) { u.flags.loaded = false; },
     },
-    learn: [['coco_shot', 1], ['coco_cannon', 1], ['vo_fuse', 3], ['vo_blast', 4], ['vo_kaboom', 6], ['vo_spark', 8]],
+    learn: [['coco_shot', 1], ['coco_cannon', 1], ['boom_fuse', 3], ['coco_broadside', 4], ['boom_kaboom', 6], ['coco_reload', 8]],
     unlock: { how: 'rogue' }, flavor: 'Arr! One shot, one zombie.',
   },
   iceberg: {
@@ -694,7 +802,7 @@ const PLANTS = {
         }
       },
     },
-    learn: [['berg_chip', 1], ['berg_freeze', 1], ['gr_root', 2], ['gr_spore', 4], ['gr_seed', 6], ['gr_mulch', 8]],
+    learn: [['berg_chip', 1], ['berg_freeze', 1], ['frost_snare', 2], ['berg_slide', 4], ['berg_crunch', 6], ['berg_chill', 8]],
     unlock: { how: 'story' }, flavor: 'Cold, crunchy and slippery.',
   },
   empeach: {
@@ -704,7 +812,7 @@ const PLANTS = {
       emp: true,
       dealMult(u, t) { return t.data.vehicle ? 2 : 1; },
     },
-    learn: [['emp_zap', 1], ['gr_daze', 1], ['emp_pulse', 3], ['gr_spore', 4], ['gr_root', 6], ['gr_mulch', 8]],
+    learn: [['emp_zap', 1], ['emp_short', 1], ['emp_pulse', 3], ['emp_static', 4], ['emp_overload', 6], ['emp_recharge', 8]],
     unlock: { how: 'rogue' }, flavor: 'Robots hate this peach.',
   },
 };
