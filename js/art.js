@@ -523,6 +523,48 @@ mmcccmm
   c c
 `,
   },
+  // Lightning Reed: a glowing cyan spark on a thin grass stem.
+  lightningreed: {
+    pal: { a: '#8ff4ff', w: '#ffffff', g: STEM, k: '#1e6e9a' },
+    art: art`
+ \ * /
+ -(o)-
+  /|\
+   |/ `,
+    ink: art`
+   w
+   k
+  ggg
+   gg`,
+  },
+  // Magnet-shroom: a silver horseshoe magnet on a dark red cap, pale lilac stem.
+  magnetshroom: {
+    pal: { a: '#c0283c', m: '#b8bcc4', t: '#e86a6a', c: '#cbbbe2', k: EYE },
+    art: art`
+ (\_/)
+ .---.
+(_o_o_)
+  |_| `,
+    ink: art`
+ tmmmt
+
+  k k
+  ccc`,
+  },
+  // Umbrella Leaf: a big green leaf canopy over a small pale face.
+  umbrellaleaf: {
+    pal: { a: '#4caf3a', d: '#7ed957', b: '#cfe8a0', k: '#3a6a2a' },
+    art: art`
+ _\|/_
+/_/|\_\
+   |
+  (u) `,
+    ink: art`
+ ddddd
+
+   b
+  bkb`,
+  },
 
   // ================= ZOMBIES =================
   // The usual ink for a zombie's face line is " sksks": skin with light eyes.

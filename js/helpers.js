@@ -31,6 +31,9 @@ const store = {
   set(key, value) {
     try { localStorage.setItem('lawnlegends:' + key, JSON.stringify(value)); } catch {}
   },
+  remove(key) {
+    try { localStorage.removeItem('lawnlegends:' + key); } catch {}
+  },
 };
 
 // pick(['a', 'b', 'c']) returns one item at random.

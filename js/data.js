@@ -45,6 +45,17 @@ const STATUS = {
   hypno:  { tag: 'HYPNO',  bad: true,  desc: 'Attacks its own side.' },
   sheep:  { tag: 'SHEEP',  bad: true,  desc: 'Turned into a sheep: can\'t act and takes 30% more damage.' },
   invuln: { tag: 'RAINBOW', bad: false, desc: 'Attacks aimed at it alone do nothing. Hit-everyone attacks still work.' },
+  marked: { tag: 'MARKED', bad: true,  desc: 'Takes 30% more damage.' },
+  bounty: { tag: 'BOUNTY', bad: true,  desc: 'Defeat it while it has this for +50 sun.' },
+  blind:  { tag: 'BLIND',  bad: true,  desc: 'Its next attack aimed at one target misses.' },
+  sleep:  { tag: 'ASLEEP', bad: true,  desc: 'Skips its turns until it\'s hit or wakes up.' },
+  silence:{ tag: 'SILENCED', bad: true, desc: 'Can only use plain attacks.' },
+  regen:  { tag: 'REGEN',  bad: false, desc: 'Heals 8% of max HP each turn.' },
+  counter:{ tag: 'COUNTER', bad: false, desc: 'Hits back the next enemy that attacks it alone.' },
+  cover:  { tag: 'COVERED', bad: false, desc: 'A protector takes the attacks aimed at it.' },
+  ward:   { tag: 'WARD',   bad: false, desc: 'New bad statuses can\'t stick.' },
+  evade:  { tag: 'EVADE',  bad: false, desc: 'Dodges half of the attacks aimed at it alone.' },
+  fiery:  { tag: 'FIERY',  bad: false, desc: 'Its attacks are fire and may burn.' },
   power:  { tag: 'POWER',  bad: false, desc: 'Deals 50% more damage.' },
   guard:  { tag: 'GUARD',  bad: false, desc: 'Takes 40% less damage.' },
   taunt:  { tag: 'TAUNT',  bad: false, desc: 'Enemies must attack it.' },
@@ -113,18 +124,18 @@ const MOVES = {
   // SHOOTERS
   pea_head:      { name: 'Headshot', cost: 50, cd: 2, target: 'foe', power: 16, straight: true, sure: true, desc: 'A big pea that never misses.' },
   pea_duck:      { name: 'Duck and Shoot', cost: 25, cd: 2, target: 'foe', power: 7, straight: true, self: ['guard', 1], desc: 'Shoot, then duck down: Guard for a turn.' },
-  rep_grit:      { name: 'Grit Teeth', cost: 25, cd: 2, target: 'self', self: ['guard', 1], special: u => addStatus(u, 'power', 1), desc: 'Gets angry: Power and Guard for a turn.' },
+  rep_grit: { name: 'Suppressing Fire', cost: 25, cd: 2, target: 'foe', power: 6, straight: true, special: (u, ts) => { for (const t of ts) { addStatus(t, 'weak', 1, { src: u }); addStatus(t, 'chill', 1, { src: u }); } }, desc: 'Pins an enemy down: Weak and chilled for a turn.' },
   rep_rapid:     { name: 'Rapid Fire', cost: 50, cd: 3, target: 'foe', power: 5, hits: 4, straight: true, desc: 'Four peas at one enemy.' },
   snow_icicle:   { name: 'Icicle', cost: 50, cd: 2, target: 'foe', power: 15, straight: true, sure: true, status: ['chill', 1, 1], desc: 'A sharp icicle that never misses and chills.' },
   cab_crisp:     { name: 'Crisp Up', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Freshens its leaves: Power for 2 turns.' },
   cab_slaw:      { name: 'Coleslaw', cost: 50, cd: 2, target: 'foes', power: 6, lob: true, desc: 'Shredded cabbage on every enemy.' },
-  cab_salad:     { name: 'Salad Bar', cost: 75, cd: 4, target: 'allies', heal: 0.12, desc: 'Shares fresh leaves: heal every ally 12%.' },
+  cab_salad: { name: 'Salad Bar', cost: 75, cd: 4, target: 'allies', status: ['regen', 3, 1], desc: 'Fresh leaves for everyone: every ally Regenerates (8% a turn) for 3 turns.' },
   cac_bristle:   { name: 'Bristle', cost: 25, cd: 3, target: 'self', self: ['thorns', 3], desc: 'Puffs out its spines: Thorns for 3 turns.' },
   cac_needle:    { name: 'Long Needle', cost: 50, cd: 2, target: 'foe', power: 16, straight: true, sure: true, desc: 'A long needle that never misses.' },
   cac_hug:       { name: 'Prickly Hug', cost: 25, cd: 2, target: 'foe', power: 7, self: ['guard', 1], desc: 'Hugs a zombie (ouch!), then Guards for a turn.' },
   cac_heat:      { name: 'Desert Heat', cost: 75, cd: 4, target: 'allies', status: ['power', 1, 1], desc: 'Desert sun fires everyone up: every ally gets Power for a turn.' },
   puff_scatter:  { name: 'Scatter Spores', cost: 50, cd: 2, target: 'foes', power: 6, desc: 'Tiny puffs at every enemy.' },
-  puff_hide:     { name: 'Hide Under Cap', cost: 25, cd: 2, target: 'foe', power: 7, self: ['guard', 1], desc: 'Puff, then hide under its cap: Guard for a turn.' },
+  puff_hide: { name: 'Hide Under Cap', cost: 25, cd: 2, target: 'self', self: ['evade', 2], desc: 'Ducks under its cap: Evade (dodge half of the attacks aimed at it) for 2 turns.' },
   puff_pep:      { name: 'Pep Up', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Small but fired up: Power for 2 turns.' },
   puff_shot:     { name: 'Spore Shot', cost: 50, cd: 2, target: 'foe', power: 16, sure: true, desc: 'A big spore that never misses.' },
   bloom_wind:    { name: 'Wind Up', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Winds up a big throw: Power for 2 turns.' },
@@ -132,14 +143,14 @@ const MOVES = {
   bloom_catch:   { name: 'Catch', cost: 25, cd: 2, target: 'foe', power: 7, self: ['guard', 1], desc: 'Throws, catches, then Guards for a turn.' },
   bloom_storm:   { name: 'Petal Storm', cost: 50, cd: 2, target: 'foes', power: 6, desc: 'Petals at every enemy.' },
   laser_scope:   { name: 'Targeting Scope', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Locks on: Power for 2 turns.' },
-  laser_deflect: { name: 'Deflector', cost: 25, cd: 2, target: 'foe', power: 7, self: ['guard', 1], desc: 'Fires, then raises a deflector: Guard for a turn.' },
+  laser_deflect: { name: 'Recalibrate', cost: 25, cd: 4, target: 'self', special: u => { for (const k in u.cd) if (k !== 'laser_deflect') delete u.cd[k]; log(`${u.name} recalibrates: its other moves are ready!`); }, desc: 'Resets the cooldowns of all its other moves.' },
   laser_focus:   { name: 'Focus Beam', cost: 50, cd: 2, target: 'foe', power: 16, sure: true, desc: 'A tight beam that never misses.' },
 
   // HEARTY
   nut_stare:     { name: 'Big Stare', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'Stares down the zombies: Taunt for 2 turns.' },
-  nut_block:     { name: 'Block for You', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Shield an ally for 30% of Wall-nut\'s max HP.' },
+  nut_block: { name: 'Block for You', cost: 50, cd: 3, target: 'ally', special: (u, ts) => coverAllies(u, ts, 2), desc: 'For 2 turns, Wall-nut takes every attack aimed at that ally.' },
   tall_thump:    { name: 'Thump', cost: 0, target: 'foe', power: 7, desc: 'A heavy lean onto a zombie.' },
-  tall_shade:    { name: 'Tall Shadow', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Shield an ally for 30% of Tall-nut\'s max HP.' },
+  tall_shade: { name: 'Tall Shadow', cost: 75, cd: 4, target: 'allies', special: (u, ts) => coverAllies(u, ts, 1), desc: 'For a turn, Tall-nut takes every attack aimed at its allies.' },
   pump_grin:     { name: 'Spooky Grin', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'A jack-o\'-lantern grin: Taunt for 2 turns.' },
   pump_vines:    { name: 'Prickly Vines', cost: 25, cd: 3, target: 'self', self: ['thorns', 3], desc: 'Grows prickly vines: Thorns for 3 turns.' },
   pump_hollow:   { name: 'Hollow Shell', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Shield itself for 25% of its max HP.' },
@@ -147,31 +158,31 @@ const MOVES = {
   gar_reek:      { name: 'Reek', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'Smells SO bad they can\'t look away: Taunt for 2 turns.' },
   gar_clove:     { name: 'Clove Armor', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Shield itself for 25% of its max HP.' },
   gar_bitter:    { name: 'Bitter Taste', cost: 25, cd: 3, target: 'self', self: ['thorns', 3], desc: 'Tastes awful: Thorns for 3 turns.' },
-  gar_ward:      { name: 'Garlic Ward', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Ward an ally: a shield of 30% of Garlic\'s max HP.' },
+  gar_ward: { name: 'Garlic Ward', cost: 25, cd: 2, target: 'ally', cleanse: true, status: ['ward', 2, 1], desc: 'Cleanse an ally and Ward it: no new bad statuses for 2 turns.' },
   spike_sharpen: { name: 'Sharpen', cost: 25, cd: 3, target: 'self', self: ['thorns', 3], desc: 'Sharpens its spikes: Thorns for 3 turns.' },
   spike_dig:     { name: 'Dig In', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Digs into the dirt: a shield of 25% of its max HP.' },
   spike_trap:    { name: 'Tire Trap', cost: 50, cd: 2, target: 'foe', power: 14, pierce: true, desc: 'A big spike that pierces armor. Pops vehicles!' },
   spike_field:   { name: 'Spike Field', cost: 75, cd: 4, target: 'allies', status: ['thorns', 2, 1], desc: 'Spikes all around the team: every ally gets Thorns for 2 turns.' },
   cit_lock:      { name: 'Lock On', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'Draws fire like a bounty hunter: Taunt for 2 turns.' },
   cit_peel:      { name: 'Peel Back', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Closes its peel: a shield of 25% of its max HP.' },
-  cit_cover:     { name: 'Cover Fire', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Shield an ally for 30% of Citron\'s max HP.' },
+  cit_cover: { name: 'Bounty', cost: 25, cd: 2, target: 'foe', status: ['bounty', 3, 1], desc: 'Puts a bounty on an enemy: defeat it within 3 turns for +50 sun.' },
   infi_lure:     { name: 'Hologram Lure', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'A flashy hologram: Taunt for 2 turns.' },
   infi_project:  { name: 'Project Shield', cost: 50, cd: 2, target: 'ally', shield: 0.3, desc: 'Projects a shield onto an ally: 30% of Infi-nut\'s max HP.' },
 
   // SUNNY
   sun_glow:      { name: 'Warm Glow', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
-  sun_smile:     { name: 'Sunny Smile', cost: 25, cd: 2, target: 'ally', cleanse: true, status: ['power', 1, 1], desc: 'Cheer an ally up: cleanse it and give it Power for a turn.' },
-  ss_glow:       { name: 'Spore Glow', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
+  sun_smile: { name: 'Pep Talk', cost: 25, cd: 3, target: 'ally', special: pepTalk, desc: 'All of another ally\'s moves are ready again, and it gets Power for a turn.' },
+  ss_glow: { name: 'Spore Glow', cost: 25, cd: 1, target: 'ally', status: ['regen', 3, 1], desc: 'An ally Regenerates (8% a turn) for 3 turns.' },
   ss_moon:       { name: 'Moon Sun', cost: 0, cd: 3, target: 'self', sun: 35, desc: 'Makes sun even in the dark: +35 sun.' },
   ss_dawn:       { name: 'Dawn Spores', cost: 100, cd: 5, target: 'fallen', revive: 0.4, desc: 'Spores that wake a wilted ally: back with 40% HP.' },
   mari_coin:     { name: 'Lucky Coin', cost: 0, cd: 3, target: 'self', sun: 35, desc: 'Finds a lucky gold coin: +35 sun.' },
-  mari_polish:   { name: 'Polish Petals', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
+  mari_polish: { name: 'Golden Hour', cost: 75, cd: 4, target: 'ally', special: (u, ts) => haste(u, ts[0]), desc: 'Another ally takes an extra turn right after this one.' },
   gold_glint:    { name: 'Golden Glint', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
-  gold_gleam:    { name: 'Gleam', cost: 25, cd: 2, target: 'ally', cleanse: true, status: ['power', 1, 1], desc: 'A shining gleam: cleanse an ally and give it Power for a turn.' },
+  gold_gleam: { name: 'Gleam', cost: 25, cd: 2, target: 'foe', status: ['blind', 2, 1], desc: 'A blinding flash: the enemy\'s next aimed attack misses.' },
   aloe_gel:      { name: 'Cooling Gel', cost: 75, cd: 3, target: 'allies', heal: 0.15, desc: 'Gel for everyone: heal every ally 15%.' },
   aloe_rub:      { name: 'Soothing Rub', cost: 25, cd: 2, target: 'ally', cleanse: true, status: ['power', 1, 1], desc: 'Cleanse an ally and give it Power for a turn.' },
   aloe_regrow:   { name: 'Regrow', cost: 100, cd: 5, target: 'fallen', revive: 0.4, desc: 'Aloe heals anything: a wilted ally comes back with 40% HP.' },
-  aloe_dew:      { name: 'Morning Dew', cost: 0, cd: 3, target: 'self', sun: 35, desc: 'Catches the morning sun: +35 sun.' },
+  aloe_dew: { name: 'Sap Share', cost: 0, cd: 3, target: 'ally', special: sapShare, desc: 'Gives 20% of Aloe\'s own HP to another ally (Soothing makes it 30% more).' },
   bean_shine:    { name: 'Bean Shine', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
   bean_sprout:   { name: 'Sun Sprout', cost: 0, cd: 3, target: 'self', sun: 35, desc: 'Sprouts a little sun: +35 sun.' },
   bean_huddle:   { name: 'Sunny Huddle', cost: 75, cd: 3, target: 'allies', heal: 0.15, desc: 'A warm huddle: heal every ally 15%.' },
@@ -181,25 +192,25 @@ const MOVES = {
   cherry_double: { name: 'Double Trouble', cost: 50, cd: 2, target: 'foe', power: 9, hits: 2, fire: true, desc: 'Both cherries pop on one enemy.' },
   cherry_temper: { name: 'Hot Temper', cost: 50, cd: 3, target: 'self', self: ['power', 3], special: u => addStatus(u, 'burn', 2), desc: 'Power for 3 turns, but its fuse burns it.' },
   jal_spicy:     { name: 'Extra Spicy', cost: 50, cd: 3, target: 'self', self: ['power', 3], special: u => addStatus(u, 'burn', 2), desc: 'Power for 3 turns, but it burns itself.' },
-  jal_kick:      { name: 'Spicy Kick', cost: 25, target: 'foe', power: 17, recoil: 0.1, fire: true, desc: 'A big fiery kick that costs 10% of its own max HP.' },
+  jal_kick: { name: 'Flare Up', cost: 50, cd: 2, target: 'self', special: flareUp, desc: 'Every burning enemy flares up for 14 power.' },
   jal_wave:      { name: 'Heat Wave', cost: 50, cd: 2, target: 'foes', power: 8, fire: true, desc: 'Hot air at every enemy.' },
   sq_belly:      { name: 'Belly Flop', cost: 50, cd: 2, target: 'foes', power: 8, desc: 'Flops on the whole crowd: hits every enemy.' },
-  sq_glare:      { name: 'Hmm...', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Stares at a zombie, getting ready: Power for 2 turns.' },
+  sq_glare: { name: 'Hmm...', cost: 25, cd: 2, target: 'foe', power: 10, execute: 3, desc: 'Sizes up an enemy, then SQUASH: triple damage if it\'s below 40% HP.' },
   sq_slam:       { name: 'Body Slam', cost: 75, cd: 3, target: 'foe', power: 20, status: ['stun', 1, 0.5], desc: 'A huge slam. 50% chance to stun.' },
   sq_bounce:     { name: 'Bounce', cost: 25, cd: 1, target: 'foe', power: 9, hits: 2, desc: 'Bounces on an enemy twice.' },
   mel_rind:      { name: 'Thick Rind', cost: 25, cd: 2, target: 'self', shield: 0.2, desc: 'Hides behind its rind: a shield of 20% of its max HP.' },
   mel_smash:     { name: 'Watermelon Smash', cost: 100, cd: 4, target: 'foe', power: 26, splash: 0.5, desc: 'The biggest melon. Half of it splashes the other enemies.' },
   mel_juice:     { name: 'Sticky Juice', cost: 50, cd: 2, target: 'foes', power: 6, status: ['chill', 1, 0.5], desc: 'Hits every enemy; 50% chance each to chill.' },
   fume_blast:    { name: 'Fume Blast', cost: 25, cd: 1, target: 'foe', power: 14, desc: 'A strong blast of fumes.' },
-  fume_breath:   { name: 'Deep Breath', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Breathes in: Power for 2 turns.' },
+  fume_breath: { name: 'Corrode', cost: 25, cd: 2, target: 'foe', power: 4, status: ['marked', 3, 1], desc: 'Corroding fumes: the enemy takes 30% more damage for 3 turns.' },
   fume_storm:    { name: 'Stink Storm', cost: 100, cd: 4, target: 'foes', power: 14, desc: 'A huge cloud that hits every enemy hard.' },
   bonk_hay:      { name: 'Haymaker', cost: 50, cd: 2, target: 'foe', power: 20, desc: 'One huge punch.' },
   bonk_pump:     { name: 'Pump Up', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Gets pumped: Power for 2 turns.' },
   bonk_combo:    { name: 'Combo', cost: 75, cd: 3, target: 'foe', power: 6, hits: 4, desc: 'A four-punch combo.' },
-  bonk_rope:     { name: 'Rope-a-dope', cost: 25, cd: 2, target: 'self', self: ['guard', 1], special: u => addStatus(u, 'taunt', 1), desc: 'Leans back and lets them swing: Guard and Taunt for a turn.' },
+  bonk_rope: { name: 'Rope-a-dope', cost: 25, cd: 2, target: 'self', self: ['counter', 2], desc: 'Leans back: the next enemy that swings at it gets punched back (12 power).' },
   snap_roar:     { name: 'Dragon Roar', cost: 25, cd: 2, target: 'foes', status: ['weak', 1, 1], desc: 'A scary roar: every enemy is Weak for a turn.' },
   snap_bite:     { name: 'Dragon Bite', cost: 25, cd: 1, target: 'foe', power: 15, desc: 'A big chomp.' },
-  snap_stoke:    { name: 'Stoke the Flames', cost: 50, cd: 3, target: 'self', self: ['power', 3], desc: 'Builds up its fire: Power for 3 turns.' },
+  snap_stoke: { name: 'Stoke the Flames', cost: 25, cd: 2, target: 'self', special: stoke, desc: 'Every burning enemy burns 2 turns longer.' },
   coco_broadside:{ name: 'Broadside', cost: 50, cd: 2, target: 'foes', power: 8, desc: 'A cannon volley at every enemy.' },
   coco_reload:   { name: 'Reload', cost: 25, cd: 3, target: 'self', special: u => { u.flags.loaded = true; log(`${u.name} is loaded again!`); }, desc: 'Loads a fresh coconut: its next attack does double damage.' },
 
@@ -207,13 +218,13 @@ const MOVES = {
   chomp_burp:    { name: 'Burp', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'A big burp: heal itself 20% and cleanse.' },
   chomp_drool:   { name: 'Drool', cost: 25, cd: 1, target: 'foe', power: 4, status: ['weak', 2, 1], desc: 'Slimy drool makes an enemy Weak for 2 turns.' },
   chomp_snap:    { name: 'Snap Jaws', cost: 50, cd: 3, target: 'foe', status: ['stun', 1, 1], desc: 'Snaps its jaws shut on an enemy: stun for a turn.' },
-  chomp_lunge:   { name: 'Lunge', cost: 25, cd: 1, target: 'foe', power: 14, desc: 'Lunges with its big mouth.' },
-  hyp_trance:    { name: 'Trance', cost: 50, cd: 3, target: 'foe', status: ['stun', 1, 1], desc: 'Puts an enemy in a trance: stun for a turn.' },
+  chomp_lunge: { name: 'Gobble', cost: 25, cd: 1, target: 'foe', power: 12, lifesteal: 0.5, desc: 'A big bite that heals Chomper for half the damage.' },
+  hyp_trance: { name: 'Lullaby', cost: 50, cd: 3, target: 'foe', status: ['sleep', 3, 1], desc: 'Puts an enemy to sleep for up to 3 turns. Hitting it wakes it up.' },
   hyp_dazzle:    { name: 'Dazzle', cost: 50, cd: 2, target: 'foes', power: 5, status: ['weak', 1, 0.4], desc: 'Rainbow sparkles at every enemy; 40% chance each to Weaken.' },
   hyp_calm:      { name: 'Calm Mind', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
   ice_shiver:    { name: 'Shiver', cost: 50, cd: 2, target: 'foes', power: 5, status: ['chill', 1, 0.4], desc: 'A cold wave at every enemy; 40% chance each to chill.' },
-  ice_pack:      { name: 'Ice Pack', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
-  torch_bark:    { name: 'Charred Bark', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
+  ice_pack: { name: 'Cryo Sleep', cost: 0, cd: 4, target: 'self', heal: 0.4, special: u => addStatus(u, 'freeze', 1), desc: 'Freezes itself solid: heal 40%, but skip its next turn.' },
+  torch_bark: { name: 'Kindling', cost: 25, cd: 2, target: 'ally', status: ['fiery', 2, 1], desc: 'Lights an ally up: for 2 turns its attacks are fire and may burn.' },
   torch_smoke:   { name: 'Smoke Screen', cost: 50, cd: 2, target: 'foes', power: 5, status: ['weak', 1, 0.4], desc: 'Smoke at every enemy; 40% chance each to Weaken.' },
   torch_flare:   { name: 'Flare', cost: 50, cd: 2, target: 'foe', power: 14, fire: true, desc: 'A burst of flame.' },
   ker_husk:      { name: 'Husk Up', cost: 25, cd: 2, target: 'self', shield: 0.2, desc: 'Wraps up in its husk: a shield of 20% of its max HP.' },
@@ -224,11 +235,30 @@ const MOVES = {
   pm_burrow:     { name: 'Burrow', cost: 25, cd: 2, target: 'self', shield: 0.2, special: u => addStatus(u, 'guard', 1), desc: 'Digs down: a small shield and Guard for a turn.' },
   berg_slide:    { name: 'Ice Slide', cost: 50, cd: 2, target: 'foes', power: 4, status: ['chill', 1, 1], desc: 'Slippery ice under every enemy: all chilled.' },
   berg_crunch:   { name: 'Crunch', cost: 25, cd: 1, target: 'foe', power: 13, desc: 'A crunchy leaf slap.' },
-  berg_chill:    { name: 'Chill Out', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
+  berg_chill: { name: 'Brain Freeze', cost: 25, cd: 2, target: 'foe', special: (u, ts) => { for (const t of ts) { dispel(t); addStatus(t, 'chill', 1, { src: u }); } }, desc: 'Strips an enemy\'s buffs (shield, Power, Guard...) and chills it.' },
   emp_short:     { name: 'Short Circuit', cost: 50, cd: 3, target: 'foe', status: ['stun', 1, 1], desc: 'Fries an enemy\'s nerves: stun for a turn.' },
   emp_static:    { name: 'Static Field', cost: 25, cd: 1, target: 'foe', power: 4, status: ['weak', 2, 1], desc: 'Static makes an enemy Weak for 2 turns.' },
   emp_overload:  { name: 'Overload', cost: 25, cd: 1, target: 'foe', power: 14, desc: 'A big zap.' },
-  emp_recharge:  { name: 'Recharge', cost: 25, cd: 2, target: 'self', heal: 0.2, cleanse: true, desc: 'Heal itself 20% and cleanse.' },
+  emp_recharge: { name: 'Disable', cost: 25, cd: 3, target: 'foe', status: ['silence', 2, 1], desc: 'Fries its circuits: the enemy can only use plain attacks for 2 turns.' },
+
+  // NEW PLANTS (unlocked by achievements)
+  lr_zap:      { name: 'Zap', cost: 0, target: 'foe', power: 8, special: (u, ts, b) => arc(u, ts[0], 8 * b, 1), desc: 'A zap that arcs to one more enemy for half damage.' },
+  lr_static:   { name: 'Static Build', cost: 25, cd: 2, target: 'self', special: u => { u.flags.charge = Math.min(3, (u.flags.charge || 0) + 2); log(`${u.name} builds up static!`); }, desc: 'Builds 2 charges (see Overcharge).' },
+  lr_storm:    { name: 'Thunderstorm', cost: 75, cd: 3, target: 'randfoe', power: 5, hits: 6, desc: 'Six bolts at random enemies.' },
+  lr_chain:    { name: 'Chain Lightning', cost: 50, cd: 2, target: 'foe', power: 12, special: (u, ts, b) => arc(u, ts[0], 12 * b, 2), desc: 'Hits an enemy, then arcs to 2 more for half damage.' },
+  lr_clap:     { name: 'Thunderclap', cost: 50, cd: 3, target: 'foes', power: 4, status: ['stun', 1, 0.25], label: 'Shocked', desc: 'Hits every enemy; 25% chance each to stun.' },
+  lr_jump:     { name: 'Jumpstart', cost: 75, cd: 5, target: 'ally', special: jumpstart, desc: 'Charges another ally up like Plant Food: its next move is free and twice as strong.' },
+  mag_junk:    { name: 'Junk Toss', cost: 0, target: 'foe', power: 8, lob: true, desc: 'Throws scrap. Stronger for every piece of metal it has pulled this battle.' },
+  mag_pull:    { name: 'Magnet Pull', cost: 25, cd: 2, target: 'foe', special: magnetPull, desc: 'Rips ALL metal armor off an enemy (buckets, helmets, doors...). Robot bosses only lose half.' },
+  mag_scrap:   { name: 'Scrap Shield', cost: 25, cd: 2, target: 'self', special: u => addShield(u, u.maxHp * (0.2 + 0.05 * Math.min(6, u.flags.metal || 0))), desc: 'A shield of scrap: 20% of its max HP, +5% per piece of metal pulled.' },
+  mag_flip:    { name: 'Polarity Flip', cost: 50, cd: 3, target: 'foes', special: (u, ts) => { for (const t of ts) dispel(t); log('Every enemy loses its buffs!', 'good'); }, desc: 'Strips the buffs (shields, Power, Guard...) from every enemy.' },
+  mag_attract: { name: 'Attract', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'Pulls attention like a magnet: Taunt for 2 turns.' },
+  um_slap:     { name: 'Leaf Slap', cost: 0, target: 'foe', power: 7, desc: 'A slap with a big leaf.' },
+  um_open:     { name: 'Open Umbrella', cost: 50, cd: 3, target: 'allies', status: ['evade', 1, 1], desc: 'Shelters the team: every ally Evades for a turn.' },
+  um_rain:     { name: 'Raincoat', cost: 25, cd: 1, target: 'self', shield: 0.25, desc: 'Shield itself for 25% of its max HP.' },
+  um_bounce:   { name: 'Bounce Back', cost: 25, cd: 2, target: 'self', self: ['counter', 2], desc: 'The next enemy that attacks it gets bounced back (12 power).' },
+  um_shade:    { name: 'Shade', cost: 25, cd: 1, target: 'ally', status: ['regen', 3, 1], desc: 'Cool shade: an ally Regenerates (8% a turn) for 3 turns.' },
+  um_pour:     { name: 'Downpour', cost: 75, cd: 4, target: 'foes', power: 4, status: ['chill', 1, 1], special: u => { for (const a of alliesOf(u)) delete a.st.burn; log('The rain puts out every burning plant!', 'good'); }, desc: 'Rain on everyone: every enemy is chilled and every ally stops burning.' },
 
   // ======== Signature moves (each belongs to one plant) ========
   pea_shot:    { name: 'Pea Shot', cost: 0, target: 'foe', power: 10, straight: true, desc: 'The classic pea.' },
@@ -324,7 +354,7 @@ const MOVES = {
   z_icetrail: { name: 'Ice Trail', cd: 2, target: 'foes', power: 6, status: ['chill', 2, 1], w: 2 },
   z_runover:  { name: 'Run Over', cd: 1, target: 'foe', power: 18 },
   z_pick:     { name: 'Pickaxe', target: 'foe', power: 11, ai: 'back' },
-  z_snatch:   { name: 'Bungee Snatch', cd: 3, target: 'foe', power: 6, vault: true, special: snatch, w: 3 },
+  z_snatch: { name: 'Bungee Snatch', cd: 3, target: 'foe', power: 6, vault: true, lob: true, special: snatch, w: 3 },
   z_ball:     { name: 'Basketball', cd: 1, target: 'randfoe', power: 7, hits: 3, lob: true, w: 2 },
   z_smash:    { name: 'Smash', cd: 1, target: 'foe', power: 24 },
   z_imptoss:  { name: 'Imp Toss', cd: 3, target: 'self', special: u => summon(u, ['imp']), w: 2 },
@@ -444,9 +474,104 @@ function devour(u, targets, boost) {
 function snatch(u, targets) {
   const t = targets[0];
   if (!t || t.hp <= 0) return;
+  // Bungee Zombies are lobbed in, so an Umbrella Leaf bounces them off.
+  if (t.side === 'ally' && B.plants.some(p => p.hp > 0 && p.data.passive?.umbrella)) { log(`${u.name} bounces off the umbrella!`, 'good'); return; }
   for (const s of ['shield', 'power', 'guard', 'taunt', 'thorns', 'fed']) delete t.st[s];
   log(`${u.name} snatched ${t.name}'s buffs!`, 'bad');
   addStatus(t, 'stun', 1, { label: 'Snatched' });
+}
+
+// ---- Helpers for the plant moves with unusual effects ----
+
+// dispel(t): strips every good status (buffs) off a unit.
+function dispel(t) {
+  for (const k in t.st) if (STATUS[k] && !STATUS[k].bad) delete t.st[k];
+}
+
+// Wall-nut and Tall-nut: the protector takes attacks aimed at these allies.
+function coverAllies(u, targets, turns) {
+  for (const t of targets) {
+    if (t === u || t.hp <= 0) continue;
+    if (addStatus(t, 'cover', turns)) t.coverBy = u.uid;
+  }
+  log(`${u.name} stands guard!`, 'good');
+}
+
+// Sunflower's Pep Talk: another ally's cooldowns are cleared.
+function pepTalk(u, targets) {
+  for (const t of targets) {
+    if (t === u) { log('Sunflower can\'t pep-talk itself!'); continue; }
+    t.cd = {};
+    addStatus(t, 'power', 1);
+    log(`${t.name} is ready for anything!`, 'good');
+  }
+}
+
+// Marigold's Golden Hour: an ally acts again right after this turn.
+function haste(u, t) {
+  if (!t || t === u || t.hp <= 0) return log('Golden Hour needs another plant!');
+  B.queue.unshift(t.uid);
+  log(`${t.name} gets an extra turn!`, 'good');
+}
+
+// Aloe's Sap Share: trade some of Aloe's own HP to heal an ally.
+function sapShare(u, targets) {
+  const t = targets[0];
+  if (!t || t === u) return log('Aloe can\'t share with itself!');
+  const give = Math.min(u.hp - 1, Math.round(u.maxHp * 0.2));
+  if (give <= 0) return;
+  u.hp -= give;
+  pop(u, '-' + give, 'dmg');
+  healUnit(t, give, u);
+}
+
+// Jalapeno's Flare Up: every burning enemy takes a hit.
+function flareUp(u) {
+  const burning = foesOf(u).filter(f => f.st.burn);
+  if (!burning.length) return log('Nothing is burning... yet.');
+  for (const f of burning) hit(u, f, 14, { aoe: true, fire: true });
+}
+
+// Snapdragon's Stoke the Flames: burns last longer.
+function stoke(u) {
+  const burning = foesOf(u).filter(f => f.st.burn);
+  for (const f of burning) f.st.burn += 2;
+  log(burning.length ? 'The flames roar higher!' : 'Nothing is burning... yet.', burning.length ? 'good' : '');
+}
+
+// Lightning Reed: a hit that arcs on to `count` more enemies at half power.
+function arc(u, from, power, count) {
+  for (const o of shuffle(foesOf(u).filter(x => x !== from)).slice(0, count)) hit(u, o, power * 0.5, { aoe: true });
+}
+
+// Lightning Reed's Jumpstart: like Plant Food for another ally.
+function jumpstart(u, targets) {
+  for (const t of targets) {
+    if (t === u) { log('Lightning Reed can\'t jumpstart itself!'); continue; }
+    t.st.fed = 1;
+    log(`${t.name} is supercharged: its next move is free and twice as strong!`, 'good');
+  }
+}
+
+// Magnet-shroom: which armor is metal, and pulling it off.
+const METAL = new Set(['bucket', 'helmet', 'door', 'mech', 'robo', 'crown']);
+function ripMetal(u, t, amount) {
+  if (!t || t.armor <= 0 || !METAL.has(t.armorKind)) return false;
+  t.armor = Math.max(0, t.armor - Math.round(amount));
+  if (t.armor <= 0) {
+    u.flags.metal = (u.flags.metal || 0) + 1;
+    log(`${u.name} pulls off ${t.name}'s ${ARMOR_NAMES[t.armorKind]}!`, 'good');
+    if (u.side === 'ally') progress.stats.armorBroken++;
+    t.data.passive?.armorBreak?.(t);
+  }
+  return true;
+}
+function magnetPull(u, targets) {
+  const t = targets[0];
+  if (!t || t.hp <= 0) return;
+  const amount = t.boss ? Math.ceil(t.armor / 2) : t.armor;
+  if (!ripMetal(u, t, amount)) return log(`${t.name} has nothing metal to pull.`);
+  if (t.armor > 0) log(`${u.name} rips half of ${t.name}'s ${ARMOR_NAMES[t.armorKind]} away!`, 'good');
 }
 
 /* ---- Plants -------------------------------------------------------------------
@@ -814,6 +939,41 @@ const PLANTS = {
     },
     learn: [['emp_zap', 1], ['emp_short', 1], ['emp_pulse', 3], ['emp_static', 4], ['emp_overload', 6], ['emp_recharge', 8]],
     unlock: { how: 'rogue' }, flavor: 'Robots hate this peach.',
+  },
+
+  // ================= ACHIEVEMENT PLANTS =================
+  lightningreed: {
+    name: 'Lightning Reed', cls: 'shooter', stats: [56, 12, 3, 16],
+    passive: {
+      name: 'Overcharge', desc: 'Every attack adds a charge. At 3 charges its next attack does 50% more and stuns, then the charges reset.',
+      dealMult(u) { return (u.flags.charge || 0) >= 3 ? 1.5 : 1; },
+      afterAttack(u, t) {
+        if ((u.flags.charge || 0) >= 3) {
+          u.flags.charge = 0;
+          if (t && t !== u && t.hp > 0) addStatus(t, 'stun', 1, { src: u, label: 'Shocked' });
+        } else {
+          u.flags.charge = (u.flags.charge || 0) + 1;
+        }
+      },
+    },
+    learn: [['lr_zap', 1], ['lr_static', 1], ['lr_storm', 2], ['lr_chain', 4], ['lr_clap', 6], ['lr_jump', 8]],
+    unlock: { how: 'achievement', id: 'stormchaser' }, flavor: 'Crackles when it\'s happy. It\'s always crackling.',
+  },
+  magnetshroom: {
+    name: 'Magnet-shroom', cls: 'grower', shroom: true, stats: [62, 9, 5, 11],
+    passive: {
+      name: 'Magnetic', desc: 'Its hits pull off a quarter of an enemy\'s METAL armor (buckets, helmets, doors, robots). +10% damage for each piece it has pulled off this battle (up to +60%).',
+      dealMult(u) { return 1 + 0.1 * Math.min(6, u.flags.metal || 0); },
+      onHit(u, t) { if (t.hp > 0) ripMetal(u, t, t.armorMax * 0.25); },
+    },
+    learn: [['mag_junk', 1], ['mag_pull', 1], ['puff_cloud', 2], ['mag_scrap', 4], ['mag_flip', 6], ['mag_attract', 8]],
+    unlock: { how: 'achievement', id: 'scrapper' }, flavor: 'Loves metal. Keeps all of it.',
+  },
+  umbrellaleaf: {
+    name: 'Umbrella Leaf', cls: 'hearty', stats: [92, 6, 9, 8],
+    passive: { name: 'Umbrella', desc: 'Catches every lobbed enemy attack meant for the team (basketballs, Bungee Zombies) and takes it at half damage.', umbrella: true },
+    learn: [['um_slap', 1], ['um_open', 1], ['um_rain', 2], ['um_bounce', 4], ['um_shade', 6], ['um_pour', 8]],
+    unlock: { how: 'achievement', id: 'dunk' }, flavor: 'Always ready for a rainy day. Or a basketball.',
   },
 };
 const PLANT_ORDER = Object.keys(PLANTS);
