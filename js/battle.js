@@ -175,6 +175,8 @@ function hit(src, t, power, mv = {}) {
   if (t.st.marked) dmg *= MARK_MULT;
   // Finishing moves (Squash's "Hmm...") hit much harder on badly hurt enemies.
   if (mv.execute && t.hp < t.maxHp * 0.4) dmg *= mv.execute;
+  // Combo moves (Frostbite) hit much harder on enemies that are already chilled or frozen.
+  if (mv.vsChilled && (t.st.chill || t.st.freeze)) dmg *= mv.vsChilled;
   dmg *= mult;
 
   // Battle gimmicks.
