@@ -111,7 +111,7 @@ const MOVES = {
   // Mushrooms: Puff-shroom, Sun-shroom, Fume-shroom, Hypno-shroom, Ice-shroom
   puff_cloud:  { name: 'Spore Cloud', cost: 25, cd: 2, target: 'foes', power: 4, status: ['weak', 2, 1], desc: 'Weakens every enemy for 2 turns.' },
   // Icy plants: Snow Pea, Ice-shroom, Iceberg Lettuce
-  frost_snare: { name: 'Frostbite', cost: 25, cd: 2, target: 'foe', power: 5, status: ['chill', 2, 1], desc: 'Chill an enemy for 2 turns.' },
+  frost_snare: { name: 'Frostbite', cost: 25, cd: 2, target: 'foe', power: 5, vsChilled: 3, status: ['chill', 2, 1], desc: 'Chills an enemy for 2 turns. TRIPLE damage if it\'s already chilled or frozen.' },
   // Fire plants: Jalapeno, Snapdragon, Torchwood
   fire_ignite: { name: 'Ignite', cost: 25, cd: 1, target: 'foe', power: 5, fire: true, status: ['burn', 3, 1], desc: 'Always burns for 3 turns.' },
   // Explosives: Cherry Bomb, Coconut Cannon, Potato Mine
@@ -197,13 +197,13 @@ const MOVES = {
   sq_belly:      { name: 'Belly Flop', cost: 50, cd: 2, target: 'foes', power: 8, desc: 'Flops on the whole crowd: hits every enemy.' },
   sq_glare: { name: 'Hmm...', cost: 25, cd: 2, target: 'foe', power: 10, execute: 3, desc: 'Sizes up an enemy, then SQUASH: triple damage if it\'s below 40% HP.' },
   sq_slam:       { name: 'Body Slam', cost: 75, cd: 3, target: 'foe', power: 20, status: ['stun', 1, 0.5], desc: 'A huge slam. 50% chance to stun.' },
-  sq_bounce:     { name: 'Bounce', cost: 25, cd: 1, target: 'foe', power: 9, hits: 2, desc: 'Bounces on an enemy twice.' },
+  sq_bounce:     { name: 'Bounce', cost: 25, cd: 1, target: 'foe2', power: 11, desc: 'Squashes an enemy, then bounces onto a second one.' },
   mel_rind:      { name: 'Thick Rind', cost: 25, cd: 2, target: 'self', shield: 0.2, desc: 'Hides behind its rind: a shield of 20% of its max HP.' },
   mel_smash:     { name: 'Watermelon Smash', cost: 100, cd: 4, target: 'foe', power: 26, splash: 0.5, desc: 'The biggest melon. Half of it splashes the other enemies.' },
   mel_juice:     { name: 'Sticky Juice', cost: 50, cd: 2, target: 'foes', power: 6, status: ['chill', 1, 0.5], desc: 'Hits every enemy; 50% chance each to chill.' },
   fume_blast:    { name: 'Fume Blast', cost: 25, cd: 1, target: 'foe', power: 14, desc: 'A strong blast of fumes.' },
   fume_breath: { name: 'Corrode', cost: 25, cd: 2, target: 'foe', power: 4, status: ['marked', 3, 1], desc: 'Corroding fumes: the enemy takes 30% more damage for 3 turns.' },
-  fume_storm:    { name: 'Stink Storm', cost: 100, cd: 4, target: 'foes', power: 14, desc: 'A huge cloud that hits every enemy hard.' },
+  fume_storm:    { name: 'Stink Storm', cost: 100, cd: 4, target: 'foes', power: 8, status: ['marked', 2, 1], special: u => { for (const f of foesOf(u)) addStatus(f, 'weak', 2, { src: u }); }, desc: 'Hits every enemy, and every enemy is Weak AND Marked (takes 30% more) for 2 turns.' },
   bonk_hay:      { name: 'Haymaker', cost: 50, cd: 2, target: 'foe', power: 20, desc: 'One huge punch.' },
   bonk_pump:     { name: 'Pump Up', cost: 25, cd: 2, target: 'self', self: ['power', 2], desc: 'Gets pumped: Power for 2 turns.' },
   bonk_combo:    { name: 'Combo', cost: 75, cd: 3, target: 'foe', power: 6, hits: 4, desc: 'A four-punch combo.' },
@@ -364,7 +364,7 @@ const MOVES = {
 
   // ---- Plants from across the series (PvZ 2, Garden Warfare) ----
   bloom_throw:   { name: 'Bloomerang', cost: 0, target: 'foe', power: 8, desc: 'A boomerang throw (bounces, see its ability).' },
-  bloom_spin:    { name: 'Petal Spin', cost: 50, cd: 2, target: 'foe', power: 6, hits: 2, desc: 'Two throws, and both bounce.' },
+  bloom_spin:    { name: 'Petal Spin', cost: 25, cd: 2, target: 'foe', power: 6, hits: 2, desc: 'Two throws, and both bounce.' },
   laser:         { name: 'Laser', cost: 0, target: 'foe', power: 12, desc: 'A laser beam (see its ability).' },
   laser_burst:   { name: 'Laser Burst', cost: 50, cd: 3, target: 'foe', power: 18, pierce: true, desc: 'A huge beam that pierces armor.' },
   cit_plasma:    { name: 'Plasma Ball', cost: 0, target: 'foe', power: 9, desc: 'A zap of citrus energy.' },
