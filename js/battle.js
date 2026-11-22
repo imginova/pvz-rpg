@@ -33,7 +33,7 @@ function later(fn, ms) {
 function makeUnit(kind, id, side, lvl, opts = {}) {
   const data = kind === 'plant' ? PLANTS[id] : ZOMBIES[id];
   const [hp, atk, dfn, spd] = data.stats;
-  const s = statScale(lvl);
+  const s = statScale(side);
   const u = {
     uid: ++uidCounter, kind, id, data, side, lvl, name: data.name,
     maxHp: Math.round(hp * s), atk: atk * s, dfn, spd,
@@ -81,11 +81,15 @@ function canTarget(u, t, mv) {
 }
 
 // Who a move could be aimed at, or null if it needs no choosing.
+// Is a Ladder Zombie on this unit's side still carrying its ladder?
+const ladderUp = u => sideList(u.side).some(z => z.hp > 0 && z.data.passive?.ladder && z.armor > 0);
+
 function validTargets(u, mv) {
   if (mv.target === 'foe' || mv.target === 'foe2') {
     let list = foesOf(u).filter(t => canTarget(u, t, mv));
     const taunters = list.filter(t => t.st.taunt);
-    if (taunters.length && !mv.vault) list = taunters;
+    // Vaulting attacks ignore Taunt, and so does everyone while a Ladder Zombie still has its ladder.
+    if (taunters.length && !mv.vault && !ladderUp(u)) list = taunters;
     return list;
   }
   if (mv.target === 'ally') return alliesOf(u);
@@ -113,7 +117,7 @@ function gainSun(n, src) {
 }
 
 // ---- Damage ------------------------------------------------------------------------------
-const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet: 'helmet', door: 'screen door', mech: 'robot armor', crown: 'knight armor', robo: 'future armor' };
+const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet: 'helmet', door: 'screen door', mech: 'robot armor', crown: 'knight armor', robo: 'future armor', ladder: 'ladder', pogo: 'pogo stick', ice: 'ice block', boombox: 'boombox', barrel: 'barrel', sarcophagus: 'sarcophagus' };
 
 /* hit(src, t, power, mv): src attacks t. Returns the damage done.
    mv is the move (or a small object like { aoe: true }) and says what
@@ -154,7 +158,7 @@ function hit(src, t, power, mv = {}) {
   if (single && B.g.has('fog') && src.side === 'ally' && chance(0.15)) { log(`${src.name} missed in the fog.`); pop(t, 'MISS', 'miss'); return 0; }
 
   // The damage formula (see config.js). Wall-nut's Roll uses defense instead of attack.
-  const atk = mv.useDef ? (src.dfn + 4) * statScale(src.lvl) : src.atk;
+  const atk = mv.useDef ? (src.dfn + 4) * statScale(src.side) : src.atk;
   let dmg = power * (atk / 10) * (DEF_K / (DEF_K + t.dfn));
 
   // Torchwood sets your straight shots on fire.
@@ -181,7 +185,7 @@ function hit(src, t, power, mv = {}) {
 
   // Passive abilities of the attacker and the target.
   if (P.dealMult) dmg *= P.dealMult(src, t, mv);
-  if (TP.takeMult) dmg *= TP.takeMult(t, src, { ...mv, straight, lob, fire });
+  if (TP.takeMult) dmg *= TP.takeMult(t, src, { ...mv, straight, lob, fire, pierce });
 
   let crit = false;
   if (!mv.counter && !mv.noCrit && chance(CRIT_CHANCE)) { crit = true; dmg *= CRIT_MULT; }
@@ -233,7 +237,7 @@ function hit(src, t, power, mv = {}) {
     if (src.hp <= 0) fallUnit(src, t);
   }
 
-  if (t.hp > 0 && TP.onHurt) TP.onHurt(t, mv.counter ? null : src, dmg, mv);
+  if (t.hp > 0 && TP.onHurt) TP.onHurt(t, mv.counter ? null : src, dmg, { ...mv, straight, lob, fire, pierce });
   if (t.hp <= 0) fallUnit(t, src);
   return dmg;
 }
@@ -507,7 +511,7 @@ function finishTurn(u) {
 function whyNot(u, id) {
   const mv = MOVES[id];
   if (B.allowed && !B.allowed.includes(id)) return 'Not on the belt';
-  if (u.cd[id]) return `Ready in ${u.cd[id]}`;
+  if (u.cd[id]) return mv.cd >= ONCE_PER_BATTLE ? 'Used this battle' : `Ready in ${u.cd[id]}`;
   if (u.st.silence && !mv.power) return 'Silenced';
   if (!u.st.fed && B.sun < mv.cost) return 'Not enough sun';
   const t = validTargets(u, mv);
@@ -528,6 +532,8 @@ function useMove(u, id, chosen) {
 
   log(`${u.name} used ${mv.name}!`, u.side === 'ally' ? 'move' : 'foe');
   B.moveKills = 0;
+  // Some moves set something up before they hit (Coconut Cannon loads itself).
+  mv.pre?.(u);
 
   // Who gets hit.
   let targets = [];
@@ -541,8 +547,12 @@ function useMove(u, id, chosen) {
 
   // Laser Bean's Beam: an attack on one enemy hits every enemy at half power.
   let mult = boost;
+  // Its Charge Up move makes the next beam full power.
   const beam = !!(P.beam && mv.power && mv.target === 'foe');
-  if (beam) { targets = foesOf(u); mult *= P.beam; }
+  if (beam) {
+    targets = foesOf(u);
+    if (u.flags.fullBeam) { u.flags.fullBeam = false; log('Full power beam!', 'good'); } else mult *= P.beam;
+  }
 
   const aoe = beam || mv.target === 'foes' || mv.target === 'foe2';
   const single = mv.target === 'foe' && !beam;
@@ -569,9 +579,11 @@ function useMove(u, id, chosen) {
     if (mv.power) {
       for (let h = 0; h < (mv.hits || 1) && t.hp > 0; h++) {
         strike(t, mv.power * mult);
-        // Bloomerang's Comeback: each throw bounces on to 2 other enemies.
+        // Bloomerang's Comeback: each throw bounces on to 2 other enemies
+        // (or to every other enemy after Wind Up).
         if (P.ricochet && single) {
-          for (const o of shuffle(foesOf(u).filter(x => x !== t)).slice(0, 2)) hit(u, o, mv.power * mult * P.ricochet, { ...mv, aoe: true });
+          const bounces = u.flags.windup ? 99 : 2;
+          for (const o of shuffle(foesOf(u).filter(x => x !== t)).slice(0, bounces)) hit(u, o, mv.power * mult * P.ricochet, { ...mv, aoe: true });
         }
       }
       // Repeater's Double Tap: a second, weaker pea.
@@ -594,6 +606,7 @@ function useMove(u, id, chosen) {
     if (mv.revive) revive(t, mv.revive * boost);
   }
   if (mv.power && P.afterAttack) P.afterAttack(u, targets[0] || u, mv);
+  if (mv.power && single) u.flags.windup = false;   // Wind Up is used up
   if (mv.self) addStatus(u, mv.self[0], mv.self[1] * boost);
   if (mv.sun) gainSun(mv.sun * boost, u);
   if (mv.special) mv.special(u, targets, boost);
