@@ -132,6 +132,7 @@ button.on { border-color: var(--sun); color: var(--sun); }
 .k-rogue { color: var(--c-grower); font-weight: 600; }
 .k-boss { color: var(--c-boss); font-weight: 600; }
 .k-boss.ready { animation: pulse 1s infinite alternate; }
+.k-done { opacity: 0.45; font-weight: 400; }   /* a beaten battle you can refight */
 .k-chest { color: var(--sun); }
 .k-sign { color: #e8d7b0; }
 .k-gate { color: var(--bad); font-weight: 600; }

@@ -982,7 +982,7 @@ const PLANTS = {
 
   // ================= FROM ACROSS THE SERIES =================
   // (Plants vs. Zombies 2 and Garden Warfare. Found in the Time Rift,
-  // in the shop and through a secret achievement.)
+  // in the shop and through an achievement.)
   bloomerang: {
     name: 'Bloomerang', cls: 'shooter', stats: [62, 12, 4, 14],
     passive: { name: 'Comeback', desc: 'Its attacks on one enemy bounce on to 2 other enemies for 40% damage.', ricochet: 0.4 },
