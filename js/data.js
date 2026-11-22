@@ -798,10 +798,10 @@ const PLANTS = {
   pumpkin: {
     name: 'Pumpkin', cls: 'hearty', stats: [100, 6, 9, 7],
     passive: {
-      name: 'Pumpkin Patch', desc: 'Each round, shields the most hurt ally for 8% of Pumpkin\'s max HP.',
+      name: 'Pumpkin Patch', desc: 'Each round, shields the most hurt ally for 4% of Pumpkin\'s max HP.',
       roundStart(u) {
         const hurt = alliesOf(u).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
-        if (hurt) addShield(hurt, u.maxHp * 0.08);
+        if (hurt) addShield(hurt, u.maxHp * 0.04);   // was 8%: Pumpkin was far stronger than any other plant
       },
     },
     learn: [['pump_bash', 1], ['pump_shell', 1], ['pump_grin', 2], ['pump_vines', 4], ['pump_hollow', 5], ['pump_harvest', 7], ['pump_lantern', 10]],
