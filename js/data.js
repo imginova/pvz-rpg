@@ -275,6 +275,7 @@ const MOVES = {
   puff_cloud:  { name: 'Spore Cloud', cost: 25, cd: 2, target: 'foes', power: 4, status: ['weak', 2, 1], desc: 'Weakens every enemy for 2 turns.' },
 
   nut_roll:    { name: 'Roll', cost: 0, target: 'foe', power: 9, useDef: true, desc: 'Damage is based on DEFENSE, not attack.' },
+  nut_bowl:    { name: 'Wall-nut Bowling', cost: 75, cd: 3, target: 'foe', power: 14, useDef: true, special: bowl, desc: 'Bowls into an enemy, then bounces into up to 3 more (each bounce does 75% of the last). DEFENSE-based.' },
   nut_regrow:  { name: 'Regrow Shell', cost: 25, cd: 2, target: 'self', heal: 0.3, desc: 'Heal itself 30%.' },
   tall_stand:  { name: 'Stand Tall', cost: 0, cd: 1, target: 'self', self: ['taunt', 1], special: u => addStatus(u, 'guard', 1), desc: 'Free Taunt and Guard for a turn.' },
   tall_topple: { name: 'Topple', cost: 50, cd: 3, target: 'foe', power: 14, useDef: true, status: ['stun', 1, 1], desc: 'Falls on an enemy (DEFENSE-based) and stuns it.' },
@@ -488,6 +489,21 @@ function dispel(t) {
   for (const k in t.st) if (STATUS[k] && !STATUS[k].bad) delete t.st[k];
 }
 
+// Wall-nut Bowling: after the first hit, the nut bounces from enemy to
+// enemy (never the same one twice in a row), weaker each bounce.
+function bowl(u, targets, boost) {
+  let last = targets[0];
+  let power = 14 * boost * 0.75;
+  for (let bounce = 0; bounce < 3; bounce++) {
+    const next = pick(foesOf(u).filter(f => f !== last));
+    if (!next) break;
+    log('Bounce!');
+    hit(u, next, power, { useDef: true, aoe: true });
+    power *= 0.75;
+    last = next;
+  }
+}
+
 // Wall-nut and Tall-nut: the protector takes attacks aimed at these allies.
 function coverAllies(u, targets, turns) {
   for (const t of targets) {
@@ -645,7 +661,7 @@ const PLANTS = {
       name: 'Tough Shell', desc: 'Takes 25% less damage while above half HP.',
       takeMult(u) { return u.hp > u.maxHp / 2 ? 0.75 : 1; },
     },
-    learn: [['nut_roll', 1], ['nut_stare', 1], ['nut_shell', 2], ['nut_regrow', 3], ['nut_block', 5], ['nut_wall', 7]],
+    learn: [['nut_roll', 1], ['nut_stare', 1], ['nut_shell', 2], ['nut_regrow', 3], ['nut_block', 5], ['nut_wall', 7], ['nut_bowl', 10]],
     unlock: { how: 'start' }, flavor: 'A nut that refuses to crack.',
   },
   tallnut: {
