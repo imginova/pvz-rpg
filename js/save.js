@@ -70,11 +70,21 @@ function learnedAt(id, lvl) {
 }
 
 // The moves a plant has equipped, skipping any that don't exist anymore.
+// If a saved move was taken out of the game (moves were re-themed on
+// 2026-11-21), its slot is filled with the next move the plant knows, so
+// the plant keeps the same number of moves. The save itself isn't changed
+// until the player edits that plant's moves.
 function equipped(id) {
   const entry = progress.owned[id];
   const known = learnedAt(id, entry.lvl);
-  const list = (entry.moves || []).filter(m => known.includes(m));
-  return list.length ? list : known.slice(0, MAX_MOVES);
+  const saved = entry.moves || [];
+  const list = saved.filter(m => known.includes(m));
+  const want = Math.min(MAX_MOVES, Math.max(1, saved.length));
+  for (const m of known) {
+    if (list.length >= want) break;
+    if (!list.includes(m)) list.push(m);
+  }
+  return list;
 }
 
 // Equip or unequip a move. Returns a message if it can't be done.
