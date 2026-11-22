@@ -16,12 +16,22 @@ const WAIT_SUN = 15;     // "Soak up sun" (skipping a turn) gives this much
 // ---- Team and moves ---------------------------------------------------
 const MAX_TEAM = 5;      // plants you can bring into a battle
 const MAX_MOVES = 4;     // moves a plant can have equipped at once
-const MAX_LEVEL = 20;
+const MAX_LEVEL = 10;
 
-// statScale(level): how much stronger a plant or zombie is at a level.
-// Level 1 is x1, level 2 is x1.12, level 10 is x2.08. Only health (HP)
-// and attack grow; defense and speed stay the same at every level.
-const statScale = lvl => 1 + 0.12 * (lvl - 1);
+// statScale(side): how strong a unit's health (HP) and attack are compared
+// to the numbers in data.js. Levels DON'T make anything stronger (owner's
+// choice, 2026-11-22: "remove stats getting better as levels increase and
+// instead have the starting stats be around level 7", and "make the
+// zombies also level locked in strength"). Levels now only unlock moves.
+//   - Your plants always get x1.72 (what level 7 used to give).
+//   - Enemies (zombies and rogue plants) always get x1.5 (about old level
+//     5). Plants used to end up about 2 levels above the zombies, and this
+//     keeps that small edge; with both at x1.72 the bot lost much more.
+// Later chapters are harder because of tougher zombie types, more waves
+// and bosses, not levels.
+const PLANT_STAT_SCALE = 1.72;
+const ENEMY_STAT_SCALE = 1.5;
+const statScale = side => (side === 'ally' ? PLANT_STAT_SCALE : ENEMY_STAT_SCALE);
 
 // XP needed to go from `lvl` to `lvl + 1`.
 const xpToNext = lvl => 20 + 15 * lvl;

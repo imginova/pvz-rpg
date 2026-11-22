@@ -1114,6 +1114,243 @@ _/    \_ `,
    RR
 DD    DD`,
   },
+
+  // ---- More variety (2026-11-22). The "...Bare" drawings show the zombie
+  // after its armor (ladder, pogo stick, ice block...) is gone. ----
+  ladder: {
+    pal: { ...Z, a: Z.s, R: '#c8303a', m: '#aab0b8' },
+    art: art`
+  ,,, H
+ (x_x)H
+ /[#]\H
+  / \ H `,
+    ink: art`
+  hhh m
+ sksksm
+ RRRRRm
+  p p m`,
+  },
+  ladderBare: {
+    pal: { ...Z, a: Z.s, R: '#c8303a' },
+    art: art`
+  ,,,
+ (x_x)
+ /[#]\
+  / \ `,
+    ink: art`
+  hhh
+ sksks
+ RRRRR
+  p p`,
+  },
+  balloon: {
+    pal: { ...Z, a: Z.s, R: '#e0303a', g: '#d8d8d8' },
+    art: art`
+   O
+   |
+ (x_x)
+ /[V]\ `,
+    ink: art`
+   R
+   g
+ sksks
+ cwrwc`,
+  },
+  pogo: {
+    pal: { ...Z, a: Z.s, G: '#7a7a84', m: '#c0c4cc' },
+    art: art`
+  ,,,
+ (x_x)
+ /|#|\
+  _I_ `,
+    ink: art`
+  hhh
+ sksks
+ GGGGG
+  mmm`,
+  },
+  pogoBare: {
+    pal: { ...Z, a: Z.s, G: '#7a7a84' },
+    art: art`
+  ,,,
+ (x_x)
+ /|#|\
+  / \ `,
+    ink: art`
+  hhh
+ sksks
+ GGGGG
+  G G`,
+  },
+  bobsled: {
+    pal: { ...Z, a: Z.s, R: '#c8303a', W: '#a8a8b0', I: '#bfe9f5' },
+    art: art`
+ o o o o
+[x][x][x]
+\_______/
+ ~~~~~~~ `,
+    ink: art`
+ s s s s
+RkRRkRRkR
+WWWWWWWWW
+ IIIIIII`,
+  },
+  troglobite: {
+    pal: { ...Z, a: Z.s, F: '#c9a06a', I: '#9fe3f5' },
+    art: art`
+ ,,, ___
+(x_x)|  |
+/|#|\|__|
+ / \ `,
+    ink: art`
+ hhh III
+sksksI  I
+FFFFFIIII
+ F F`,
+  },
+  troglobiteBare: {
+    pal: { ...Z, a: Z.s, F: '#c9a06a' },
+    art: art`
+ ,,,
+(x_x)
+/|#|\
+ / \ `,
+    ink: art`
+ hhh
+sksks
+FFFFF
+ F F`,
+  },
+  prospector: {
+    pal: { ...Z, a: Z.s, y: '#f2c12e', B: '#8a6a4a', R: '#e0303a', g: '#c9c9c9' },
+    art: art`
+  _n_
+ (x_x)
+ /|#|\=
+  / \ `,
+    ink: art`
+  yyy
+ sksks
+ BgggBR
+  p p`,
+  },
+  wrangler: {
+    pal: { ...Z, a: Z.s, O: '#e0602a', W: '#f2f2f2', y: '#f2a01e' },
+    art: art`
+  ;;;
+ (x_x)
+ /|#|\@
+  / \ `,
+    ink: art`
+  OOO
+ sksks
+ WWWWWW
+  p p`,
+  },
+  chicken: {
+    pal: { a: '#f2f2f2', r: '#e0303a', y: '#f2a01e', k: '#5a5a62' },
+    art: art`
+
+  ,
+ (o>
+  ^^ `,
+    ink: art`
+
+  r
+  ky
+  yy`,
+  },
+  octo: {
+    pal: { ...Z, a: Z.s, O: '#a070d0', G: '#8a8a4a' },
+    art: art`
+ (@@@)
+ (x_x)
+ /|#|\
+  / \ `,
+    ink: art`
+ OOOOO
+ sksks
+ GGGGG
+  p p`,
+  },
+  boombox: {
+    pal: { ...Z, a: Z.s, K: '#5a5a66', m: '#b8bcc4', b: '#ff5ab0', B: '#3a6ac8' },
+    art: art`
+  ___
+ (x_x)
+[o=o]|\
+  / \ `,
+    ink: art`
+  KKK
+ sksks
+mbmbmBB
+  p p`,
+  },
+  boomboxBare: {
+    pal: { ...Z, a: Z.s, K: '#5a5a66', B: '#3a6ac8' },
+    art: art`
+  ___
+ (x_x)
+ /|#|\
+  / \ `,
+    ink: art`
+  KKK
+ sksks
+ BBBBB
+  p p`,
+  },
+  barrel: {
+    pal: { ...Z, a: Z.s, P: '#8a4ab8', W: '#8a5a2e', R: '#c8303a' },
+    art: art`
+  ~~~
+ (x_x)
+(=====)
+(=====) `,
+    ink: art`
+  PPP
+ sksks
+WRWWWRW
+WRWWWRW`,
+  },
+  barrelBare: {
+    pal: { ...Z, a: Z.s, P: '#8a4ab8', K: '#6a6a72' },
+    art: art`
+  ~~~
+ (x_x)
+ /|#|\
+  / \ `,
+    ink: art`
+  PPP
+ sksks
+ KKKKK
+  p p`,
+  },
+  footsoldier: {
+    pal: { ...Z, a: Z.s, G: '#5f8a3a', m: '#7a7f86', O: '#f28c28' },
+    art: art`
+ (===)
+ (x_x)
+ /|#|\==>
+  / \ `,
+    ink: art`
+ GGGGG
+ sksks
+ GGGGGmmO
+  G G`,
+  },
+  pharaoh: {
+    pal: { ...Z, a: Z.s, y: '#e0b83a', B: '#2b5fa8' },
+    art: art`
+ /=^=\
+|(x_x)|
+|=|=|=|
+ \___/ `,
+    ink: art`
+ yyyyy
+ysksksy
+yByByBy
+ yyyyy`,
+  },
 };
 
 // SPRITES[id] is just the drawing (a list of 4 lines). Other files use it.
@@ -1140,7 +1377,10 @@ function spriteHtml(id, lines = SPRITES[id]) {
 }
 
 // The drawing to use once a zombie's armor is gone.
-const BARE = { cone: 'zombie', bucket: 'zombie', paper: 'paperMad', door: 'zombie', football: 'footballBare', zomboss: 'zombossBare', tomorrowtron: 'zombossBare' };
+const BARE = {
+  cone: 'zombie', bucket: 'zombie', paper: 'paperMad', door: 'zombie', football: 'footballBare', zomboss: 'zombossBare', tomorrowtron: 'zombossBare',
+  ladder: 'ladderBare', pogo: 'pogoBare', troglobite: 'troglobiteBare', boombox: 'boomboxBare', barrel: 'barrelBare', pharaoh: 'mummy',
+};
 
 // Which drawing a unit uses right now (its id in DRAWINGS).
 function spriteKey(u) {

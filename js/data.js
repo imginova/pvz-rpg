@@ -437,6 +437,22 @@ const MOVES = {
   z_laser:      { name: 'Laser Sweep', cd: 3, target: 'foes', power: 11, fire: true, status: ['burn', 1, 0.5], w: 2 },
   z_future:     { name: 'Call the Future', cd: 5, target: 'self', special: u => summon(u, [pick(['jetpack', 'shieldz', 'punk'])]), w: 2 },
   z_sheepray:   { name: 'Sheep Ray', cd: 4, target: 'self', special: u => sheepRandom(u, 2, 1), can: u => foesOf(u).some(p => !p.st.sheep), w: 2 },
+
+  // ---- More zombie variety (added 2026-11-22) ----
+  z_ladderbash: { name: 'Ladder Bash', target: 'foe', power: 11 },
+  z_pogo:       { name: 'Pogo Bounce', target: 'foe', power: 11, vault: true, ai: 'back', can: u => u.armor > 0, w: 3 },
+  z_sled:       { name: 'Sled Slam', cd: 2, target: 'foes', power: 7, w: 3 },
+  z_iceshove:   { name: 'Ice Block Shove', cd: 2, target: 'foe', power: 12, status: ['chill', 1, 1], can: u => u.armor > 0, w: 3 },
+  z_club:       { name: 'Club', target: 'foe', power: 11 },
+  z_dynamite:   { name: 'Dynamite Jump', cd: 99, target: 'foe', power: 18, vault: true, ai: 'back', can: u => !u.flags.fuseOut, special: u => { u.flags.fuseOut = true; }, w: 5 },
+  z_lasso:      { name: 'Lasso', target: 'foe', power: 9, status: ['chill', 1, 0.3] },
+  z_peck:       { name: 'Peck', target: 'foe', power: 6, ai: 'weak' },
+  z_octo:       { name: 'Octo Throw', cd: 3, target: 'foe', power: 4, status: ['stun', 2, 1], label: 'Octopused', w: 3 },
+  z_beat:       { name: 'Drop the Beat', cd: 4, target: 'foes', status: ['stun', 1, 0.6], label: 'Dazed', can: u => u.armor > 0, w: 3 },
+  z_barrelroll: { name: 'Barrel Roll', cd: 2, target: 'foes', power: 7, can: u => u.armor > 0, w: 3 },
+  z_zpg:        { name: 'ZPG Rocket', cd: 2, target: 'foes', power: 8, w: 2 },
+  z_blaster:    { name: 'Z-6 Blaster', target: 'foe', power: 10 },
+  z_crush:      { name: 'Sarcophagus Slam', target: 'foe', power: 13 },
 };
 
 // ---- Helpers for the special moves above ----
@@ -469,7 +485,7 @@ const knightable = u => alliesOf(u).filter(z => z !== u && z.kind === 'zombie' &
 function knight(u) {
   const z = pick(knightable(u));
   if (!z) return;
-  z.armor = z.armorMax = Math.round(40 * statScale(z.lvl));
+  z.armor = z.armorMax = Math.round(40 * statScale(z.side));
   z.armorKind = 'crown';
   log(`${u.name} knights ${z.name}! It gets armor.`, 'bad');
 }
@@ -676,7 +692,7 @@ function jumpstart(u, targets) {
 }
 
 // Magnet-shroom: which armor is metal, and pulling it off.
-const METAL = new Set(['bucket', 'helmet', 'door', 'mech', 'robo', 'crown']);
+const METAL = new Set(['bucket', 'helmet', 'door', 'mech', 'robo', 'crown', 'ladder', 'pogo', 'boombox']);
 function ripMetal(u, t, amount) {
   if (!t || t.armor <= 0 || !METAL.has(t.armorKind)) return false;
   t.armor = Math.max(0, t.armor - Math.round(amount));
@@ -1292,6 +1308,99 @@ const ZOMBIES = {
     desc: 'Dr. Zomboss\'s robot from the far future. Lasers, sheep rays and future zombies.',
     counter: 'Pierce its armor. It\'s a machine: E.M.Peach\'s stuns always work on it.',
     passive: { name: 'Future Fury', onHurt(u) { if (!u.flags.mad && u.hp > 0 && u.hp < u.maxHp / 2) { u.flags.mad = true; u.st.power = 3; log('Tomorrow-tron overclocks! Power for 3 turns!', 'bad'); } } },
+  },
+
+  // ---- More variety (added 2026-11-22, checked against the wiki's pictures) ----
+  ladder: {
+    name: 'Ladder Zombie', stats: [48, 10, 5, 9], armor: [55, 'ladder'], moves: ['z_ladderbash'], coins: 12,
+    desc: 'Carries a metal ladder. While it has it, EVERY zombie climbs right over your taunting plants.',
+    counter: 'Break the ladder, or have Magnet-shroom pull it off. Then Taunt works again.',
+    passive: { name: 'Ladder', ladder: true },
+  },
+  balloon: {
+    name: 'Balloon Zombie', stats: [40, 9, 4, 12], moves: ['z_bite'], coins: 10,
+    desc: 'Floats above the lawn on a balloon: takes only 25% damage until the balloon pops.',
+    counter: 'Any piercing attack (Cactus, Spikeweed, Fume-shroom...) or lob pops the balloon.',
+    passive: {
+      name: 'Floating', takeMult(u, src, mv) {
+        if (u.flags.popped) return 1;
+        if (mv.pierce || mv.lob) { u.flags.popped = true; log(`POP! ${u.name}'s balloon bursts!`, 'good'); return 1; }
+        return 0.25;
+      },
+    },
+  },
+  pogo: {
+    name: 'Pogo Zombie', stats: [44, 10, 4, 14], armor: [35, 'pogo'], moves: ['z_bite', 'z_pogo'], coins: 11,
+    desc: 'Bounces over your front line on a metal pogo stick.',
+    counter: 'A Tall-nut stops the bounce. Break the pogo stick, or have Magnet-shroom take it, and it can\'t bounce.',
+  },
+  bobsled: {
+    name: 'Zombie Bobsled Team', stats: [56, 9, 5, 17], vehicle: true, moves: ['z_bite', 'z_sled'], coins: 14,
+    desc: 'Four zombies on a sled, sliding into your whole team. Chilled plants take double from them.',
+    counter: 'It\'s a vehicle: Spikeweed and E.M.Peach wreck it. Cleanse chill off your plants first.',
+    passive: { name: 'Ice Slide', dealMult(u, t) { return t.st.chill || t.st.freeze ? 2 : 1; } },
+  },
+  troglobite: {
+    name: 'Troglobite', stats: [50, 11, 5, 7], armor: [90, 'ice'], moves: ['z_club', 'z_iceshove'], coins: 14,
+    desc: 'A caveman pushing a giant block of ice that chills your plants.',
+    counter: 'Any FIRE attack melts the whole ice block at once.',
+    passive: {
+      name: 'Ice Block', onHurt(u, src, dmg, mv) {
+        if (mv.fire && u.armor > 0) { u.armor = 0; log(`${u.name}'s ice block melts away!`, 'good'); }
+      },
+    },
+  },
+  prospector: {
+    name: 'Prospector Zombie', stats: [46, 11, 4, 11], moves: ['z_pick', 'z_dynamite'], coins: 13,
+    desc: 'Once per battle, a dynamite jump onto your BACK plant for big damage.',
+    counter: 'Set it on fire before it jumps: the fuse lights early and the dynamite blows up on it instead.',
+    passive: {
+      name: 'Dynamite', onStatus(u, name) {
+        if (name === 'burn' && !u.flags.fuseOut) {
+          u.flags.fuseOut = true;
+          log(`${u.name}'s dynamite goes off in its hands!`, 'good');
+          zap(u, u.maxHp * 0.3, 'is blown up by its own dynamite');
+        }
+      },
+    },
+  },
+  wrangler: {
+    name: 'Chicken Wrangler', stats: [50, 9, 4, 10], moves: ['z_lasso'], coins: 12,
+    desc: 'The first time it\'s hit, three Zombie Chickens run loose.',
+    counter: 'Hit-everyone attacks clean up chickens. Or defeat it in one big hit.',
+    passive: { name: 'Chickens!', onHurt(u) { if (!u.flags.loose && u.hp > 0) { u.flags.loose = true; log('The chickens get loose!', 'bad'); summon(u, ['chicken', 'chicken', 'chicken']); } } },
+  },
+  chicken: {
+    name: 'Zombie Chicken', stats: [12, 7, 1, 24], moves: ['z_peck'], coins: 1,
+    desc: 'Tiny, fast and pecks your weakest plant.',
+    counter: 'Anything that hits everyone.',
+  },
+  octo: {
+    name: 'Octo Zombie', stats: [48, 10, 5, 9], moves: ['z_bite', 'z_octo'], coins: 12,
+    desc: 'Throws an octopus that wraps a plant up for 2 turns.',
+    counter: 'Cleanse unwraps the plant, and Garlic\'s Ward stops the octopus from sticking.',
+  },
+  boombox: {
+    name: 'Boombox Zombie', stats: [46, 9, 4, 11], armor: [40, 'boombox'], moves: ['z_bite', 'z_beat'], coins: 13,
+    desc: 'Its boombox drops a beat that stuns most of your team.',
+    counter: 'Break the boombox (or have Magnet-shroom take it) and the music stops for good.',
+  },
+  barrel: {
+    name: 'Barrel Roller', stats: [48, 10, 5, 9], armor: [70, 'barrel'], moves: ['z_bite', 'z_barrelroll'], coins: 13,
+    desc: 'Rolls a barrel into your whole team. Imps jump out when the barrel breaks.',
+    counter: 'Hit-everyone attacks catch the Imps as they jump out. Pierce the barrel to skip it.',
+    passive: { name: 'Stowaways', armorBreak(u) { log('Imps jump out of the barrel!', 'bad'); summon(u, ['imp', 'imp']); } },
+  },
+  footsoldier: {
+    name: 'Foot Soldier', stats: [50, 11, 5, 12], moves: ['z_blaster', 'z_zpg'], coins: 13,
+    desc: 'Fires rockets at your whole team and rocket-jumps to dodge (Evade) every other round.',
+    counter: 'Hit-everyone attacks ignore Evade. Hit it on the rounds it\'s on the ground.',
+    passive: { name: 'Rocket Jump', roundStart(u) { if (B.round % 2 === 1) addStatus(u, 'evade', 1); } },
+  },
+  pharaoh: {
+    name: 'Pharaoh Zombie', stats: [52, 11, 6, 5], armor: [150, 'sarcophagus'], moves: ['z_crush'], coins: 16,
+    desc: 'Locked inside a huge golden sarcophagus. Very slow.',
+    counter: 'Piercing attacks go straight through the sarcophagus.',
   },
 };
 

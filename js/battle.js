@@ -33,7 +33,7 @@ function later(fn, ms) {
 function makeUnit(kind, id, side, lvl, opts = {}) {
   const data = kind === 'plant' ? PLANTS[id] : ZOMBIES[id];
   const [hp, atk, dfn, spd] = data.stats;
-  const s = statScale(lvl);
+  const s = statScale(side);
   const u = {
     uid: ++uidCounter, kind, id, data, side, lvl, name: data.name,
     maxHp: Math.round(hp * s), atk: atk * s, dfn, spd,
@@ -81,11 +81,15 @@ function canTarget(u, t, mv) {
 }
 
 // Who a move could be aimed at, or null if it needs no choosing.
+// Is a Ladder Zombie on this unit's side still carrying its ladder?
+const ladderUp = u => sideList(u.side).some(z => z.hp > 0 && z.data.passive?.ladder && z.armor > 0);
+
 function validTargets(u, mv) {
   if (mv.target === 'foe' || mv.target === 'foe2') {
     let list = foesOf(u).filter(t => canTarget(u, t, mv));
     const taunters = list.filter(t => t.st.taunt);
-    if (taunters.length && !mv.vault) list = taunters;
+    // Vaulting attacks ignore Taunt, and so does everyone while a Ladder Zombie still has its ladder.
+    if (taunters.length && !mv.vault && !ladderUp(u)) list = taunters;
     return list;
   }
   if (mv.target === 'ally') return alliesOf(u);
@@ -113,7 +117,7 @@ function gainSun(n, src) {
 }
 
 // ---- Damage ------------------------------------------------------------------------------
-const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet: 'helmet', door: 'screen door', mech: 'robot armor', crown: 'knight armor', robo: 'future armor' };
+const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet: 'helmet', door: 'screen door', mech: 'robot armor', crown: 'knight armor', robo: 'future armor', ladder: 'ladder', pogo: 'pogo stick', ice: 'ice block', boombox: 'boombox', barrel: 'barrel', sarcophagus: 'sarcophagus' };
 
 /* hit(src, t, power, mv): src attacks t. Returns the damage done.
    mv is the move (or a small object like { aoe: true }) and says what
@@ -154,7 +158,7 @@ function hit(src, t, power, mv = {}) {
   if (single && B.g.has('fog') && src.side === 'ally' && chance(0.15)) { log(`${src.name} missed in the fog.`); pop(t, 'MISS', 'miss'); return 0; }
 
   // The damage formula (see config.js). Wall-nut's Roll uses defense instead of attack.
-  const atk = mv.useDef ? (src.dfn + 4) * statScale(src.lvl) : src.atk;
+  const atk = mv.useDef ? (src.dfn + 4) * statScale(src.side) : src.atk;
   let dmg = power * (atk / 10) * (DEF_K / (DEF_K + t.dfn));
 
   // Torchwood sets your straight shots on fire.
@@ -181,7 +185,7 @@ function hit(src, t, power, mv = {}) {
 
   // Passive abilities of the attacker and the target.
   if (P.dealMult) dmg *= P.dealMult(src, t, mv);
-  if (TP.takeMult) dmg *= TP.takeMult(t, src, { ...mv, straight, lob, fire });
+  if (TP.takeMult) dmg *= TP.takeMult(t, src, { ...mv, straight, lob, fire, pierce });
 
   let crit = false;
   if (!mv.counter && !mv.noCrit && chance(CRIT_CHANCE)) { crit = true; dmg *= CRIT_MULT; }
@@ -233,7 +237,7 @@ function hit(src, t, power, mv = {}) {
     if (src.hp <= 0) fallUnit(src, t);
   }
 
-  if (t.hp > 0 && TP.onHurt) TP.onHurt(t, mv.counter ? null : src, dmg, mv);
+  if (t.hp > 0 && TP.onHurt) TP.onHurt(t, mv.counter ? null : src, dmg, { ...mv, straight, lob, fire, pierce });
   if (t.hp <= 0) fallUnit(t, src);
   return dmg;
 }

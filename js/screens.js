@@ -396,7 +396,7 @@ function plantDetail(id, editable) {
   const entry = progress.owned[id];
   const cls = CLASSES[p.cls];
   const lvl = entry ? entry.lvl : 1;
-  const s = statScale(lvl);
+  const s = statScale('ally');
   const [hp, atk, dfn, spd] = p.stats;
   const eq = entry ? equipped(id) : [];
   const inTeam = progress.team.includes(id);

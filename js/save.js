@@ -14,12 +14,14 @@
 
    THE ONE EXCEPTION is SAVE_VERSION. The owner can ask for a full reset:
    then SAVE_VERSION goes up by one, and a save from an older version is
-   deleted on load so everyone starts over. That happened once, on
-   2026-11-21 (version 1 to 2, on request: "have this update reset all
-   progress", "wipe completely"). Never raise it without being asked.
+   deleted on load so everyone starts over. That has happened twice, both
+   on request: 2026-11-21 (version 1 to 2: "have this update reset all
+   progress", "wipe completely") and 2026-11-22 (version 2 to 3, when
+   levels stopped raising stats: "reset progress again"). Never raise it
+   without being asked.
    ===================================================================== */
 
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;
 
 const STARTERS = PLANT_ORDER.filter(id => PLANTS[id].unlock.how === 'start');
 
