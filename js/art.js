@@ -1351,6 +1351,217 @@ ysksksy
 yByByBy
  yyyyy`,
   },
+
+  // ---- Mini realms (Part 2, batch 1, 2026-11-22). Colors follow each
+  // character's pictures on the Plants vs. Zombies Wiki. ----
+  kernelcorn: {
+    pal: { a: '#f4d03f', g: STEM, k: EYE, r: '#d0403a', d: '#6b6b6b' },
+    art: art`
+  ,/\,
+ ~(oo)~
+d=[##]=d
+  /  \ `,
+    ink: art`
+  g  g
+ r kk r
+dd    dd
+  g  g`,
+  },
+  spartichoke: {
+    pal: { a: '#6f9e3a', r: '#d0403a', m: '#b8b8b8', k: EYE, b: '#8a6d3b' },
+    art: art`
+  ,vVv,
+ [(o o)]|
+ /WWWW\|
+  \  / `,
+    ink: art`
+  rrrrr
+ m k k mb
+       b
+`,
+  },
+  waterchestnut: {
+    pal: { a: '#8a5a3a', w: '#4fa3e0', k: EYE, l: '#c9a27a' },
+    art: art`
+   .-.
+ ~(o o)~
+ (_____)
+  ~~~~~ `,
+    ink: art`
+
+ w k k w
+  lllll
+  wwwww`,
+  },
+  shamrocket: {
+    pal: { a: '#3cb44b', k: EYE, f: '#ff8c1a', y: '#ffd23a', g: '#2e7d32' },
+    art: art`
+  (\_/)
+ (o . o)
+  \_|_/
+   /*\ `,
+    ink: art`
+
+  k   k
+    g
+   fyf`,
+  },
+  paparazzi: {
+    pal: { ...Z, a: Z.s, m: '#3a3a3a', y: '#ffe680' },
+    art: art`
+  ,,,
+ (x_x)[O]
+ /[V]\/
+  / \ `,
+    ink: art`
+  hhh
+ sksksmym
+ cwrwcc
+  p p`,
+  },
+  actionhero: {
+    pal: { ...Z, a: Z.s, r: '#d0403a', g: '#556b2f', o: '#ff8c1a' },
+    art: art`
+ =,,,=
+ (x_x)
+ /[V]\==>
+  / \ `,
+    ink: art`
+ rhhhr
+ sksks
+ gwwwgggo
+  p p`,
+  },
+  huge: {
+    pal: { ...Z, a: Z.s, m: '#3a2a1a', c: '#7b2fa0', y: '#ffd23a' },
+    art: art`
+ \|||/
+ (x_x)
+ ~~~~~
+/|_V_|\ `,
+    ink: art`
+ yyyyy
+ sksks
+ mmmmm
+cccyccc`,
+  },
+  gladiantaur: {
+    pal: { ...Z, a: Z.s, m: '#b8b8b8', b: '#7a5434' },
+    art: art`
+  ,,,
+ (x_x)
+ /|#|\__
+ /\  /\ `,
+    ink: art`
+  mmm
+ sksks
+ smmmsbb
+ bb  bb`,
+  },
+  valkyrie: {
+    pal: { ...Z, a: Z.s, m: '#c8c8c8', w: EYE, y: '#e8b84a', b: '#8a6d3b' },
+    art: art`
+ >,^,<
+ (x_x)|
+ /[V]\|
+  / \ `,
+    ink: art`
+ wmmmw
+ sksksb
+ cyyycb
+  p p`,
+  },
+  smash: {
+    pal: { ...Z, a: Z.s, r: '#d0342c', y: '#ffd23a' },
+    art: art`
+ [===]
+ (x_x)
+\[###]/
+ /   \ `,
+    ink: art`
+ rrrrr
+ sksks
+sryyyrs
+ r   r`,
+  },
+  fishyimp: {
+    pal: { ...Z, a: Z.s, f: '#ff8c1a', w: '#4fa3e0' },
+    art: art`
+  ,,
+ (x_x)
+ <*)))><
+  ~~~~ `,
+    ink: art`
+  hh
+ sksks
+ fffffff
+  wwww`,
+  },
+  octopet: {
+    pal: { a: '#c86ad6', k: EYE, w: '#4fa3e0' },
+    art: art`
+  .--.
+ ( xx )
+ /||||\
+ ~~~~~~ `,
+    ink: art`
+
+   kk
+
+ wwwwww`,
+  },
+  neptuna: {
+    pal: { ...Z, a: Z.s, y: '#ffd23a', t: '#2e8b9a', g: '#c8c8c8' },
+    art: art`
+ ^^^ Y
+ (x_x)|
+ /[~]\|
+  >==< `,
+    ink: art`
+ yyy g
+ sksksg
+ ttttttg
+  tttt`,
+  },
+  spacecadet: {
+    pal: { ...Z, a: Z.s, m: '#a8b0ba', b: '#4fb3f2' },
+    art: art`
+ .---.
+(|x_x|)
+ /[V]\
+  / \ `,
+    ink: art`
+ mmmmm
+mbsksbm
+ cwrwc
+  p p`,
+  },
+  cosmicimp: {
+    pal: { ...Z, a: Z.s, v: '#9b59ff', y: '#ffd23a' },
+    art: art`
+  \ /
+ (x.x)
+ /{*}\
+  ^ ^ `,
+    ink: art`
+  v v
+ sksks
+ vvyvv
+  s s`,
+  },
+  gasgiant: {
+    pal: { a: '#7fbf5a', k: EYE, g: '#b6e38a', m: '#5a8a3a' },
+    art: art`
+ ,~~~~,
+( x_x  )
+(  ~~  )
+ '----' `,
+    ink: art`
+ gggggg
+  k k
+   gg
+ mmmmmm`,
+  },
 };
 
 // SPRITES[id] is just the drawing (a list of 4 lines). Other files use it.
@@ -1379,7 +1590,7 @@ function spriteHtml(id, lines = SPRITES[id]) {
 // The drawing to use once a zombie's armor is gone.
 const BARE = {
   cone: 'zombie', bucket: 'zombie', paper: 'paperMad', door: 'zombie', football: 'footballBare', zomboss: 'zombossBare', tomorrowtron: 'zombossBare',
-  ladder: 'ladderBare', pogo: 'pogoBare', troglobite: 'troglobiteBare', boombox: 'boomboxBare', barrel: 'barrelBare', pharaoh: 'mummy',
+  ladder: 'ladderBare', pogo: 'pogoBare', troglobite: 'troglobiteBare', boombox: 'boomboxBare', barrel: 'barrelBare', pharaoh: 'mummy', spacecadet: 'zombie',
 };
 
 // Which drawing a unit uses right now (its id in DRAWINGS).

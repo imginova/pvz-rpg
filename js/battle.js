@@ -68,8 +68,9 @@ function makeUnit(kind, id, side, lvl, opts = {}) {
   const second = kind === 'plant' && PLANTS[id].passive2 && (opts.versus || lvl >= SECOND_ABILITY_LEVEL);
   const data = kind === 'plant' ? (second ? withSecond(id) : PLANTS[id]) : ZOMBIES[id];
   const [hp, atk, dfn, spd] = data.stats;
-  // In versus both teams are plants at full strength (opts.versus).
-  const s = opts.versus ? PLANT_STAT_SCALE : statScale(side);
+  // In versus both teams are plants at full strength (opts.versus). The
+  // mini realms make their enemies tougher with foeScale (realms.js).
+  const s = opts.versus ? PLANT_STAT_SCALE : side === 'foe' && B?.foeScale ? B.foeScale : statScale(side);
   const u = {
     uid: ++uidCounter, kind, id, data, side, lvl, name: data.name, scale: s,
     maxHp: Math.round(hp * s), atk: atk * s, dfn, spd,
@@ -110,11 +111,13 @@ function foesOf(u) {
   return sideList(u.side === 'ally' ? 'foe' : 'ally').filter(x => x.hp > 0);
 }
 
-const isLob = (u, mv) => !!(mv.lob || u.data.passive?.lobAll);
+// Low Gravity (a realm gimmick) makes every plant attack a lob.
+const isLob = (u, mv) => !!(mv.lob || u.data.passive?.lobAll || (u.kind === 'plant' && B?.g.has('lowgrav')));
 
 // Diving Snorkel Zombies can only be reached by lobs (or hit-everyone moves).
+// (Water Chestnut's Amphibious reaches them with anything.)
 function canTarget(u, t, mv) {
-  return !(t.flags.under && !isLob(u, mv));
+  return !(t.flags.under && !isLob(u, mv) && !u.data.passive?.amphibious);
 }
 
 // Who a move could be aimed at, or null if it needs no choosing.
@@ -172,7 +175,7 @@ const foodLeft = side => B.versus ? B.versus.food[side] : side === 'ally' ? prog
 const mine = u => u.side === 'ally' && !B.versus;
 
 // ---- Damage ------------------------------------------------------------------------------
-const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet: 'helmet', door: 'screen door', mech: 'robot armor', crown: 'knight armor', robo: 'future armor', ladder: 'ladder', pogo: 'pogo stick', ice: 'ice block', boombox: 'boombox', barrel: 'barrel', sarcophagus: 'sarcophagus' };
+const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet: 'helmet', door: 'screen door', mech: 'robot armor', crown: 'knight armor', robo: 'future armor', ladder: 'ladder', pogo: 'pogo stick', ice: 'ice block', boombox: 'boombox', barrel: 'barrel', sarcophagus: 'sarcophagus', pod: 'space pod' };
 
 /* hit(src, t, power, mv): src attacks t. Returns the damage done.
    mv is the move (or a small object like { aoe: true }) and says what
@@ -334,7 +337,11 @@ function fallUnit(u, killer) {
     if (u.kind === 'zombie') progress.seen[u.id] = true;
     if (u.id === 'catapult') progress.stats.catapults++;
     if (killer && killer.st.hypno && killer.side === 'foe') award('turncoat');
+    // Zombies notice a fallen friend too (the Valkyrie gets stronger).
+    for (const a of alliesOf(u)) a.data.passive?.onAllyFall?.(a, u);
   }
+  // Arena (a realm gimmick): the crowd cheers whoever lands the knockout.
+  if (B.g.has('arena') && killer && killer.hp > 0 && killer.side !== u.side && addStatus(killer, 'power', 2)) log(`The crowd roars for ${killer.name}!`, killer.side === 'ally' ? 'good' : 'bad');
   sfx.fall(u.side === 'ally');
   u.data.passive?.onFall?.(u, killer);
 }
@@ -420,7 +427,7 @@ function summon(u, ids) {
 function startBattle(enc, chapterIdx, key) {
   const ch = CHAPTERS[chapterIdx];
   B = {
-    enc, chapterIdx, key, lvl: enc.lvl,
+    enc, chapterIdx, key, lvl: enc.lvl, foeScale: CHAPTERS[chapterIdx].foeScale,
     g: new Set([ch.gimmick, ...(enc.gimmicks || [])]),
     wave: 0, round: 0, suns: null, queue: [], actor: null,
     plants: [], foes: [], defeated: [],
@@ -486,6 +493,11 @@ function startRound() {
   if (B.g.has('frostwind')) {
     const t = pick((B.versus ? allUnits() : B.plants).filter(p => p.hp > 0));
     if (t && addStatus(t, 'chill', 1)) log(`A freezing wind chills ${t.name}.`, 'bad');
+  }
+  // Cut! (a realm gimmick): every 3 rounds every status is wiped (shields and Plant Food stay).
+  if (B.g.has('cut') && B.round % 3 === 0) {
+    log('CUT! The director wipes every buff and every trouble.', 'title');
+    for (const u of allUnits()) for (const k in u.st) if (k !== 'shield' && k !== 'fed') delete u.st[k];
   }
   // Neon Jams: the music switches every 2 rounds.
   if (B.g.has('neon') && B.round % 2 === 1) {
@@ -857,7 +869,8 @@ function winBattle() {
   if (B.key && enc.kind === 'boss') {
     award(CHAPTERS[B.chapterIdx].bossAch);
     if (B.stats.wilted === 0) award('untouchable');
-    progress.reached = Math.min(CHAPTERS.length, Math.max(progress.reached, B.chapterIdx + 2));
+    // Beating a story boss opens the next story chapter (realms don't open anything).
+    if (!isRealm(B.chapterIdx)) progress.reached = Math.min(STORY_COUNT, Math.max(progress.reached, B.chapterIdx + 2));
   }
   if (first && enc.reward?.plant) unlockPlant(enc.reward.plant);
   saveProgress();
