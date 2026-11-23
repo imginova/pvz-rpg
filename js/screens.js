@@ -433,7 +433,7 @@ function plantDetail(id, editable) {
         <p class="dim">${esc(p.flavor)}</p>
       </div>
     </div>
-    <p class="passive"><b>${esc(p.passive.name)}:</b> ${esc(p.passive.desc)}</p>
+    <p class="passive">${abilityHtml(p, entry ? lvl : 0)}</p>
     ${editable ? `<div class="row"><button type="button" id="btnTeamToggle">${inTeam ? 'Remove from team' : 'Add to team'}</button>
       ${inTeam ? '<button type="button" id="btnTeamUp">Move up</button>' : ''}</div>` : `<p class="dim">${esc(unlockText(id))}</p>`}
     <h3>Moves <span class="dim">(${eq.length}/${MAX_MOVES} equipped${editable ? ', click to change' : ''})</span></h3>
