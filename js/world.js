@@ -388,4 +388,12 @@ const ACHIEVEMENTS = {
   stormchaser: { name: 'Storm Chaser', desc: 'TOUGH: Win a Storm battle without any plant wilting.', reward: { plant: 'lightningreed' } },
   scrapper:    { name: 'Scrap Collector', desc: 'Break 30 pieces of zombie armor.', reward: { plant: 'magnetshroom' } },
   dunk:        { name: 'Rejected!', desc: 'Defeat 10 Catapult Zombies.', reward: { plant: 'umbrellaleaf' } },
+  // From the mini realms (realms.js), 2026-11-22:
+  realmwalker: { name: 'Realm Hopper', desc: 'Visit a mini realm with Crazy Dave.', reward: { coins: 100 } },
+  realmhalf:   { name: 'Halfway There', desc: 'Beat 6 realm bosses.', reward: { coins: 600 } },
+  realmall:    { name: 'Realm Master', desc: 'TOUGH: Beat every realm boss.', reward: { plant: 'bananasaurus' } },
+  realmflawless: { name: 'Not a Scratch', desc: 'TOUGH: Beat a realm boss without any plant wilting.', reward: { plant: 'nightcap' } },
+  maxed:       { name: 'Fully Fully Grown', desc: 'Get a plant to level 15.', reward: { plant: 'acorn' } },
+  shatter:     { name: 'Cracked Up', desc: 'Crack 25 Brittle enemies.', reward: { plant: 'grapes' } },
+  goatherd:    { name: 'Goat Herder', desc: 'Turn 10 enemies into sheep or goats.', reward: { coins: 250 } },
 };

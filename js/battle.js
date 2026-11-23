@@ -175,7 +175,7 @@ const foodLeft = side => B.versus ? B.versus.food[side] : side === 'ally' ? prog
 const mine = u => u.side === 'ally' && !B.versus;
 
 // ---- Damage ------------------------------------------------------------------------------
-const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet: 'helmet', door: 'screen door', mech: 'robot armor', crown: 'knight armor', robo: 'future armor', ladder: 'ladder', pogo: 'pogo stick', ice: 'ice block', boombox: 'boombox', barrel: 'barrel', sarcophagus: 'sarcophagus', pod: 'space pod' };
+const ARMOR_NAMES = { cone: 'cone', bucket: 'bucket', paper: 'newspaper', helmet: 'helmet', door: 'screen door', mech: 'robot armor', crown: 'knight armor', robo: 'future armor', ladder: 'ladder', pogo: 'pogo stick', ice: 'ice block', boombox: 'boombox', barrel: 'barrel', sarcophagus: 'sarcophagus', pod: 'space pod', board: 'surfboard', shovel: 'shovel', nut: 'wall-nut head' };
 
 /* hit(src, t, power, mv): src attacks t. Returns the damage done.
    mv is the move (or a small object like { aoe: true }) and says what
@@ -238,7 +238,11 @@ function hit(src, t, power, mv = {}) {
   // ...and Clove Bomb on enemies that are Weak.
   if (mv.vsWeak && t.st.weak) dmg *= mv.vsWeak;
   // A Brittle unit takes extra damage from the next hit, which cracks it open.
-  if (t.st.brittle && !mv.counter) { dmg *= BRITTLE_MULT; delete t.st.brittle; log(`${t.name} cracks!`, t.side === 'ally' ? 'bad' : 'good'); }
+  if (t.st.brittle && !mv.counter) {
+    dmg *= BRITTLE_MULT; delete t.st.brittle;
+    log(`${t.name} cracks!`, t.side === 'ally' ? 'bad' : 'good');
+    if (mine(src) && t.side === 'foe') progress.stats.cracked++;
+  }
   dmg *= mult;
 
   // Battle gimmicks.
@@ -399,6 +403,7 @@ function addStatus(t, name, turns, o = {}) {
   if (name === 'burn' && o.src?.data.passive?.scorch) turns += 1;
   if (name === 'chill' && B.g.has('pool')) turns += 1;
   if (icy && o.src && mine(o.src) && t.side === 'foe') progress.stats.chilled++;
+  if (name === 'sheep' && o.src && mine(o.src) && t.side === 'foe') progress.stats.sheeped++;
   if (t === B.actor) turns += 1;
   t.st[name] = Math.max(t.st[name] || 0, turns);
   if (name === 'freeze' && o.src?.data.passive?.brittleFreeze) addStatus(t, 'brittle', 2, { src: o.src });
@@ -463,6 +468,7 @@ function effSpeed(u) {
   let s = u.spd;
   if (u.st.chill) s *= CHILL_SPEED;
   if (u.kind === 'zombie' && B.g.has('rush')) s *= 1.5;
+  if (u.kind === 'zombie' && B.g.has('goldtiles')) s *= 1.2;
   return s;
 }
 
@@ -475,6 +481,8 @@ function startRound() {
   for (const g of B.g) if (GIMMICKS[g].income != null) income = Math.min(income, GIMMICKS[g].income);
   gainSun(income);
   if (B.versus) gainSun(income, null, 'foe');   // in versus both sides earn sun
+  // Gold Tiles (a realm gimmick): extra sun every round.
+  if (B.g.has('goldtiles')) { gainSun(10); if (B.versus) gainSun(10, null, 'foe'); }
 
   // Gravestones: a zombie climbs out every 3 rounds.
   if (B.g.has('graves') && B.round % 3 === 0) {
@@ -519,6 +527,27 @@ function startRound() {
   if (B.g.has('steam') && B.round % 3 === 0) {
     const t = pick(allUnits().filter(u => u.hp > 0));
     if (t && addStatus(t, 'burn', 2)) log(`A steam vent scalds ${t.name}!`, t.side === 'ally' ? 'bad' : 'good');
+  }
+  // Inventions: every 3 rounds a random unit gets a random boost.
+  if (B.g.has('invention') && B.round % 3 === 0) {
+    const t = pick(allUnits().filter(u => u.hp > 0));
+    if (t) {
+      const boost = pick(['power', 'guard', 'regen', 'shield']);
+      if (boost === 'shield') addShield(t, t.maxHp * 0.15); else addStatus(t, boost, 2);
+      log(`A strange invention boosts ${t.name}!`, 'title');
+    }
+  }
+  // High Tide: every 3 rounds a wave chills everyone and puts out fires.
+  if (B.g.has('tide') && B.round % 3 === 0) {
+    log('HIGH TIDE! A big wave crashes over everyone.', 'title');
+    for (const u of allUnits()) if (u.hp > 0) { delete u.st.burn; addStatus(u, 'chill', 1); }
+  }
+  // Zen Garden: the most hurt unit on each side heals a little.
+  if (B.g.has('zen')) {
+    for (const side of ['ally', 'foe']) {
+      const t = sideList(side).filter(u => u.hp > 0).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+      if (t) healUnit(t, t.maxHp * 0.04);
+    }
   }
   // Neon Jams: the music switches every 2 rounds.
   if (B.g.has('neon') && B.round % 2 === 1) {
@@ -887,9 +916,18 @@ function winBattle() {
   if (B.g.has('storm') && B.stats.wilted === 0) award('stormchaser');
   if (progress.stats.armorBroken >= 30) award('scrapper');
   if (progress.stats.catapults >= 10) award('dunk');
+  if (progress.stats.cracked >= 25) award('shatter');
+  if (progress.stats.sheeped >= 10) award('goatherd');
   if (B.key && enc.kind === 'boss') {
     award(CHAPTERS[B.chapterIdx].bossAch);
     if (B.stats.wilted === 0) award('untouchable');
+    // The mini realms' own achievements.
+    if (isRealm(B.chapterIdx)) {
+      if (B.stats.wilted === 0) award('realmflawless');
+      const beaten = REALMS.filter((r, n) => bossBeaten(STORY_COUNT + n)).length;
+      if (beaten >= 6) award('realmhalf');
+      if (beaten >= REALMS.length) award('realmall');
+    }
     // Beating a story boss opens the next story chapter (realms don't open anything).
     if (!isRealm(B.chapterIdx)) progress.reached = Math.min(STORY_COUNT, Math.max(progress.reached, B.chapterIdx + 2));
   }

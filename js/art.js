@@ -1862,6 +1862,266 @@ _/    \_ `,
 DD    DD
 DD    DD`,
   },
+  // ---- Mini realms, batch 3, and the new achievement plants (2026-11-22) ----
+  mirrornut: {
+    pal: { a: '#b8c4d0', w: '#ffffff', k: '#3a4a5a', b: '#8a6d3b' },
+    art: art`
+  .--.
+ /o  o\
+ |  w |
+ \____/ `,
+    ink: art`
+  wwww
+ wk  kw
+    w
+ bbbbbb`,
+  },
+  guacodile: {
+    pal: { a: '#5a9a3a', y: '#d8e88a', k: EYE, b: '#8a5a30', w: '#f2efe4' },
+    art: art`
+  _____
+ (o  o )>
+ \vvvvv/
+  (yby) `,
+    ink: art`
+
+  k  k
+  wwwww
+   yby`,
+  },
+  redstinger: {
+    pal: { a: '#d0303a', g: STEM, k: EYE, y: '#ffd23a' },
+    art: art`
+  \\|//
+  (o o)>
+   \|/
+   _|_ `,
+    ink: art`
+  aaaaa
+   k k y
+   ggg
+   ggg`,
+  },
+  moonflower: {
+    pal: { a: '#6a5ad0', y: '#e8e0ff', k: EYE, g: '#3a6a4a' },
+    art: art`
+  .:*:.
+ :(o o):
+  ':|:'
+    | `,
+    ink: art`
+  yyyyy
+ y k k y
+  yygyy
+    g`,
+  },
+  grapes: {
+    pal: { a: '#7a3ab8', g: STEM, k: EYE, r: '#d0403a' },
+    art: art`
+   \|/
+  (o o)
+ (oooo)
+  (oo) `,
+    ink: art`
+   ggg
+   k k
+`,
+  },
+  bananasaurus: {
+    pal: { a: '#f2d03a', g: '#8a6d1a', k: EYE, w: '#f2efe4' },
+    art: art`
+  ___
+ (o  \_
+ \vvv _)~
+  /\ /\ `,
+    ink: art`
+  ggg
+  k
+  www   g
+  gg gg`,
+  },
+  nightcap: {
+    pal: { a: '#7a3ab8', m: '#2a2a3a', k: EYE, d: '#c8a8e8' },
+    art: art`
+  .-^-.
+ (_o_o_)=
+  |mm|
+  /  \ `,
+    ink: art`
+  ddddd
+ mmkmkmm
+  mmmm
+  m  m`,
+  },
+  acorn: {
+    pal: { a: '#b8783a', c: '#6a4a2a', k: EYE, g: STEM },
+    art: art`
+   _|_
+  /###\
+ ( o o )
+  \_v_/ `,
+    ink: art`
+   gcg
+  ccccc
+   k k
+`,
+  },
+  jester: {
+    pal: { ...Z, a: Z.s, r: '#d0403a', b: '#4a6ad8', y: '#ffd23a' },
+    art: art`
+ o/^\o
+ (x_x)
+ /<>\ o
+  / \ `,
+    ink: art`
+ yrrby
+ sksks
+ rbbr y
+  r b`,
+  },
+  mustache: {
+    pal: { a: '#9aa0a8', m: '#4a4e57', k: EYE },
+    art: art`
+ [====]
+ (x  x)
+ ~~mm~~
+ |____| `,
+    ink: art`
+ mmmmmm
+  k  k
+ mmmmmm
+ mmmmmm`,
+  },
+  brainstorm: {
+    pal: { ...Z, a: Z.s, p: '#e88ab0', w: '#f2efe4', y: '#ffd23a' },
+    art: art`
+ (@@@)
+ (o_O)*
+ /[w]\|
+  / \ `,
+    ink: art`
+ ppppp
+ sksksy
+ wwwwwy
+  p p`,
+  },
+  surfer: {
+    pal: { ...Z, a: Z.s, y: '#ffd23a', o: '#ff8c1a', b: '#4fa3e0' },
+    art: art`
+  ,,,  /\
+ (x_x)||
+ /[~]\||
+  / \ \/ `,
+    ink: art`
+  hhh  oo
+ sksksyy
+ cbbbcyy
+  p p oo`,
+  },
+  fisherman: {
+    pal: { ...Z, a: Z.s, y: '#e8c84a', b: '#8a6d3b' },
+    art: art`
+ _____/
+ (x_x) |
+ /[#]\ J
+  / \ `,
+    ink: art`
+ yyyyyb
+ sksks b
+ cyyyc b
+  p p`,
+  },
+  sharksub: {
+    pal: { a: '#7a8a9a', D: '#4a5a6a', w: '#f2efe4', R: '#ff3a3a' },
+    art: art`
+    /|
+ __/ |___
+<(R) VVVV>
+ ~~~~~~~~ `,
+    ink: art`
+    DD
+ DDDDDDDD
+DDRDDwwwwD
+ DDDDDDDD`,
+  },
+  excavator: {
+    pal: { ...Z, a: Z.s, y: '#e8b83a', m: '#a8b0ba', b: '#8a6d3b' },
+    art: art`
+ _,,,_ _
+ (x_x)| |
+ /[V]\|_|
+  / \ `,
+    ink: art`
+ yyyyy m
+ sksksbmm
+ cwrwcbmm
+  p p`,
+  },
+  parasol: {
+    pal: { ...Z, a: Z.s, r: '#e84a6a', w: '#f2efe4', b: '#8a6d3b' },
+    art: art`
+ .-=-.
+ (x_x)
+ /[V]\
+  / \ `,
+    ink: art`
+ rwrwr
+ sksks
+ cwrwc
+  p p`,
+  },
+  gondola: {
+    pal: { a: '#c8a83a', D: '#6a5a3a', R: '#ff3a3a', s: Z.s, k: EYE },
+    art: art`
+ (======)
+  \ || /
+  [x__x]
+  |____| `,
+    ink: art`
+ aaaaaaaa
+  D DD D
+  DksskD
+  DDDDDD`,
+  },
+  peazombie: {
+    pal: { ...Z, a: Z.s, g: '#a8e04c', d: STEM },
+    art: art`
+ ,--.
+( x  )=O
+ /[V]\
+  / \ `,
+    ink: art`
+ gggg
+gg k ggg
+ cwrwc
+  p p`,
+  },
+  wallnutzombie: {
+    pal: { ...Z, a: Z.s, n: '#c89a5a', b: '#8a6a3a' },
+    art: art`
+  .--.
+ (x  x)
+ /[V]\
+  / \ `,
+    ink: art`
+  nnnn
+ nk  kn
+ cwrwc
+  p p`,
+  },
+  treasureyeti: {
+    pal: { a: '#e8f0ff', b: '#4fa3e0', k: '#2a3a4a', y: '#ffd23a' },
+    art: art`
+  /\_/\
+ ( x x )$
+ /|###|\
+  /   \ `,
+    ink: art`
+  bbbbb
+   k k  y
+  byyyb
+  b   b`,
+  },
 };
 
 // SPRITES[id] is just the drawing (a list of 4 lines). Other files use it.
@@ -1890,7 +2150,7 @@ function spriteHtml(id, lines = SPRITES[id]) {
 // The drawing to use once a zombie's armor is gone.
 const BARE = {
   cone: 'zombie', bucket: 'zombie', paper: 'paperMad', door: 'zombie', football: 'footballBare', zomboss: 'zombossBare', tomorrowtron: 'zombossBare',
-  ladder: 'ladderBare', pogo: 'pogoBare', troglobite: 'troglobiteBare', boombox: 'boomboxBare', barrel: 'barrelBare', pharaoh: 'mummy', spacecadet: 'zombie', zmech: 'imp', rustbolt: 'vengeful',
+  ladder: 'ladderBare', pogo: 'pogoBare', troglobite: 'troglobiteBare', boombox: 'boomboxBare', barrel: 'barrelBare', pharaoh: 'mummy', spacecadet: 'zombie', zmech: 'imp', rustbolt: 'vengeful', surfer: 'zombie', excavator: 'zombie', wallnutzombie: 'zombie', sharksub: 'zombie', gondola: 'zombie',
 };
 
 // Which drawing a unit uses right now (its id in DRAWINGS).

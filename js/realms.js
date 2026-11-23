@@ -6,8 +6,9 @@
    Asked for on 2026-11-22: "add a few mini realms with new plants", with
    the realms "after story instead of tickets", 2-3 new zombies and a
    boss in each, and characters "from as weird of games as possible but
-   still have them be official". They come in batches of 4-5 (batch 1:
-   Movie Studio to Moon Base, batch 2: Fairy Forest to Steam Ages).
+   still have them be official". They came in three batches (batch 1:
+   Movie Studio to Moon Base, batch 2: Fairy Forest to Steam Ages, batch 3:
+   Renaissance Age to Modern Day, with the realm achievements in world.js).
 
    A realm is written exactly like a story chapter (see the notes at the
    top of world.js), plus:
@@ -318,6 +319,138 @@ const REALMS = [
       3: { name: 'Clock Tower', kind: 'zombie', lvl: 15, gimmicks: ['timewarp'], waves: [['madchemist', 'madchemist', 'cyborg'], ['cyborg', 'shieldz', 'engineer', 'madchemist']], reward: { coins: 240 } },
       B: { name: 'Z-Mech', kind: 'boss', lvl: 15, waves: [['cyborg', 'madchemist', 'engineer'], ['zmech!', 'cyborg']], reward: { plant: 'blueberry', coins: 600 },
         intro: [['Z-Mech', 'BEEP BOOP. Just kidding, it\'s an Imp in here. A really angry Imp. In a really big robot.'], ['Dave', 'Break the mech and the Imp keeps fighting, angrier and faster. Finish him quick!']] },
+    },
+  },
+
+  // ======== Batch 3 (2026-11-22) ========
+  // ---- Renaissance Age ----
+  {
+    id: 'renaissance', name: 'Renaissance Age', gimmick: 'invention', lvl: 13, floor: '_', foeScale: 2.1,
+    pool: ['jester', 'mustache', 'madchemist', 'wizard', 'king'],
+    intro: [
+      ['Dave', 'The Renaissance! Art! Science! Flying machines! I invented something once. It was a sandwich with a sandwich inside.'],
+      ['Dave', 'Every few rounds one of da Vinci\'s inventions boosts someone at random. Fingers crossed it\'s one of ours!'],
+      ['Professor Brainstorm', 'Ah, test subjects! I mean... welcome!'],
+    ],
+    map: [
+      '%%%%%%%%%%%%%%%%%%%%%%%%',
+      '%@_D____H____a____H__C_%',
+      '%___1___H_________H____%',
+      '%_______HHHHH_HHHHH__2_%',
+      '%___""""______""""_____%',
+      '%_3_""""__B___""""_____%',
+      '%C_____________________%',
+      '%%%%%%%%%%%%%%%%%%%%%%%%',
+    ],
+    signs: {
+      a: 'SIGN: "GALLERY. Please do not touch the art. Please do not EAT the art."',
+    },
+    enc: {
+      1: { name: 'Art Gallery', kind: 'zombie', lvl: 13, waves: [['jester', 'jester', 'cone'], ['mustache', 'jester', 'king']], reward: { coins: 160 },
+        intro: [['Dave', 'Jesters juggle your straight shots right back at you! Lob at them or hit everyone.']] },
+      2: { name: 'Sculpture Garden', kind: 'zombie', lvl: 13, waves: [['mustache', 'mustache', 'imp'], ['jester', 'mustache', 'wizard']], reward: { coins: 180 },
+        intro: [['Dave', 'The Mustache Monument barely moves, but it pumps up every zombie. Crack it with Marked or Brittle!']] },
+      3: { name: 'Inventor\'s Workshop', kind: 'zombie', lvl: 14, gimmicks: ['storm'], waves: [['madchemist', 'jester', 'jester'], ['mustache', 'madchemist', 'jester']], reward: { coins: 200 } },
+      B: { name: 'Professor Brainstorm', kind: 'boss', lvl: 14, waves: [['jester', 'mustache', 'king'], ['brainstorm!', 'jester']], reward: { plant: 'mirrornut', coins: 500 },
+        intro: [['Professor Brainstorm', 'Behold my greatest invention: MORE ZOMBIES!'], ['Dave', 'At half health he has a "Eureka!" and heals. Set him on fire first: burning zombies can\'t heal.']] },
+    },
+  },
+
+  // ---- Big Wave Beach ----
+  {
+    id: 'beach', name: 'Big Wave Beach', gimmick: 'tide', lvl: 14, floor: ',', foeScale: 1.8,
+    pool: ['surfer', 'fisherman', 'snorkel', 'octo', 'dolphin'],
+    intro: [
+      ['Dave', 'Surf\'s up, neighbor! Sun, sand, and zombies in swim trunks. Mostly zombies.'],
+      ['Dave', 'Every few rounds a big wave chills everyone and puts out fires. Fire plants, beware!'],
+    ],
+    map: [
+      '~~~~~~~~~~~~~~~~~~~~~~~~',
+      '~@,D,,,,,,a,,,,,,,,,C,,~',
+      '~,,,,1,,,,,,,,,,,2,,,,,~',
+      '~,,,,,,,,,,,,,,,,,,,,,,~',
+      '~~~~~,,~~~~=====~~~~,,~~',
+      '~~~~~,,~~~~=~~~=~~~~,,~~',
+      '~,3,,,,,~~~=~B~=~~~,,,,~',
+      '~,,,,,,,,,,=====,,,,,,,~',
+      '~~~~~~~~~~~~~~~~~~~~~~~~',
+    ],
+    signs: {
+      a: 'SIGN: "NO LIFEGUARD ON DUTY." The lifeguard is a zombie.',
+    },
+    enc: {
+      1: { name: 'Low Tide', kind: 'zombie', lvl: 14, waves: [['surfer', 'surfer', 'snorkel'], ['fisherman', 'surfer', 'octo']], reward: { coins: 180 },
+        intro: [['Dave', 'Surfers ride right past your tanks! Break the board, or bring a Tall-nut.']] },
+      2: { name: 'Fishing Pier', kind: 'zombie', lvl: 14, waves: [['fisherman', 'fisherman', 'dolphin'], ['surfer', 'fisherman', 'snorkel', 'snorkel']], reward: { coins: 200 },
+        intro: [['Dave', 'Fisherman Zombies hook your weakest plant. A Ward stops the hook!']] },
+      3: { name: 'Shark Reef', kind: 'zombie', lvl: 15, gimmicks: ['pool'], waves: [['octo', 'surfer', 'fisherman'], ['dolphin', 'surfer', 'surfer', 'fisherman']], reward: { coins: 220 } },
+      B: { name: 'Zombot Sharktronic Sub', kind: 'boss', lvl: 15, waves: [['surfer', 'fisherman', 'snorkel'], ['sharksub!', 'surfer']], reward: { plant: 'guacodile', coins: 550 },
+        intro: [['Dr. Zomboss', 'You thought you were safe at the beach? MY SHARK SUB SAYS OTHERWISE!'], ['Dave', 'It dives every other round. Lobs and hit-everyone moves still reach it!']] },
+    },
+  },
+
+  // ---- Lost City ----
+  {
+    id: 'lostcity', name: 'Lost City', gimmick: 'goldtiles', lvl: 14, floor: ',', foeScale: 1.8,
+    pool: ['excavator', 'parasol', 'explorer', 'mummy', 'imp'],
+    intro: [
+      ['Dave', 'The Lost City! Gold everywhere! Can I keep some? No? Can I keep a LITTLE?'],
+      ['Dave', 'The gold tiles give you extra sun every round, but the zombies run faster to grab the gold too.'],
+    ],
+    map: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T@.D..T,,,,,,a,,,T...C.T',
+      'T.....T,,1,,,,,,,T..2..T',
+      'T..:::::::::::::::::...T',
+      'T..:..%%%%%%%%%%%..:...T',
+      'T.3:..%,,,,B,,,,%..:...T',
+      'T..:..%%%%,,%%%%%..:...T',
+      'T..:::::::::::::::::...T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+    ],
+    signs: {
+      a: 'SIGN: "TREASURE THIS WAY." Another sign underneath: "TRAP THIS WAY."',
+    },
+    enc: {
+      1: { name: 'Temple Entrance', kind: 'zombie', lvl: 14, waves: [['excavator', 'parasol', 'explorer'], ['parasol', 'parasol', 'excavator']], reward: { coins: 180 },
+        intro: [['Dave', 'Parasol Zombies block lobs. Straight shots go right under the parasol!']] },
+      2: { name: 'Gold Vault', kind: 'zombie', lvl: 14, waves: [['excavator', 'excavator', 'mummy'], ['parasol', 'excavator', 'explorer', 'imp']], reward: { coins: 200 },
+        intro: [['Dave', 'Excavators fling dirt at your back plants. Their shovels are metal: Magnet-shroom time!']] },
+      3: { name: 'Collapsing Bridge', kind: 'zombie', lvl: 15, gimmicks: ['drought'], waves: [['parasol', 'explorer', 'excavator'], ['pharaoh', 'parasol', 'excavator']], reward: { coins: 220 } },
+      B: { name: 'Zombot Aerostatic Gondola', kind: 'boss', lvl: 15, waves: [['excavator', 'parasol', 'explorer'], ['gondola!', 'parasol']], reward: { plant: 'redstinger', coins: 550 },
+        intro: [['Dr. Zomboss', 'Behold my airship! I will drop zombies on you from ABOVE!'], ['Dave', 'It flies: lobs never miss it, and Hurrikale blows it away!']] },
+    },
+  },
+
+  // ---- Modern Day / Zen Garden ----
+  {
+    id: 'modern', name: 'Modern Day', gimmick: 'zen', lvl: 15, floor: '.', foeScale: 2.1,
+    pool: ['peazombie', 'wallnutzombie', 'zombie', 'cone', 'bucket', 'paper'],
+    intro: [
+      ['Dave', 'Back to the present! And look: my Zen Garden! I\'ve been watering it for YEARS.'],
+      ['Dave', 'Uh oh. Somebody mixed zombie DNA with my plants. Peashooter Zombies! Wall-nut Zombies! This is why I don\'t do science.'],
+      ['Dave', 'The garden is calm: each round the most hurt fighter on each side heals a little.'],
+    ],
+    map: [
+      '########################',
+      '#@.D..HHHH....a....."".#',
+      '#.....HHHH..1......""C.#',
+      '#..::::::::::::::::::..#',
+      '#..:..""..""..""..2:...#',
+      '#.3:..........B....:...#',
+      '#C.::::::::::::::::::..#',
+      '########################',
+    ],
+    signs: {
+      a: 'SIGN: "DAVE\'S ZEN GARDEN. Inner peace: free. Plants: not free."',
+    },
+    enc: {
+      1: { name: 'Zen Garden', kind: 'zombie', lvl: 15, waves: [['peazombie', 'wallnutzombie', 'cone'], ['peazombie', 'peazombie', 'wallnutzombie']], reward: { coins: 200 },
+        intro: [['Dave', 'Peashooter Zombies shoot at your back row. Wall-nut Zombies just... sit there being tough. Pierce them!']] },
+      2: { name: 'Zombotany', kind: 'zombie', lvl: 15, waves: [['wallnutzombie', 'wallnutzombie', 'peazombie'], ['peazombie', 'wallnutzombie', 'bucket', 'paper']], reward: { coins: 220 } },
+      3: { name: 'Modern Lawn', kind: 'zombie', lvl: 15, gimmicks: ['fog'], waves: [['peazombie', 'paper', 'football'], ['wallnutzombie', 'peazombie', 'paper', 'imp']], reward: { coins: 240 } },
+      B: { name: 'Treasure Yeti', kind: 'boss', lvl: 15, waves: [['peazombie', 'wallnutzombie', 'bucket'], ['treasureyeti!', 'peazombie']], reward: { plant: 'moonflower', coins: 600 },
+        intro: [['Dave', 'A TREASURE YETI! It\'s carrying a fortune! Fire melts its frosty fur. Get it before it gets away!']] },
     },
   },
 ];

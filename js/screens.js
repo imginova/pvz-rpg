@@ -293,6 +293,7 @@ function realmMenu() {
 }
 
 function goRealm(j) {
+  if (isRealm(j)) award('realmwalker');
   progress.chapter = j;
   saveProgress();
   renderWorld();

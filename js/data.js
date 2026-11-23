@@ -431,6 +431,79 @@ const MOVES = {
   eb_strike:    { name: 'Lightning Strike', cost: 100, cd: 4, target: 'foe', power: 34, sure: true, desc: 'A huge lightning bolt that never misses.' },
   eb_blue:      { name: 'Blue Lightning', cost: 100, cd: 5, target: 'foes', power: 12, status: ['stun', 1, 0.3], label: 'Shocked', desc: 'Blue lightning hits every enemy; 30% chance each to stun.' },
 
+  // ======== Realm plants, batch 3, and the achievement plants (2026-11-22) ========
+  // Mirror-Nut (Plants vs. Zombies Heroes)
+  mn_bonk:      { name: 'Shiny Bonk', cost: 0, target: 'foe', power: 8, useDef: true, desc: 'A polished bonk. Damage is based on DEFENSE.' },
+  mn_polish:    { name: 'Polish', cost: 25, cd: 2, target: 'self', shield: 0.2, desc: 'Polishes its shell: a shield of 20% of its max HP.' },
+  mn_glare:     { name: 'Glare', cost: 25, cd: 2, target: 'foe', status: ['blind', 2, 1], desc: 'Flashes a reflection in an enemy\'s eyes: Blind.' },
+  mn_lookatme:  { name: 'Look at Me', cost: 25, cd: 2, target: 'self', self: ['taunt', 2], desc: 'Hard to look away from: Taunt for 2 turns.' },
+  mn_reflect:   { name: 'Reflection', cost: 50, cd: 3, target: 'ally', status: ['counter', 2, 1], desc: 'Gives an ally a mirror: it counters the next attack aimed at it.' },
+  mn_hall:      { name: 'Hall of Mirrors', cost: 75, cd: 4, target: 'allies', status: ['evade', 1, 1], desc: 'Which one is real? Every ally Evades for a turn.' },
+  mn_shatter:   { name: 'Mirror Shatter', cost: 100, cd: 5, target: 'foes', power: 14, useDef: true, desc: 'Shards fly at every enemy. DEFENSE-based.' },
+  mn_funhouse:  { name: 'Funhouse', cost: 75, cd: 4, target: 'foes', status: ['blind', 2, 0.5], desc: 'Funhouse mirrors: each enemy has a 50% chance to be blinded.' },
+  // Guacodile (Plants vs. Zombies 2)
+  gc_spit:      { name: 'Pit Spit', cost: 0, target: 'foe', power: 10, straight: true, desc: 'Spits an avocado pit.' },
+  gc_snap:      { name: 'Snap', cost: 25, cd: 1, target: 'foe', power: 14, desc: 'Snapping jaws.' },
+  gc_tail:      { name: 'Tail Whip', cost: 50, cd: 2, target: 'foe2', power: 10, desc: 'Whips an enemy and one more.' },
+  gc_lurk:      { name: 'Lurk', cost: 25, cd: 3, target: 'self', self: ['evade', 2], desc: 'Sinks out of sight: Evade for 2 turns.' },
+  gc_roll:      { name: 'Death Roll', cost: 50, cd: 3, target: 'foe', power: 12, status: ['stun', 1, 0.4], label: 'Rolled', desc: 'Grabs and rolls an enemy: 40% chance to stun.' },
+  gc_seeds:     { name: 'Seed Barrage', cost: 50, cd: 2, target: 'randfoe', power: 6, hits: 3, straight: true, desc: 'Three pits at random enemies.' },
+  gc_stampede:  { name: 'Guac Stampede', cost: 100, cd: 4, target: 'foes', power: 14, desc: 'Charges through the whole crowd.' },
+  gc_frenzy:    { name: 'Feeding Frenzy', cost: 75, cd: 3, target: 'foe', power: 20, lifesteal: 0.5, desc: 'A huge bite that heals Guacodile for half the damage.' },
+  // Red Stinger (Plants vs. Zombies 2)
+  rs_sting:     { name: 'Stinger', cost: 0, target: 'foe', power: 9, straight: true, desc: 'A sharp stinger.' },
+  rs_leaf:      { name: 'Leaf Guard', cost: 25, cd: 2, target: 'self', self: ['guard', 2], desc: 'Turns its leaves outward: Guard for 2 turns.' },
+  rs_volley:    { name: 'Stinger Volley', cost: 50, cd: 2, target: 'foes', power: 6, straight: true, desc: 'Stingers at every enemy.' },
+  rs_pierce:    { name: 'Piercing Sting', cost: 50, cd: 2, target: 'foe', power: 16, pierce: true, desc: 'A stinger that pierces armor.' },
+  rs_regrow:    { name: 'Regrow Petals', cost: 25, cd: 3, target: 'self', heal: 0.2, desc: 'Grows new petals: heal itself 20%.' },
+  rs_venom:     { name: 'Venom', cost: 50, cd: 3, target: 'foe', power: 8, status: ['burn', 3, 1], desc: 'A venomous sting: the enemy burns for 3 turns.' },
+  rs_swarm:     { name: 'Stinger Swarm', cost: 100, cd: 4, target: 'randfoe', power: 8, hits: 5, straight: true, desc: 'Five stingers at random enemies.' },
+  rs_royal:     { name: 'Royal Sting', cost: 75, cd: 4, target: 'foe', power: 24, execute: 2, sure: true, desc: 'Never misses, and DOUBLE damage to enemies below 40% HP.' },
+  // Moonflower (Plants vs. Zombies 2)
+  mf_petal:     { name: 'Shadow Petal', cost: 0, target: 'foe', power: 7, desc: 'A dark petal.' },
+  mf_glow:      { name: 'Moon Glow', cost: 25, target: 'ally', heal: 0.25, desc: 'Heal an ally 25%.' },
+  mf_harvest:   { name: 'Lunar Harvest', cost: 0, cd: 3, target: 'self', sun: 35, desc: 'Gathers moonlight: +35 sun.' },
+  mf_eclipse:   { name: 'Eclipse', cost: 50, cd: 3, target: 'foes', status: ['blind', 1, 0.5], desc: 'Blots out the light: each enemy has a 50% chance to be blinded.' },
+  mf_shade:     { name: 'Shadow Shield', cost: 50, cd: 3, target: 'ally', shield: 0.25, desc: 'Shields an ally for 25% of Moonflower\'s max HP.' },
+  mf_full:      { name: 'Full Bloom', cost: 75, cd: 3, target: 'allies', heal: 0.15, desc: 'Heal every ally 15%.' },
+  mf_night:     { name: 'Night Bloom', cost: 100, cd: 5, target: 'fallen', revive: 0.4, desc: 'Blooms at night: a wilted ally comes back with 40% HP.' },
+  mf_newmoon:   { name: 'New Moon', cost: 75, cd: 5, target: 'allies', status: ['regen', 2, 1], cleanse: true, desc: 'A fresh start: every ally is cleansed and Regenerates for 2 turns.' },
+  // Grapes of Wrath (Plants vs. Zombies Heroes)
+  gw_toss:      { name: 'Grape Toss', cost: 0, target: 'foe', power: 8, desc: 'A hard little grape.' },
+  gw_squish:    { name: 'Squish', cost: 25, cd: 1, target: 'foe', power: 15, desc: 'A juicy squish.' },
+  gw_crack:     { name: 'Crack', cost: 50, cd: 3, target: 'foe', power: 8, status: ['brittle', 2, 1], desc: 'Always makes the enemy Brittle (its next hit taken does 50% more).' },
+  gw_bunch:     { name: 'Bunch Burst', cost: 50, cd: 2, target: 'foes', power: 6, desc: 'A whole bunch bursts over every enemy.' },
+  gw_sour:      { name: 'Sour Grapes', cost: 25, cd: 2, target: 'foes', power: 3, status: ['weak', 2, 0.5], desc: 'Sour juice everywhere: 50% chance each to Weaken.' },
+  gw_raisin:    { name: 'Raisin Rain', cost: 75, cd: 3, target: 'randfoe', power: 6, hits: 4, desc: 'Four raisins at random enemies.' },
+  gw_wrath:     { name: 'Grapes of Wrath', cost: 100, cd: 4, target: 'foes', power: 16, desc: 'Pure grape fury on every enemy.' },
+  gw_vintage:   { name: 'Vintage Blast', cost: 100, cd: 5, target: 'foe', power: 30, splash: 0.5, desc: 'An aged, explosive grape: huge hit, and half splashes the others.' },
+  // Bananasaurus Rex (Plants vs. Zombies Heroes)
+  br_chomp:     { name: 'Dino Chomp', cost: 0, target: 'foe', power: 11, desc: 'A prehistoric bite.' },
+  br_peelup:    { name: 'Thick Peel', cost: 25, cd: 2, target: 'self', shield: 0.2, desc: 'Zips up its peel: a shield of 20% of its max HP.' },
+  br_slip:      { name: 'Banana Peel', cost: 25, cd: 2, target: 'foe', power: 4, status: ['stun', 1, 0.6], label: 'Slipped', desc: 'Drops a peel: 60% chance the enemy slips (stun).' },
+  br_roar:      { name: 'Roar', cost: 25, cd: 2, target: 'foes', status: ['weak', 1, 1], desc: 'A terrifying roar: every enemy is Weak for a turn.' },
+  br_tail:      { name: 'Tail Smash', cost: 50, cd: 2, target: 'foe2', power: 13, desc: 'Smashes an enemy and one more.' },
+  br_stomp:     { name: 'Stomp', cost: 50, cd: 3, target: 'foes', power: 8, status: ['stun', 1, 0.2], label: 'Stomped', desc: 'Shakes the ground: hits every enemy, 20% chance each to stun.' },
+  br_rampage:   { name: 'Rampage', cost: 100, cd: 4, target: 'foe', power: 30, splash: 0.3, desc: 'A dino rampage: huge hit, and 30% splashes the others.' },
+  br_extinct:   { name: 'Extinction Event', cost: 100, cd: 5, target: 'foes', power: 14, status: ['stun', 1, 0.3], label: 'Flattened', desc: 'A meteor-sized stomp: hits every enemy, 30% chance each to stun.' },
+  // Night Cap (Plants vs. Zombies: Garden Warfare)
+  nc_fist:      { name: 'Spore Fist', cost: 0, target: 'foe', power: 6, hits: 2, desc: 'Two quick spore punches.' },
+  nc_smoke:     { name: 'Smoke Bomb', cost: 25, cd: 3, target: 'self', self: ['evade', 2], desc: 'Vanishes in a puff of smoke: Evade for 2 turns.' },
+  nc_dash:      { name: 'Shadow Dash', cost: 25, cd: 2, target: 'foe', power: 13, vault: true, sure: true, desc: 'Dashes past everyone: ignores Taunt and never misses.' },
+  nc_shuriken:  { name: 'Spore Shuriken', cost: 50, cd: 2, target: 'randfoe', power: 5, hits: 4, desc: 'Four spore stars at random enemies.' },
+  nc_kick:      { name: 'Dragon Kick', cost: 50, cd: 3, target: 'foe', power: 18, status: ['stun', 1, 0.3], label: 'Kicked', desc: 'A flying kick: 30% chance to stun.' },
+  nc_cuts:      { name: 'Thousand Cuts', cost: 100, cd: 4, target: 'foes', power: 12, desc: 'Strikes every enemy faster than the eye can see.' },
+  nc_clones:    { name: 'Spore Clones', cost: 75, cd: 4, target: 'self', self: ['evade', 3], special: u => addStatus(u, 'power', 2), desc: 'Spore copies of itself: Evade for 3 turns and Power for 2.' },
+  // Acorn (Plants vs. Zombies: Battle for Neighborville)
+  ac_shot:      { name: 'Acorn Shot', cost: 0, target: 'foe', power: 8, desc: 'Flings an acorn.' },
+  ac_roll:      { name: 'Acorn Roll', cost: 25, cd: 2, target: 'self', self: ['evade', 2], desc: 'Rolls away: Evade for 2 turns.' },
+  ac_bark:      { name: 'Bark Skin', cost: 25, cd: 2, target: 'self', shield: 0.25, desc: 'Grows tough bark: a shield of 25% of its max HP.' },
+  ac_swarm:     { name: 'Acorn Swarm', cost: 50, cd: 2, target: 'randfoe', power: 5, hits: 4, desc: 'Four acorns at random enemies.' },
+  ac_roots:     { name: 'Roots', cost: 50, cd: 3, target: 'foe', power: 8, status: ['stun', 1, 0.5], label: 'Rooted', desc: 'Roots grab an enemy: 50% chance to stun.' },
+  ac_branch:    { name: 'Branch Swing', cost: 50, cd: 3, target: 'foes', power: 8, desc: 'Swings a big branch through every enemy.' },
+  ac_slam:      { name: 'Oak Slam', cost: 100, cd: 4, target: 'foe', power: 20, useDef: true, desc: 'Slams down like a falling tree. DEFENSE-based.' },
+  ac_forest:    { name: 'Forest Shelter', cost: 75, cd: 4, target: 'allies', status: ['guard', 1, 1], special: (u, ts) => { for (const t of ts) addStatus(t, 'regen', 2); }, desc: 'A forest grows around the team: every ally Guards for a turn and Regenerates for 2.' },
+
   // ======== Signature moves (each belongs to one plant) ========
   pea_shot:    { name: 'Pea Shot', cost: 0, target: 'foe', power: 10, straight: true, desc: 'The classic pea.' },
   pea_barrage: { name: 'Pea Barrage', cost: 50, cd: 2, target: 'foe', power: 6, hits: 3, straight: true, desc: 'Three peas at one enemy.' },
@@ -628,6 +701,22 @@ const MOVES = {
   z_cyberpunch: { name: 'Cyber Punch', target: 'foe', power: 12 },
   z_mechpunch:  { name: 'Mech Punch', target: 'foe', power: 17 },
   z_minimissile:{ name: 'Mini Missiles', cd: 3, target: 'foes', power: 8, w: 2 },
+  // ---- Realm zombies (Part 2, batch 3) ----
+  z_inspire:    { name: 'Inspire', cd: 3, target: 'allies', status: ['power', 2, 1], w: 3 },
+  z_brainzap:   { name: 'Brain Zap', target: 'foe', power: 16 },
+  z_invent:     { name: 'Invention', cd: 4, target: 'self', special: u => summon(u, [pick(['jester', 'mustache'])]), w: 2 },
+  z_surf:       { name: 'Surf In', target: 'foe', power: 12, vault: true, ai: 'back', can: u => u.armor > 0, w: 3 },
+  z_hook:       { name: 'Hook and Reel', cd: 3, target: 'foe', power: 8, status: ['stun', 1, 1], label: 'Hooked', ai: 'weak', w: 2 },
+  z_sharkbite:  { name: 'Shark Bite', target: 'foe', power: 16 },
+  z_torpedo:    { name: 'Torpedo', cd: 4, target: 'foes', power: 8, w: 2 },
+  z_callsurf:   { name: 'Surf\'s Up', cd: 5, target: 'self', special: u => summon(u, ['surfer']), w: 2 },
+  z_shoveltoss: { name: 'Shovel Toss', target: 'foe', power: 12, vault: true, ai: 'back' },
+  z_bombdrop:   { name: 'Bomb Drop', cd: 3, target: 'foes', power: 9, w: 2 },
+  z_airdrop:    { name: 'Air Drop', cd: 3, target: 'self', special: u => summon(u, [pick(['parasol', 'excavator'])]), w: 2 },
+  z_gondolagun: { name: 'Gondola Cannon', target: 'foe', power: 16 },
+  z_zpeashot:   { name: 'Pea Shot', target: 'foe', power: 11, ai: 'back' },
+  z_yetismash:  { name: 'Yeti Smash', target: 'foe', power: 18 },
+  z_iceball:    { name: 'Snowball Storm', cd: 3, target: 'foes', power: 7, status: ['chill', 1, 1], w: 2 },
 };
 
 // ---- Helpers for the special moves above ----
@@ -883,7 +972,7 @@ function jumpstart(u, targets) {
 }
 
 // Magnet-shroom: which armor is metal, and pulling it off.
-const METAL = new Set(['bucket', 'helmet', 'door', 'mech', 'robo', 'crown', 'ladder', 'pogo', 'boombox', 'pod']);
+const METAL = new Set(['bucket', 'helmet', 'door', 'mech', 'robo', 'crown', 'ladder', 'pogo', 'boombox', 'pod', 'shovel']);
 function ripMetal(u, t, amount) {
   if (!t || t.armor <= 0 || !METAL.has(t.armorKind)) return false;
   t.armor = Math.max(0, t.armor - Math.round(amount));
@@ -1448,6 +1537,93 @@ const PLANTS = {
     learn: [['eb_zap', 1], ['eb_shock', 1], ['eb_spark', 2], ['eb_jolt', 4], ['eb_recharge', 6], ['eb_storm', 8], ['eb_strike', 10], ['eb_blue', 13]],
     unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies Heroes. A berry with a shocking personality.',
   },
+  // (Realm plants, batch 3, 2026-11-22.)
+  mirrornut: {
+    name: 'Mirror-Nut', cls: 'hearty', stats: [110, 5, 9, 7],
+    passive: {
+      name: 'Mirror', desc: 'Attacks aimed at it alone bounce 40% of their damage back at the attacker.',
+      onHurt(u, src, dmg, mv) {
+        if (!src || src === u || src.hp <= 0 || mv.counter) return;
+        if (mv.aoe && !u.data.passive.reflectAoe) return;
+        zap(src, dmg * (mv.aoe ? 0.2 : 0.4), 'is hit by its own reflection');
+      },
+    },
+    passive2: { name: 'Polished', desc: 'Hit-everyone attacks bounce back too, at 20%.', reflectAoe: true },
+    learn: [['mn_bonk', 1], ['mn_polish', 1], ['mn_glare', 2], ['mn_lookatme', 4], ['mn_reflect', 6], ['mn_hall', 8], ['mn_shatter', 10], ['mn_funhouse', 13]],
+    unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies Heroes. A nut so shiny, zombies punch their own reflection.',
+  },
+  guacodile: {
+    name: 'Guacodile', cls: 'shooter', stats: [70, 13, 5, 10],
+    passive: {
+      name: 'Guac Charge', desc: 'The first time it drops below half HP, it charges through every enemy for 12 power.',
+      onHurt(u) { if (!u.flags.charged && u.hp > 0 && u.hp < u.maxHp / 2) { u.flags.charged = true; log(`${u.name} charges!`, 'good'); for (const f of foesOf(u)) hit(u, f, 12, { aoe: true }); } },
+    },
+    passive2: { name: 'Tough Skin', desc: 'Takes 20% less damage from lobbed attacks.', takeMult(u, src, mv) { return mv.lob ? 0.8 : 1; } },
+    learn: [['gc_spit', 1], ['gc_snap', 1], ['gc_tail', 2], ['gc_lurk', 4], ['gc_roll', 6], ['gc_seeds', 8], ['gc_stampede', 10], ['gc_frenzy', 13]],
+    unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies 2 (Big Wave Beach). Half avocado, half crocodile, all teeth.',
+  },
+  redstinger: {
+    name: 'Red Stinger', cls: 'shooter', stats: [62, 13, 4, 13],
+    passive: {
+      name: 'Two Sides', desc: 'Above half HP it hits 20% harder; at half HP or less it takes 20% less damage.',
+      dealMult(u) { return u.hp > u.maxHp / 2 ? 1.2 : 1; },
+      takeMult(u) { return u.hp <= u.maxHp / 2 ? 0.8 : 1; },
+    },
+    passive2: { name: 'Sting', desc: 'Its single-target hits have a 25% chance to Mark the enemy (takes 30% more) for a turn.', onHit(u, t, dmg, mv) { if (!mv.aoe && t.hp > 0 && chance(0.25)) addStatus(t, 'marked', 1, { src: u }); } },
+    learn: [['rs_sting', 1], ['rs_leaf', 1], ['rs_volley', 2], ['rs_pierce', 4], ['rs_regrow', 6], ['rs_venom', 8], ['rs_swarm', 10], ['rs_royal', 13]],
+    unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies 2 (Lost City). A leafy shield up close, a stinger at range.',
+  },
+  moonflower: {
+    name: 'Moonflower', cls: 'sunny', stats: [60, 7, 5, 12],
+    passive: { name: 'Moonlight', desc: '+10 sun each round (+20 at Night or in Fog).', roundStart(u) { gainSun(B.g.has('night') || B.g.has('fog') ? 20 : 10, u); } },
+    passive2: { name: 'Lunar Glow', desc: 'Every ally heals 3% each round.', roundStart(u) { for (const a of alliesOf(u)) healUnit(a, a.maxHp * 0.03, u); } },
+    learn: [['mf_petal', 1], ['mf_glow', 1], ['mf_harvest', 2], ['mf_eclipse', 4], ['mf_shade', 6], ['mf_full', 8], ['mf_night', 10], ['mf_newmoon', 13]],
+    unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies 2 (Modern Day). A shadow flower that glows brightest in the dark.',
+  },
+  // ================= MORE ACHIEVEMENT PLANTS (2026-11-22) =================
+  grapes: {
+    name: 'Grapes of Wrath', cls: 'volatile', stats: [54, 15, 3, 14],
+    passive: { name: 'Brittle Bunch', desc: 'Its hits have a 25% chance to make the enemy Brittle (its next hit taken does 50% more).', onHit(u, t) { if (t.hp > 0 && chance(0.25)) addStatus(t, 'brittle', 2, { src: u }); } },
+    passive2: { name: 'Last Burst', desc: 'When it wilts, it bursts: every enemy becomes Brittle for 2 turns.', onFall(u) { log(`${u.name} bursts!`, 'good'); for (const f of foesOf(u)) addStatus(f, 'brittle', 2, { src: u }); } },
+    learn: [['gw_toss', 1], ['gw_squish', 1], ['gw_crack', 2], ['gw_bunch', 4], ['gw_sour', 6], ['gw_raisin', 8], ['gw_wrath', 10], ['gw_vintage', 13]],
+    unlock: { how: 'achievement', id: 'shatter' }, flavor: 'From Plants vs. Zombies Heroes. Furious fruit. Do not make it into jelly.',
+  },
+  bananasaurus: {
+    name: 'Bananasaurus Rex', cls: 'hearty', stats: [100, 13, 6, 8],
+    passive: {
+      name: 'Dino-Roar', desc: 'Gets 5% stronger every round (up to +40%).',
+      roundStart(u) { u.flags.roar = Math.min(8, (u.flags.roar || 0) + 1); },
+      dealMult(u) { return 1 + 0.05 * (u.flags.roar || 0); },
+    },
+    passive2: { name: 'Apex', desc: 'Heals 10% every time it defeats an enemy.', onHit(u, t) { if (t.hp <= 0) healUnit(u, u.maxHp * 0.1); } },
+    learn: [['br_chomp', 1], ['br_peelup', 1], ['br_slip', 2], ['br_roar', 4], ['br_tail', 6], ['br_stomp', 8], ['br_rampage', 10], ['br_extinct', 13]],
+    unlock: { how: 'achievement', id: 'realmall' }, flavor: 'From Plants vs. Zombies Heroes. The king of the prehistoric fruit bowl.',
+  },
+  nightcap: {
+    name: 'Night Cap', cls: 'shooter', shroom: true, stats: [50, 13, 3, 17],
+    passive: { name: 'Ninja', desc: 'Dodges 25% of attacks aimed at it alone.', dodge: 0.25 },
+    passive2: { name: 'Hidden Strike', desc: '+40% damage to enemies that are still at full HP.', dealMult(u, t) { return t.hp >= t.maxHp ? 1.4 : 1; } },
+    learn: [['nc_fist', 1], ['nc_smoke', 1], ['nc_dash', 2], ['nc_shuriken', 4], ['puff_cloud', 6], ['nc_kick', 8], ['nc_cuts', 10], ['nc_clones', 13]],
+    unlock: { how: 'achievement', id: 'realmflawless' }, flavor: 'The mushroom ninja from Garden Warfare. You never see him coming.',
+  },
+  acorn: {
+    name: 'Acorn', cls: 'hearty', stats: [64, 10, 6, 13],
+    passive: {
+      name: 'Grow Up', desc: 'From round 4 it grows into an Oak: +60% max HP (and heals that much) and +3 defense.',
+      roundStart(u) {
+        if (B.round < 4 || u.flags.oak) return;
+        u.flags.oak = true;
+        const more = Math.round(u.maxHp * 0.6);
+        u.maxHp += more; u.hp += more; u.dfn += 3; u.name = 'Oak';
+        log('The Acorn grows into a mighty Oak!', 'good');
+        // Mighty Oak (its level-15 ability): Guard, and a shield for every ally.
+        if (u.data.passive.mightyOak) { addStatus(u, 'guard', 2); for (const a of alliesOf(u)) addShield(a, a.maxHp * 0.05); }
+      },
+    },
+    passive2: { name: 'Mighty Oak', desc: 'When it becomes an Oak, it Guards for 2 turns and shields every ally for 5% of their max HP.', mightyOak: true },
+    learn: [['ac_shot', 1], ['ac_roll', 1], ['ac_bark', 2], ['ac_swarm', 4], ['ac_roots', 6], ['ac_branch', 8], ['ac_slam', 10], ['ac_forest', 13]],
+    unlock: { how: 'achievement', id: 'maxed' }, flavor: 'From Battle for Neighborville. Small now. Just wait.',
+  },
 };
 const PLANT_ORDER = Object.keys(PLANTS);
 
@@ -1916,6 +2092,77 @@ const ZOMBIES = {
     counter: 'Pierce the mech or let Magnet-shroom rip it off; E.M.Peach always stuns machines. The Imp inside is fast and angry, but fragile.',
     passive: { name: 'Imp Pilot', armorBreak(u) { log('The Imp jumps out of the broken mech, FURIOUS!', 'bad'); u.st.power = 3; u.spd += 8; } },
   },
+  // ---- Realm zombies, batch 3 (2026-11-22) ----
+  // Renaissance Age
+  jester: {
+    name: 'Jester Zombie', stats: [46, 9, 4, 12], moves: ['z_bite'], coins: 12,
+    desc: 'From Plants vs. Zombies 2 (Dark Ages). Juggles: straight shots that hit it bounce half their damage back at the shooter.',
+    counter: 'Lobs and hit-everyone attacks don\'t bounce.',
+    passive: { name: 'Juggling Act', onHurt(u, src, dmg, mv) { if (mv.straight && src && src !== u && src.hp > 0) zap(src, dmg * 0.5, 'is hit by a juggled shot'); } },
+  },
+  mustache: {
+    name: 'Mustache Monument', stats: [96, 5, 12, 4], moves: ['z_bite', 'z_inspire'], coins: 15,
+    desc: 'A giant mustached statue from Plants vs. Zombies Heroes. Barely attacks, but inspires every zombie with Power.',
+    counter: 'Its defense is huge: Marked and Brittle crack it open. Or Weaken the zombies it inspires.',
+  },
+  brainstorm: {
+    name: 'Professor Brainstorm', stats: [76, 14, 6, 12], moves: ['z_brainzap', 'z_invent'], coins: 160,
+    desc: 'A genius zombie hero from Plants vs. Zombies Heroes. Builds new zombies, and once, at half health, has a EUREKA moment that heals him 25%.',
+    counter: 'Burning zombies can\'t heal: set him on fire before he drops to half health.',
+    passive: { name: 'Eureka!', onHurt(u) { if (!u.flags.eureka && u.hp > 0 && u.hp < u.maxHp / 2) { u.flags.eureka = true; log(`${u.name}: EUREKA!`, 'bad'); healUnit(u, u.maxHp * 0.25); } } },
+  },
+  // Big Wave Beach
+  surfer: {
+    name: 'Surfer Zombie', stats: [44, 10, 4, 12], armor: [50, 'board'], moves: ['z_bite', 'z_surf'], coins: 12,
+    desc: 'From Plants vs. Zombies 2 (Big Wave Beach). Surfs past taunting plants on its board to hit your back line.',
+    counter: 'Break the surfboard and it just walks. A Tall-nut is too tall to surf past.',
+  },
+  fisherman: {
+    name: 'Fisherman Zombie', stats: [46, 9, 4, 10], moves: ['z_bite', 'z_hook'], coins: 12,
+    desc: 'From Plants vs. Zombies 2 (Big Wave Beach). Hooks your weakest plant and reels it in (stun).',
+    counter: 'A Ward blocks the hook, and plants that can\'t be stunned ignore it.',
+  },
+  sharksub: {
+    name: 'Zombot Sharktronic Sub', stats: [76, 13, 6, 10], armor: [50, 'robo'], vehicle: true, moves: ['z_sharkbite', 'z_torpedo', 'z_callsurf'], coins: 160,
+    desc: 'Dr. Zomboss\'s shark submarine from Plants vs. Zombies 2. Dives every third round, fires torpedoes and calls in Surfers.',
+    counter: 'Lobs and hit-everyone attacks reach it underwater, and it\'s a machine: E.M.Peach always stuns it.',
+    passive: { name: 'Submerge', roundStart(u) { u.flags.under = B.round % 3 === 0; if (u.flags.under) log(`${u.name} submerges!`); } },
+  },
+  // Lost City
+  excavator: {
+    name: 'Excavator Zombie', stats: [46, 10, 5, 11], armor: [45, 'shovel'], moves: ['z_shoveltoss'], coins: 12,
+    desc: 'From Plants vs. Zombies 2 (Lost City) and Heroes. Flings shovelfuls of dirt over your front line at your back plants.',
+    counter: 'Its shovel is metal: Magnet-shroom pulls it off. A Tall-nut blocks the throws.',
+  },
+  parasol: {
+    name: 'Parasol Zombie', stats: [46, 9, 4, 9], moves: ['z_bite'], coins: 11,
+    desc: 'From Plants vs. Zombies 2 (Lost City). Its parasol blocks 75% of lobbed damage.',
+    counter: 'Straight shots go right under the parasol.',
+    passive: { name: 'Parasol', takeMult(u, src, mv) { return mv.lob ? 0.25 : 1; } },
+  },
+  gondola: {
+    name: 'Zombot Aerostatic Gondola', stats: [80, 13, 6, 10], armor: [50, 'robo'], vehicle: true, flyer: true, moves: ['z_gondolagun', 'z_bombdrop', 'z_airdrop'], coins: 160,
+    desc: 'Dr. Zomboss\'s airship from Plants vs. Zombies 2 (Lost City). Drops bombs and parachutes in zombies, and dodges 20% of straight shots.',
+    counter: 'Lobs never miss it, Hurrikale blows it away (double damage), and it\'s a machine for E.M.Peach.',
+    passive: { name: 'Airship', dodgeStraight: 0.2 },
+  },
+  // Modern Day / Zen Garden (Zombotany zombies from the first game's mini-games)
+  peazombie: {
+    name: 'Peashooter Zombie', stats: [40, 10, 3, 10], moves: ['z_zpeashot'], coins: 10,
+    desc: 'From the first game\'s Zombotany mini-game: a zombie with a Peashooter for a head. Shoots peas at your back line.',
+    counter: 'It\'s fragile, and Guard soaks up its peas.',
+  },
+  wallnutzombie: {
+    name: 'Wall-nut Zombie', stats: [40, 8, 4, 6], armor: [90, 'nut'], moves: ['z_bite'], coins: 12,
+    desc: 'From the first game\'s Zombotany mini-game: a zombie with a Wall-nut for a head. Very tough, very slow.',
+    counter: 'Piercing attacks go straight through the nut.',
+  },
+  treasureyeti: {
+    name: 'Treasure Yeti', stats: [92, 14, 6, 9], moves: ['z_yetismash', 'z_iceball'], coins: 400,
+    desc: 'From Plants vs. Zombies 2. A furry treasure hunter: smashes hard and throws snowball storms that chill your team. Worth a fortune!',
+    counter: 'Fire melts its frosty fur: fire attacks do 50% more.',
+    passive: { name: 'Frosty Fur', takeMult(u, src, mv) { return mv.fire ? 1.5 : 1; } },
+  },
 };
 
 // How to beat the original zombies (shown in the Almanac and when you
@@ -1979,4 +2226,8 @@ const GIMMICKS = {
   dojo:      { name: 'Dojo', desc: 'Every 3 rounds everyone takes a fighting stance: Counter (hits back the next attack aimed at them).' },
   sky:       { name: 'Sky High', desc: 'Up in the clouds the wind blows lobs off course: straight shots do 25% more, lobs 25% less.' },
   steam:     { name: 'Steam Vents', desc: 'Every 3 rounds a steam vent burns a random unit (either side) for 2 turns.' },
+  invention: { name: 'Inventions', desc: 'Every 3 rounds a da Vinci invention gives a random unit (either side) a boost: Power, Guard, Regen or a shield.' },
+  tide:      { name: 'High Tide', desc: 'Every 3 rounds a big wave chills everyone (both sides) for a turn and puts out every fire.' },
+  goldtiles: { name: 'Gold Tiles', desc: 'Gold everywhere! +10 sun every round, but the zombies are 20% faster (they want the gold too).' },
+  zen:       { name: 'Zen Garden', desc: 'The garden is calm: each round the most hurt unit on each side heals 4%.' },
 };

@@ -40,7 +40,7 @@ function defaultProgress() {
     ach: {},             // { achievementId: date earned }
     seen: {},            // { zombieId: true } zombies met (for the Almanac)
     introSeen: {},       // { lawn: true } chapter intros already shown
-    stats: { chilled: 0, devoured: 0, spent: 0, wins: 0, battles: 0, armorBroken: 0, catapults: 0 },
+    stats: { chilled: 0, devoured: 0, spent: 0, wins: 0, battles: 0, armorBroken: 0, catapults: 0, cracked: 0, sheeped: 0 },
   };
 }
 
@@ -149,6 +149,7 @@ function giveXp(id, amount) {
   }
   if (entry.lvl >= MAX_LEVEL) entry.xp = 0;
   if (entry.lvl >= 10) award('grown');
+  if (entry.lvl >= MAX_LEVEL) award('maxed');
   return gained;
 }
 
