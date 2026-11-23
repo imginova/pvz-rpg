@@ -188,7 +188,7 @@ function hit(src, t, power, mv = {}) {
   const lob = isLob(src, mv);
   const straight = !!mv.straight && !lob;
   const pierce = mv.pierce || P.pierceAll;
-  let fire = !!mv.fire || !!src.st.fiery;
+  let fire = !!mv.fire || !!src.st.fiery || !!P.fireAll;   // fireAll: Captain Combustible
   const aimed = !mv.aoe && !mv.counter;   // aimed at this one unit
   let mult = 1;
 
@@ -244,6 +244,7 @@ function hit(src, t, power, mv = {}) {
   // Battle gimmicks.
   if (src.data.shroom) dmg *= B.g.has('night') ? 1.3 : B.g.has('day') ? 0.85 : 1;
   if (B.g.has('roof')) { if (straight) dmg *= 0.75; if (lob) dmg *= 1.25; }
+  if (B.g.has('sky')) { if (straight) dmg *= 1.25; if (lob) dmg *= 0.75; }   // Sky High: the opposite of the roof
   if (fire && B.g.has('pool')) dmg *= 0.75;
   if (fire && B.g.has('heatwave')) dmg *= 1.5;
 
@@ -498,6 +499,26 @@ function startRound() {
   if (B.g.has('cut') && B.round % 3 === 0) {
     log('CUT! The director wipes every buff and every trouble.', 'title');
     for (const u of allUnits()) for (const k in u.st) if (k !== 'shield' && k !== 'fed') delete u.st[k];
+  }
+  // Fairy Mischief: every 3 rounds a fairy turns a random unit (not a boss) into a sheep.
+  if (B.g.has('fairy') && B.round % 3 === 0) {
+    const t = pick(allUnits().filter(u => u.hp > 0 && !u.boss));
+    if (t && addStatus(t, 'sheep', 1)) log(`A fairy turns ${t.name} into a sheep!`, t.side === 'ally' ? 'bad' : 'good');
+  }
+  // Spotlight: a random unit gets Power and Taunt for a turn.
+  if (B.g.has('spotlight')) {
+    const t = pick(allUnits().filter(u => u.hp > 0));
+    if (t) { addStatus(t, 'power', 1); addStatus(t, 'taunt', 1); log(`The spotlight is on ${t.name}!`, 'title'); }
+  }
+  // Dojo: every 3 rounds everyone takes a fighting stance (Counter).
+  if (B.g.has('dojo') && B.round % 3 === 0) {
+    log('Everyone takes a fighting stance!', 'title');
+    for (const u of allUnits()) if (u.hp > 0) addStatus(u, 'counter', 1);
+  }
+  // Steam Vents: every 3 rounds a vent scalds a random unit.
+  if (B.g.has('steam') && B.round % 3 === 0) {
+    const t = pick(allUnits().filter(u => u.hp > 0));
+    if (t && addStatus(t, 'burn', 2)) log(`A steam vent scalds ${t.name}!`, t.side === 'ally' ? 'bad' : 'good');
   }
   // Neon Jams: the music switches every 2 rounds.
   if (B.g.has('neon') && B.round % 2 === 1) {

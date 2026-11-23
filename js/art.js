@@ -1562,6 +1562,306 @@ mbsksbm
    gg
  mmmmmm`,
   },
+  // ---- Mini realms, batch 2 (2026-11-22) ----
+  rose: {
+    pal: { a: '#e8456b', g: STEM, k: EYE, v: '#9b59d0' },
+    art: art`
+  @@@
+ (o o)*
+  \|/ |
+   |  ' `,
+    ink: art`
+
+  k k v
+  ggg v
+   g  v`,
+  },
+  combustible: {
+    pal: { a: '#8a5a34', f: '#ff6a1a', y: '#ffd23a', k: EYE, b: '#3a5aa8' },
+    art: art`
+  )(^)(
+ [o  o]
+ [====]
+ /|__|\ `,
+    ink: art`
+  fyfyf
+  k  k
+  bbbb
+`,
+  },
+  knuckles: {
+    pal: { a: '#5fbf3a', r: '#d0403a', k: EYE, w: '#f2efe4' },
+    art: art`
+  \|/
+ (o_o)
+@/[ ]\@
+  / \ `,
+    ink: art`
+
+  k k
+r www r
+`,
+  },
+  hurrikale: {
+    pal: { a: '#3e8f5a', w: '#bfe3ff', k: EYE },
+    art: art`
+ ~{^^}~
+ ~(oo)~
+  /||\
+ ~~~~~ `,
+    ink: art`
+ w    w
+ w kk w
+
+ wwwww`,
+  },
+  blueberry: {
+    pal: { a: '#3a5ad8', y: '#ffd23a', k: EYE, g: STEM },
+    art: art`
+  ,/ /
+ (o o)/
+ (_^_)
+  / \ `,
+    ink: art`
+  gy y
+  k k y
+
+  g g`,
+  },
+  abracadaver: {
+    pal: { ...Z, a: Z.s, m: '#2a2a2a', w: '#f2efe4', v: '#9b59d0' },
+    art: art`
+  _|_
+ (x_x)*
+ /[V]\|
+  / \ `,
+    ink: art`
+  mmm
+ sksksv
+ mwvwmm
+  p p`,
+  },
+  gargologist: {
+    pal: { ...Z, a: Z.s, g: '#8a8f99', b: '#5a4a3a' },
+    art: art`
+ ,,,  /\
+ (x_x)()
+ /[V]\||
+  / \ `,
+    ink: art`
+ hhh  gg
+ sksksgg
+ bwwwbgg
+  p p`,
+  },
+  immorticia: {
+    pal: { ...Z, a: Z.s, m: '#3a2a4a', v: '#9b59d0', b: '#8a6d3b' },
+    art: art`
+   /\
+ _/__\_
+ (x_x)-=
+ /vvv\ `,
+    ink: art`
+   mm
+ mmmmmm
+ sksksbb
+ vvvvv`,
+  },
+  unicornchupa: {
+    pal: { a: '#c8a8e8', y: '#ffd23a', k: EYE, r: '#ff6ab0' },
+    art: art`
+    /
+ (x x)>
+ /||||\
+ ^^  ^^ `,
+    ink: art`
+    y
+  k k r
+
+`,
+  },
+  rodeogarg: {
+    pal: { ...Z, a: Z.s, b: '#8a5a30', r: '#d0403a' },
+    art: art`
+ _/==\_
+ (X__X)
+/[####]\@
+ |_||_| `,
+    ink: art`
+ bbbbbb
+ sksksk
+sbrrrrbsb
+ bb  bb`,
+  },
+  boogaloo: {
+    pal: { ...Z, a: Z.s, h: '#2a2a2a', w: '#f2efe4', y: '#ffd23a', b: '#4fb3f2' },
+    art: art`
+ (@@@)
+ (x_x)/
+ /|*|
+  / \ `,
+    ink: art`
+ hhhhh
+ sksksy
+ wwyw
+  b b`,
+  },
+  sumo: {
+    pal: { ...Z, a: Z.s, h: '#2a2a2a', w: '#f2efe4' },
+    art: art`
+   o
+ (x_x)
+(  w  )
+ /   \ `,
+    ink: art`
+   h
+ sksks
+s  w  s
+ s   s`,
+  },
+  impmonk: {
+    pal: { ...Z, a: Z.s, o: '#f07f1e', y: '#ffd23a' },
+    art: art`
+  ___
+ (x.x)
+ /[o]\
+  / \ `,
+    ink: art`
+  sss
+ sksks
+ oyoyo
+  o o`,
+  },
+  minininja: {
+    pal: { ...Z, a: Z.s, m: '#2a2a3a', r: '#d0403a' },
+    art: art`
+ =___
+ (x.x)
+ /[ ]\*
+  / \ `,
+    ink: art`
+ rmmm
+ mkmkm
+ mmmmm
+  m m`,
+  },
+  impfinity: {
+    pal: { ...Z, a: Z.s, r: '#d0403a', y: '#ffd23a' },
+    art: art`
+ ~___~
+ (x.x)
+ /[8]\
+ _/ \_ `,
+    ink: art`
+ r   r
+ sksks
+ ryyyr
+ r   r`,
+  },
+  impclone: {
+    pal: { ...Z, a: '#7f8f70', r: '#8a3a36', y: '#9a8a50' },
+    art: art`
+ ~___~
+ (x.x)
+ /[8]\
+ _/ \_ `,
+    ink: art`
+ r   r
+
+ ryyyr
+ r   r`,
+  },
+  lostpilot: {
+    pal: { ...Z, a: Z.s, b: '#8a5a30', w: '#f2efe4', g: '#556b2f' },
+    art: art`
+ _____
+=(x_x)=
+ /[V]\
+ ~~~~~ `,
+    ink: art`
+ bbbbb
+wsksksw
+ gwrwg
+ wwwww`,
+  },
+  hovergoat: {
+    pal: { a: '#c8c8c8', k: EYE, m: '#6a6f7a', f: '#ff8c1a' },
+    art: art`
+ ()  ()
+ (X..X)>
+ [=##=]
+  ^^^^ `,
+    ink: art`
+ mm  mm
+  k  k
+ mm  mm
+  ffff`,
+  },
+  rustbolt: {
+    pal: { ...Z, a: Z.s, m: '#a8603a', g: '#8a8f99' },
+    art: art`
+ [##]
+ (x_x)
+[@]V[@]
+  / \ `,
+    ink: art`
+ mmmm
+ sksks
+mggggmm
+  p p`,
+  },
+  madchemist: {
+    pal: { ...Z, a: Z.s, w: '#f2efe4', g: '#7ad24a', v: '#9b59d0' },
+    art: art`
+  ///
+ (o_x)
+ /[w]\u
+  / \ `,
+    ink: art`
+  www
+ sksks
+ wwwwwg
+  p p`,
+  },
+  cyborg: {
+    pal: { ...Z, a: Z.s, m: '#a8b0ba', r: '#ff3a3a' },
+    art: art`
+  ,,,
+ (x_@)
+ /[#]\=
+  / | `,
+    ink: art`
+  hhh
+ sksmr
+ cmmmcm
+  p m`,
+  },
+  vengeful: {
+    pal: { ...Z, a: '#8a9a7a', m: '#a8b0ba', r: '#ff3a3a' },
+    art: art`
+  ,,
+ (@_@)
+ =[#]=
+  | | `,
+    ink: art`
+  hh
+ rsksr
+ mmmmm
+  m m`,
+  },
+  zmech: {
+    pal: { a: '#8a8f99', D: '#4a4e57', Y: '#ffd23a', s: Z.s, k: EYE },
+    art: art`
+ [(x.x)]
+/|=##=|\
+||    ||
+_/    \_ `,
+    ink: art`
+ DsksksD
+ D YY D
+DD    DD
+DD    DD`,
+  },
 };
 
 // SPRITES[id] is just the drawing (a list of 4 lines). Other files use it.
@@ -1590,7 +1890,7 @@ function spriteHtml(id, lines = SPRITES[id]) {
 // The drawing to use once a zombie's armor is gone.
 const BARE = {
   cone: 'zombie', bucket: 'zombie', paper: 'paperMad', door: 'zombie', football: 'footballBare', zomboss: 'zombossBare', tomorrowtron: 'zombossBare',
-  ladder: 'ladderBare', pogo: 'pogoBare', troglobite: 'troglobiteBare', boombox: 'boomboxBare', barrel: 'barrelBare', pharaoh: 'mummy', spacecadet: 'zombie',
+  ladder: 'ladderBare', pogo: 'pogoBare', troglobite: 'troglobiteBare', boombox: 'boomboxBare', barrel: 'barrelBare', pharaoh: 'mummy', spacecadet: 'zombie', zmech: 'imp', rustbolt: 'vengeful',
 };
 
 // Which drawing a unit uses right now (its id in DRAWINGS).
