@@ -384,6 +384,53 @@ const MOVES = {
   sham_moon:    { name: 'Moonshot', cost: 100, cd: 4, target: 'foe', power: 34, sure: true, desc: 'Flies to the moon and back: a huge hit that never misses.' },
   sham_rainbow: { name: 'Rainbow Blast', cost: 75, cd: 4, target: 'foes', power: 10, special: (u, ts) => { for (const t of ts) if (t.hp > 0) addStatus(t, pick(['weak', 'chill', 'blind']), 2, { src: u }); }, desc: 'A blast of rainbow: hits every enemy, and each one is Weak, chilled or blinded for 2 turns.' },
 
+  // ======== Realm plants, batch 2 (2026-11-22) ========
+  // Rose (Plants vs. Zombies: Garden Warfare 2)
+  rose_missile: { name: 'Magic Missile', cost: 0, target: 'foe', power: 8, sure: true, desc: 'A homing bolt of magic that never misses.' },
+  rose_snare:   { name: 'Time Snare', cost: 25, cd: 2, target: 'foe', power: 4, status: ['chill', 3, 1], desc: 'Slows time around an enemy: chilled for 3 turns.' },
+  rose_enigma:  { name: 'Arcane Enigma', cost: 25, cd: 3, target: 'self', self: ['evade', 2], desc: 'Turns into a shimmer of magic: Evade for 2 turns.' },
+  rose_thorns:  { name: 'Thorn Spell', cost: 25, cd: 2, target: 'ally', status: ['thorns', 2, 1], desc: 'Wraps an ally in enchanted thorns: Thorns for 2 turns.' },
+  rose_barrage: { name: 'Arcane Barrage', cost: 50, cd: 2, target: 'randfoe', power: 6, hits: 3, sure: true, desc: 'Three magic missiles at random enemies. They never miss.' },
+  rose_goat:    { name: 'Goatify', cost: 75, cd: 4, target: 'foe', special: (u, ts, boost) => goatify(u, ts[0], 2 * boost), desc: 'Turns an enemy into a goat for 2 turns: it can\'t act and takes 30% more damage. Bosses are too big.' },
+  rose_mass:    { name: 'Mass Goatify', cost: 100, cd: 5, target: 'foes', special: (u, ts) => { for (const t of ts) if (chance(0.4)) goatify(u, t, 1); }, desc: 'Each enemy has a 40% chance to be a goat for a turn (not bosses).' },
+  rose_garden:  { name: 'Rose Garden', cost: 75, cd: 4, target: 'allies', status: ['regen', 3, 1], cleanse: true, desc: 'A magic rose garden: every ally is cleansed and Regenerates for 3 turns.' },
+  // Captain Combustible (Plants vs. Zombies Heroes)
+  cc_flame:     { name: 'Flamethrower', cost: 0, target: 'foe', power: 8, status: ['burn', 2, 0.3], desc: 'A blast of flame; 30% chance to burn.' },
+  cc_juggle:    { name: 'Fire Juggling', cost: 25, cd: 2, target: 'randfoe', power: 5, hits: 3, desc: 'Juggles fireballs at three random enemies.' },
+  cc_fireball:  { name: 'Fireball', cost: 50, cd: 2, target: 'foe', power: 18, desc: 'A big ball of fire.' },
+  cc_breath:    { name: 'Fire Breath', cost: 50, cd: 3, target: 'foe2', power: 12, status: ['burn', 2, 1], desc: 'Breathes fire on an enemy and one more: both burn.' },
+  cc_show:      { name: 'Showstopper', cost: 50, cd: 4, target: 'self', self: ['taunt', 2], special: u => addStatus(u, 'power', 2), desc: 'All eyes on the Captain: Taunt and Power for 2 turns.' },
+  cc_ring:      { name: 'Ring of Fire', cost: 75, cd: 3, target: 'foes', power: 10, status: ['burn', 2, 0.5], desc: 'A ring of fire around every enemy; 50% chance each to burn.' },
+  cc_cannon:    { name: 'Human Cannonball', cost: 100, cd: 4, target: 'foe', power: 30, splash: 0.3, desc: 'Fires itself out of a cannon! A huge hit, and 30% splashes the others.' },
+  cc_finale:    { name: 'Grand Finale', cost: 100, cd: 5, target: 'foes', power: 12, status: ['burn', 3, 1], desc: 'The big finish: every enemy burns for 3 turns.' },
+  // Grass Knuckles (Plants vs. Zombies Heroes)
+  gk_onetwo:    { name: 'One-Two', cost: 0, target: 'foe', power: 5, hits: 2, desc: 'A quick jab and a cross.' },
+  gk_block:     { name: 'Block', cost: 25, cd: 2, target: 'self', self: ['guard', 2], desc: 'Gloves up: Guard for 2 turns.' },
+  gk_upper:     { name: 'Grass Uppercut', cost: 50, cd: 2, target: 'foe', power: 16, status: ['stun', 1, 0.3], label: 'Uppercut', desc: 'A rising uppercut: 30% chance to stun.' },
+  gk_comeon:    { name: 'Come At Me', cost: 25, cd: 3, target: 'self', self: ['taunt', 2], special: u => addStatus(u, 'counter', 2), desc: 'Waves them in: Taunt for 2 turns, and it counters the next attack aimed at it.' },
+  gk_sweep:     { name: 'Leg Sweep', cost: 50, cd: 3, target: 'foes', power: 7, status: ['stun', 1, 0.2], label: 'Swept', desc: 'Sweeps the whole crowd; 20% chance each to stun.' },
+  gk_chi:       { name: 'Focus Chi', cost: 25, cd: 3, target: 'self', heal: 0.15, self: ['power', 2], desc: 'Breathes in: heal 15% and Power for 2 turns.' },
+  gk_knockout:  { name: 'Knockout Punch', cost: 100, cd: 4, target: 'foe', power: 30, execute: 2, desc: 'The big one: DOUBLE damage to enemies below 40% HP.' },
+  gk_hundred:   { name: 'Hundred Fists', cost: 75, cd: 3, target: 'foe', power: 4, hits: 8, desc: 'Eight lightning-fast punches at one enemy.' },
+  // Hurrikale (Plants vs. Zombies 2)
+  hk_gust:      { name: 'Gust', cost: 0, target: 'foe', power: 7, status: ['chill', 1, 0.3], desc: 'A cold gust; 30% chance to chill.' },
+  hk_breeze:    { name: 'Warm Breeze', cost: 25, cd: 2, target: 'allies', special: (u, ts) => { for (const t of ts) { delete t.st.chill; delete t.st.freeze; } }, desc: 'A warm breeze thaws every ally: no more chill or freeze.' },
+  hk_updraft:   { name: 'Updraft', cost: 25, cd: 2, target: 'ally', status: ['evade', 2, 1], desc: 'Lifts an ally on the wind: Evade for 2 turns.' },
+  hk_cyclone:   { name: 'Cyclone', cost: 50, cd: 3, target: 'foes', power: 6, status: ['chill', 1, 0.5], desc: 'A spinning wind hits every enemy; 50% chance each to chill.' },
+  hk_blow:      { name: 'Blow Away', cost: 50, cd: 3, target: 'foe', power: 12, special: (u, ts) => { for (const t of ts) { delete t.st.shield; delete t.st.guard; delete t.st.taunt; } }, desc: 'Blows away an enemy\'s shield, Guard and Taunt.' },
+  hk_tailwind:  { name: 'Tailwind', cost: 75, cd: 4, target: 'allies', status: ['evade', 1, 1], desc: 'A tailwind for the team: every ally Evades for a turn.' },
+  hk_hurricane: { name: 'Hurricane', cost: 100, cd: 5, target: 'foes', power: 10, status: ['stun', 1, 0.3], label: 'Blown away', desc: 'A hurricane hits every enemy; 30% chance each to stun.' },
+  hk_tornado:   { name: 'Tornado', cost: 75, cd: 3, target: 'randfoe', power: 8, hits: 4, desc: 'A tornado slams into four random enemies.' },
+  // Electric Blueberry (Plants vs. Zombies Heroes)
+  eb_zap:       { name: 'Berry Zap', cost: 0, target: 'foe', power: 8, desc: 'A little zap.' },
+  eb_shock:     { name: 'Shock', cost: 25, cd: 2, target: 'foe', power: 6, status: ['stun', 1, 0.4], label: 'Shocked', desc: 'A shock: 40% chance to stun.' },
+  eb_spark:     { name: 'Spark Shower', cost: 50, cd: 2, target: 'randfoe', power: 5, hits: 4, desc: 'Sparks fly at four random enemies.' },
+  eb_jolt:      { name: 'Jolt', cost: 25, cd: 3, target: 'ally', status: ['power', 1, 1], cleanse: true, desc: 'Jolts an ally awake: cleansed, and Power for a turn.' },
+  eb_recharge:  { name: 'Recharge', cost: 0, cd: 4, target: 'self', sun: 25, heal: 0.1, desc: 'Plugs in for a moment: +25 sun and heal itself 10%.' },
+  eb_storm:     { name: 'Electric Storm', cost: 75, cd: 3, target: 'foes', power: 9, desc: 'A crackling storm hits every enemy.' },
+  eb_strike:    { name: 'Lightning Strike', cost: 100, cd: 4, target: 'foe', power: 34, sure: true, desc: 'A huge lightning bolt that never misses.' },
+  eb_blue:      { name: 'Blue Lightning', cost: 100, cd: 5, target: 'foes', power: 12, status: ['stun', 1, 0.3], label: 'Shocked', desc: 'Blue lightning hits every enemy; 30% chance each to stun.' },
+
   // ======== Signature moves (each belongs to one plant) ========
   pea_shot:    { name: 'Pea Shot', cost: 0, target: 'foe', power: 10, straight: true, desc: 'The classic pea.' },
   pea_barrage: { name: 'Pea Barrage', cost: 50, cd: 2, target: 'foe', power: 6, hits: 3, straight: true, desc: 'Three peas at one enemy.' },
@@ -553,6 +600,34 @@ const MOVES = {
   z_cosmicray:  { name: 'Cosmic Ray', cd: 2, target: 'foe', power: 5, status: ['brittle', 2, 1], w: 2 },
   z_gascloud:   { name: 'Gas Cloud', cd: 2, target: 'foes', power: 4, status: ['weak', 2, 1], special: (u, ts) => { for (const t of ts) if (t.hp > 0 && chance(0.3)) addStatus(t, 'burn', 2, { src: u }); }, w: 2 },
   z_swell:      { name: 'Swell Up', cd: 4, target: 'self', shield: 0.15, w: 2 },
+  // ---- Realm zombies (Part 2, batch 2) ----
+  z_hocus:      { name: 'Hocus Pocus', cd: 3, target: 'foe', status: ['sheep', 1, 1], w: 2 },
+  z_gargward:   { name: 'Gargoyle Ward', cd: 3, target: 'allies', status: ['guard', 1, 1], w: 2 },
+  z_hex:        { name: 'Hex', cd: 2, target: 'foe', status: ['sheep', 1, 1], w: 2 },
+  z_brew:       { name: 'Witch\'s Brew', cd: 3, target: 'allies', heal: 0.12, w: 2 },
+  z_broom:      { name: 'Broom Swat', target: 'foe', power: 14 },
+  z_horn:       { name: 'Horn Charge', target: 'foe', power: 13, ai: 'weak' },
+  z_rodeolasso: { name: 'Lasso', cd: 3, target: 'foe', power: 6, status: ['stun', 1, 1], label: 'Lassoed', w: 2 },
+  z_bullsmash:  { name: 'Bull Smash', target: 'foe', power: 20 },
+  z_eslide:     { name: 'Electric Slide', cd: 3, target: 'foes', power: 7, status: ['stun', 1, 0.25], label: 'Shocked', w: 2 },
+  z_danceparty: { name: 'Dance Party', cd: 4, target: 'self', special: u => summon(u, ['backup', 'backup']), w: 2 },
+  z_funkyzap:   { name: 'Funky Zap', target: 'foe', power: 15 },
+  z_shove:      { name: 'Shove', target: 'foe', power: 11, special: (u, ts) => { for (const t of ts) { delete t.st.taunt; delete t.st.guard; } } },
+  z_palm:       { name: 'Palm Strike', target: 'foe', power: 7, hits: 2 },
+  z_shuriken:   { name: 'Shuriken', target: 'foe', power: 9, vault: true, ai: 'weak' },
+  z_impflurry:  { name: 'Imp Flurry', target: 'foe', power: 6, hits: 3 },
+  z_clone:      { name: 'Clone Army', cd: 3, target: 'self', special: u => summon(u, ['impclone', 'impclone']), w: 3 },
+  z_divebomb:   { name: 'Dive Bomb', target: 'foe', power: 13, vault: true, ai: 'back' },
+  z_headbutt:   { name: 'Headbutt', target: 'foe', power: 11 },
+  z_jetwash:    { name: 'Jet Wash', cd: 3, target: 'foes', power: 4, status: ['chill', 1, 0.5], w: 2 },
+  z_rocketfist: { name: 'Rocket Fist', target: 'foe', power: 18 },
+  z_scrapshot:  { name: 'Scrap Shot', cd: 2, target: 'randfoe', power: 6, hits: 3, w: 2 },
+  z_repair:     { name: 'Self-Repair', cd: 4, target: 'self', shield: 0.12, w: 2 },
+  z_potion:     { name: 'Potion Toss', target: 'foe', power: 6, special: (u, ts) => { const t = ts[0]; if (t?.hp > 0) addStatus(t, pick(['weak', 'burn', 'chill', 'brittle']), 2, { src: u }); } },
+  z_elixir:     { name: 'Elixir', cd: 3, target: 'allies', heal: 0.1, w: 2 },
+  z_cyberpunch: { name: 'Cyber Punch', target: 'foe', power: 12 },
+  z_mechpunch:  { name: 'Mech Punch', target: 'foe', power: 17 },
+  z_minimissile:{ name: 'Mini Missiles', cd: 3, target: 'foes', power: 8, w: 2 },
 };
 
 // ---- Helpers for the special moves above ----
@@ -691,6 +766,13 @@ function mostHurt(u) { return alliesOf(u).sort((a, b) => a.hp / a.maxHp - b.hp /
 
 // How many charges Lightning Reed's Overcharge needs (2 with Supercell).
 const chargeNeed = u => 3 - (u.data.passive.quickCharge || 0);
+
+// Rose's Goatify: turns a non-boss enemy into a goat (the sheep status).
+function goatify(u, t, turns) {
+  if (!t || t.hp <= 0) return;
+  if (t.boss) { log(`${t.name} is too big to turn into a goat!`); return; }
+  if (addStatus(t, 'sheep', turns, { src: u })) log(`${t.name} turns into a goat!`, t.side === 'ally' ? 'bad' : 'good');
+}
 
 // Cherry Bomb's Kamikaze Kaboom: it wilts after the blast, and its own
 // Last Blast ability goes off as it wilts. Together they were too strong
@@ -1312,6 +1394,60 @@ const PLANTS = {
     learn: [['sham_pop', 1], ['sham_launch', 1], ['sham_trail', 2], ['sham_gold', 4], ['sham_orbit', 6], ['sham_meteor', 8], ['sham_moon', 10], ['sham_rainbow', 13]],
     unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies Heroes. A clover with a rocket strapped on. What could go wrong?',
   },
+  // (Realm plants, batch 2, 2026-11-22.)
+  rose: {
+    name: 'Rose', cls: 'grower', stats: [58, 13, 4, 14],
+    passive: {
+      name: 'Arcane', desc: 'Her attacks have a 15% chance to turn the enemy into a goat for a turn (not bosses).',
+      onHit(u, t) { if (t.hp > 0 && chance(0.15 + (u.data.passive.arcaneBonus || 0))) goatify(u, t, 1); },
+    },
+    passive2: { name: 'Enchantress', desc: 'Arcane works 30% of the time.', arcaneBonus: 0.15 },
+    learn: [['rose_missile', 1], ['rose_snare', 1], ['rose_enigma', 2], ['rose_thorns', 4], ['rose_barrage', 6], ['rose_goat', 8], ['rose_mass', 10], ['rose_garden', 13]],
+    unlock: { how: 'story' }, flavor: 'The sorceress from Garden Warfare 2. Her favorite spell turns zombies into goats.',
+  },
+  combustible: {
+    name: 'Captain Combustible', cls: 'volatile', stats: [70, 14, 5, 10],
+    passive: { name: 'Pyromaniac', desc: 'All its attacks are fire, and burning enemies take 25% more from it. (Fire melts chill and freeze.)', fireAll: true, dealMult(u, t) { return t.st.burn ? 1.25 : 1; } },
+    passive2: { name: 'Afterburner', desc: 'When it wilts, every enemy burns for 2 turns.', onFall(u) { log(`${u.name} goes out in a blaze!`, 'good'); for (const f of foesOf(u)) addStatus(f, 'burn', 2, { src: u }); } },
+    learn: [['cc_flame', 1], ['cc_juggle', 1], ['cc_fireball', 2], ['cc_breath', 4], ['cc_show', 6], ['cc_ring', 8], ['cc_cannon', 10], ['cc_finale', 13]],
+    unlock: { how: 'story' }, flavor: 'A fiery plant hero from Plants vs. Zombies Heroes. The show must go on (fire).',
+  },
+  knuckles: {
+    name: 'Grass Knuckles', cls: 'hearty', stats: [96, 12, 7, 9],
+    passive: {
+      name: 'Brawler', desc: 'Every hit it takes makes its next attack 10% stronger (up to +50%).',
+      onHurt(u, src) { if (src && src !== u) u.flags.brawl = Math.min(5, (u.flags.brawl || 0) + 1); },
+      dealMult(u) { return 1 + 0.1 * (u.flags.brawl || 0); },
+      afterAttack(u) { u.flags.brawl = 0; },
+    },
+    passive2: { name: 'Iron Chin', desc: 'Takes 15% less damage from attacks aimed at it alone.', takeMult(u, src, mv) { return mv.aoe ? 1 : 0.85; } },
+    learn: [['gk_onetwo', 1], ['gk_block', 1], ['gk_upper', 2], ['gk_comeon', 4], ['gk_sweep', 6], ['gk_chi', 8], ['gk_knockout', 10], ['gk_hundred', 13]],
+    unlock: { how: 'story' }, flavor: 'A kung fu plant hero from Plants vs. Zombies Heroes. Hit him. He dares you.',
+  },
+  hurrikale: {
+    name: 'Hurrikale', cls: 'grower', stats: [58, 11, 5, 14],
+    passive: {
+      name: 'Gale', desc: 'Its wind blows flying zombies away: double damage to flyers (Jetpack, Balloon, Lost Pilot, Hover-Goat). Its hits have a 20% chance to chill.',
+      dealMult(u, t) { return t.data.flyer ? 2 : 1; },
+      onHit(u, t) { if (t.hp > 0 && chance(0.2)) addStatus(t, 'chill', 1, { src: u }); },
+    },
+    passive2: { name: 'Thaw Breeze', desc: 'Each round, it thaws every ally (removes chill and freeze).', roundStart(u) { for (const a of alliesOf(u)) { delete a.st.chill; delete a.st.freeze; } } },
+    learn: [['hk_gust', 1], ['hk_breeze', 1], ['hk_updraft', 2], ['hk_cyclone', 4], ['hk_blow', 6], ['hk_tailwind', 8], ['hk_hurricane', 10], ['hk_tornado', 13]],
+    unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies 2. Blows a cold wind at zombies and a warm one at friends.',
+  },
+  blueberry: {
+    name: 'Electric Blueberry', cls: 'volatile', stats: [52, 15, 3, 14],
+    passive: {
+      name: 'Static Charge', desc: 'At the start of each round, it zaps a random enemy for 6 power.',
+      roundStart(u) {
+        const n = 1 + (u.data.passive.chainZap || 0);
+        for (const t of shuffle(foesOf(u)).slice(0, n)) { log(`${u.name} zaps ${t.name}!`, 'good'); hit(u, t, 6, { aoe: true }); }
+      },
+    },
+    passive2: { name: 'Chain Zap', desc: 'Static Charge zaps 2 random enemies instead of 1.', chainZap: 1 },
+    learn: [['eb_zap', 1], ['eb_shock', 1], ['eb_spark', 2], ['eb_jolt', 4], ['eb_recharge', 6], ['eb_storm', 8], ['eb_strike', 10], ['eb_blue', 13]],
+    unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies Heroes. A berry with a shocking personality.',
+  },
 };
 const PLANT_ORDER = Object.keys(PLANTS);
 
@@ -1674,6 +1810,112 @@ const ZOMBIES = {
     desc: 'A huge, gassy zombie from Plants vs. Zombies Heroes. Its gas makes your team Weak and can burn, and it swells up behind a shield.',
     counter: 'Ward and cleansing moves clear the gas, and it\'s very slow. Shield poppers (Punk-style, or Spikeweed at Lv15) undo its swell.',
   },
+  // ---- Realm zombies, batch 2 (2026-11-22) ----
+  // Fairy Forest
+  abracadaver: {
+    name: 'Abracadaver', stats: [44, 9, 4, 12], moves: ['z_bite', 'z_hocus'], coins: 12,
+    desc: 'A zombie magician from Plants vs. Zombies Heroes. Hocus pocus: turns a plant into a sheep for a turn.',
+    counter: 'Cleansing turns your plant back, a Ward blocks the spell, and he\'s fragile.',
+  },
+  gargologist: {
+    name: 'Gargologist', stats: [64, 9, 7, 8], moves: ['z_bite', 'z_gargward'], coins: 13,
+    desc: 'A gargoyle expert from Plants vs. Zombies Heroes. Her gargoyle ward makes every zombie Guard for a turn.',
+    counter: 'Strip the Guard (Brain Freeze, Polarity Flip, Blow Away) or defeat her first.',
+  },
+  immorticia: {
+    name: 'Immorticia', stats: [78, 13, 6, 12], moves: ['z_broom', 'z_hex', 'z_brew'], coins: 150,
+    desc: 'A witch from Plants vs. Zombies Heroes. Hexes plants into sheep, heals her zombies with a brew, and dodges straight shots on her broom.',
+    counter: 'Lobs never miss her, a Ward blocks her hexes, and burning zombies can\'t drink her brew.',
+    passive: { name: 'Broomstick', dodgeStraight: 0.3 },
+  },
+  // Circus
+  unicornchupa: {
+    name: 'Unicorn Chupacabra', stats: [44, 11, 4, 15], moves: ['z_horn', 'z_sunsteal'], coins: 12,
+    desc: 'A rainbow-horned monster from Plants vs. Zombies Heroes. Charges your weakest plant and steals your sun.',
+    counter: 'It\'s fragile: hit it first, before it steals much. Chill slows it down.',
+  },
+  rodeogarg: {
+    name: 'Rodeo Gargantuar', stats: [105, 16, 7, 6], moves: ['z_bullsmash', 'z_rodeolasso'], coins: 30,
+    desc: 'A huge cowboy from Plants vs. Zombies Heroes. Smashes hard and lassoes a plant (stun).',
+    counter: 'Very slow. Plants that can\'t be stunned ignore the lasso, and a Taunting Hearty plant soaks the smashes.',
+  },
+  boogaloo: {
+    name: 'Electric Boogaloo', stats: [76, 13, 6, 13], moves: ['z_funkyzap', 'z_eslide', 'z_danceparty'], coins: 150,
+    desc: 'The disco king of Plants vs. Zombies Heroes. Calls in backup dancers, and his Electric Slide can stun your whole team. While anyone else is dancing, he takes 30% less damage.',
+    counter: 'Clear his dancers first (hit-everyone attacks), and plants that can\'t be stunned ignore the Electric Slide.',
+    passive: { name: 'Showtime', takeMult(u) { return alliesOf(u).length > 1 ? 0.7 : 1; } },
+  },
+  // Kongfu World
+  sumo: {
+    name: 'Sumo Wrestler', stats: [80, 10, 8, 6], moves: ['z_bite', 'z_shove'], coins: 14,
+    desc: 'From Plants vs. Zombies Heroes. His shove knocks a plant out of its Taunt and Guard.',
+    counter: 'He\'s too slow to dodge anything: Weak and burn wear him down.',
+  },
+  impmonk: {
+    name: 'Imp Monk', stats: [32, 10, 3, 18], moves: ['z_palm'], coins: 7,
+    desc: 'From the Chinese version of Plants vs. Zombies 2 (Kongfu World). Deflects 40% of straight shots with its palms.',
+    counter: 'Lobs and hit-everyone attacks can\'t be deflected, and it\'s tiny.',
+    passive: { name: 'Deflect', dodgeStraight: 0.4 },
+  },
+  minininja: {
+    name: 'Mini-Ninja', stats: [26, 12, 2, 20], moves: ['z_shuriken'], coins: 6,
+    desc: 'From Plants vs. Zombies Heroes. Leaps past taunting plants to throw shurikens at your weakest one.',
+    counter: 'One good hit finishes it, and a Tall-nut is too tall to leap past.',
+  },
+  impfinity: {
+    name: 'Impfinity', stats: [70, 13, 5, 16], moves: ['z_impflurry', 'z_clone'], coins: 150,
+    desc: 'A kung fu imp hero from Plants vs. Zombies Heroes. Makes clones of himself, and dodges 25% of single attacks.',
+    counter: 'Hit-everyone attacks hit him AND his clones, and every clone vanishes when he falls.',
+    passive: {
+      name: 'Mirror Image', dodge: 0.25,
+      onFall(u) { const clones = alliesOf(u).filter(z => z.id === 'impclone'); if (clones.length) log('The clones vanish!', 'good'); for (const z of clones) fallUnit(z, null); },
+    },
+  },
+  impclone: {
+    name: 'Impfinity Clone', stats: [20, 8, 1, 18], moves: ['z_scratch'], coins: 1,
+    desc: 'A copy of Impfinity. It vanishes when he falls.',
+    counter: 'Any hit-everyone attack pops the clones.',
+  },
+  // Sky City
+  lostpilot: {
+    name: 'Lost Pilot Zombie', stats: [44, 11, 4, 14], moves: ['z_divebomb'], coins: 12, flyer: true,
+    desc: 'From Plants vs. Zombies 2 (Lost City). Dive-bombs your back line, and dodges 30% of straight shots.',
+    counter: 'Lobs always hit it, and a Tall-nut is too tall to dive past.',
+    passive: { name: 'Flying', dodgeStraight: 0.3 },
+  },
+  hovergoat: {
+    name: 'Hover-Goat 3000', stats: [52, 10, 6, 12], vehicle: true, flyer: true, moves: ['z_headbutt', 'z_jetwash'], coins: 13,
+    desc: 'A flying robot goat from Plants vs. Zombies Heroes. Its jets can chill your whole team.',
+    counter: 'It\'s a machine: E.M.Peach and Spikeweed do double damage.',
+  },
+  rustbolt: {
+    name: 'Rustbolt', stats: [80, 14, 7, 10], armor: [70, 'robo'], vehicle: true, moves: ['z_rocketfist', 'z_scrapshot', 'z_repair'], coins: 150,
+    desc: 'A robot-armed zombie hero from Plants vs. Zombies Heroes. Rocket punches, scrap shots and self-repair.',
+    counter: 'Its armor is metal: pierce it or let Magnet-shroom pull it off. It\'s a machine, so E.M.Peach always stuns it.',
+  },
+  // Steam Ages
+  madchemist: {
+    name: 'Mad Chemist', stats: [44, 9, 4, 11], moves: ['z_potion', 'z_elixir'], coins: 12,
+    desc: 'From Plants vs. Zombies Heroes. Throws random potions (Weak, burn, chill or Brittle) and heals zombies with an elixir.',
+    counter: 'Burning zombies can\'t be healed, and he\'s fragile.',
+  },
+  cyborg: {
+    name: 'Cyborg Zombie', stats: [54, 11, 5, 10], vehicle: true, moves: ['z_cyberpunch'], coins: 13,
+    desc: 'From Plants vs. Zombies Heroes. When it\'s defeated, a Vengeful Cyborg rises in its place.',
+    counter: 'It\'s a machine (E.M.Peach, Spikeweed). Save a hit-everyone attack for the Vengeful Cyborgs.',
+    passive: { name: 'Vengeance', onFall(u) { log(`A Vengeful Cyborg rises from ${u.name}!`, 'bad'); summon(u, ['vengeful']); } },
+  },
+  vengeful: {
+    name: 'Vengeful Cyborg', stats: [32, 13, 4, 14], vehicle: true, moves: ['z_cyberpunch'], coins: 4,
+    desc: 'What\'s left of a Cyborg Zombie, and it\'s angry.',
+    counter: 'Fragile: finish it fast. It\'s a machine too.',
+  },
+  zmech: {
+    name: 'Z-Mech', stats: [82, 15, 7, 8], armor: [80, 'mech'], vehicle: true, moves: ['z_mechpunch', 'z_minimissile'], coins: 150,
+    desc: 'An Imp in a giant robot, from Plants vs. Zombies Heroes and Garden Warfare 2. When the mech breaks, the furious Imp keeps fighting.',
+    counter: 'Pierce the mech or let Magnet-shroom rip it off; E.M.Peach always stuns machines. The Imp inside is fast and angry, but fragile.',
+    passive: { name: 'Imp Pilot', armorBreak(u) { log('The Imp jumps out of the broken mech, FURIOUS!', 'bad'); u.st.power = 3; u.spd += 8; } },
+  },
 };
 
 // How to beat the original zombies (shown in the Almanac and when you
@@ -1702,6 +1944,7 @@ const ORIGINAL_COUNTERS = {
   zomboss: 'Pierce the robot armor, and save Guard or Hold the Line for when he\'s furious.',
 };
 for (const id in ORIGINAL_COUNTERS) ZOMBIES[id].counter = ORIGINAL_COUNTERS[id];
+for (const id of ['jetpack', 'balloon']) ZOMBIES[id].flyer = true;   // flying zombies (Hurrikale's Gale)
 
 /* ---- Battle gimmicks ------------------------------------------------------------
    Every battle has one or more of these. They change the rules for that
@@ -1731,4 +1974,9 @@ const GIMMICKS = {
   cut:       { name: 'Cut!', desc: 'Every 3 rounds the director yells CUT: every status on everyone (good and bad) is cleared. Shields stay.' },
   arena:     { name: 'Arena', desc: 'The crowd loves a knockout: whoever defeats an enemy gets Power for 2 turns.' },
   lowgrav:   { name: 'Low Gravity', desc: 'Plant attacks float: every plant attack is lobbed (over Screen Doors, and down to diving zombies).' },
+  fairy:     { name: 'Fairy Mischief', desc: 'Every 3 rounds a fairy turns a random unit (either side, not bosses) into a sheep for a turn.' },
+  spotlight: { name: 'Spotlight', desc: 'Each round the spotlight lands on a random unit (either side): Power and Taunt for a turn.' },
+  dojo:      { name: 'Dojo', desc: 'Every 3 rounds everyone takes a fighting stance: Counter (hits back the next attack aimed at them).' },
+  sky:       { name: 'Sky High', desc: 'Up in the clouds the wind blows lobs off course: straight shots do 25% more, lobs 25% less.' },
+  steam:     { name: 'Steam Vents', desc: 'Every 3 rounds a steam vent burns a random unit (either side) for 2 turns.' },
 };

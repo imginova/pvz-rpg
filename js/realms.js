@@ -6,7 +6,8 @@
    Asked for on 2026-11-22: "add a few mini realms with new plants", with
    the realms "after story instead of tickets", 2-3 new zombies and a
    boss in each, and characters "from as weird of games as possible but
-   still have them be official". They come in batches; this is batch 1.
+   still have them be official". They come in batches of 4-5 (batch 1:
+   Movie Studio to Moon Base, batch 2: Fairy Forest to Steam Ages).
 
    A realm is written exactly like a story chapter (see the notes at the
    top of world.js), plus:
@@ -152,6 +153,171 @@ const REALMS = [
       3: { name: 'Mission Control', kind: 'zombie', lvl: 15, waves: [['shieldz', 'spacecadet', 'cosmicimp'], ['spacecadet', 'spacecadet', 'jetpack', 'cosmicimp']], reward: { coins: 220 } },
       B: { name: 'Gas Giant', kind: 'boss', lvl: 15, waves: [['spacecadet', 'cosmicimp', 'shieldz'], ['gasgiant!', 'cosmicimp', 'cosmicimp']], reward: { plant: 'shamrocket', coins: 550 },
         intro: [['Gas Giant', 'I am... the GAS GIANT. Excuse me.'], ['Dave', 'Phew! Its gas makes your team Weak. Wards and cleansing are your friends.']] },
+    },
+  },
+
+  // ======== Batch 2 (2026-11-22) ========
+  // ---- Fairy Forest ----
+  {
+    id: 'fairy', name: 'Fairy Forest', gimmick: 'fairy', lvl: 12, floor: '.', foeScale: 2.3,
+    pool: ['abracadaver', 'gargologist', 'wizard', 'imp', 'bucket', 'cone'],
+    intro: [
+      ['Dave', 'Ooh, a fairy forest! Everything sparkles. I think a toadstool just winked at me.'],
+      ['Dave', 'Watch out: every few rounds a fairy turns someone into a sheep. Could be a zombie. Could be YOU. Baa.'],
+      ['Immorticia', 'Visitors! How delightful. I do love turning plants into livestock.'],
+    ],
+    map: [
+      '########################',
+      '#@.D..T"T....a...TT..C.#',
+      '#....1..T..T.....T..2..#',
+      '#.TT....T..TTT.......T.#',
+      '#..T..""""...T..TT.....#',
+      '#.....T..3...T...."""..#',
+      '#C.TT....T.......T..B..#',
+      '########################',
+    ],
+    signs: {
+      a: 'SIGN: "Do not feed the fairies." Somebody has drawn a tiny sheep.',
+    },
+    enc: {
+      1: { name: 'Enchanted Glade', kind: 'zombie', lvl: 12, waves: [['abracadaver', 'imp', 'cone'], ['abracadaver', 'gargologist', 'bucket']], reward: { coins: 140 },
+        intro: [['Dave', 'Abracadaver turns plants into sheep! Cleansing or a Ward fixes that.']] },
+      2: { name: 'Stone Circle', kind: 'zombie', lvl: 12, waves: [['gargologist', 'bucket', 'imp'], ['gargologist', 'abracadaver', 'football']], reward: { coins: 160 },
+        intro: [['Dave', 'The Gargologist makes every zombie Guard. Strip it off, or take her out first.']] },
+      3: { name: 'Witch\'s Hut', kind: 'zombie', lvl: 13, gimmicks: ['fog'], waves: [['abracadaver', 'abracadaver', 'wizard'], ['gargologist', 'wizard', 'abracadaver']], reward: { coins: 180 } },
+      B: { name: 'Immorticia', kind: 'boss', lvl: 13, waves: [['abracadaver', 'gargologist', 'imp'], ['immorticia!', 'abracadaver', 'gargologist']], reward: { plant: 'rose', coins: 450 },
+        intro: [['Immorticia', 'Double, double, plants in trouble!'], ['Dave', 'She flies on a broom, so straight shots miss a lot. Lob at her!']] },
+    },
+  },
+
+  // ---- Circus ----
+  {
+    id: 'circus', name: 'Circus', gimmick: 'spotlight', lvl: 13, floor: ',', foeScale: 1.8,
+    pool: ['unicornchupa', 'rodeogarg', 'chicken', 'wrangler', 'jack', 'imp'],
+    intro: [
+      ['Dave', 'LADIES AND GENTLEMEN, PLANTS AND ZOMBIES! Welcome to the greatest show on the lawn!'],
+      ['Dave', 'The spotlight jumps around every round. Whoever it lands on gets Power AND has to be attacked. Showbiz!'],
+    ],
+    map: [
+      '########################',
+      '#@.D..HHH....a....HHH.C#',
+      '#.....H1H.........H2H..#',
+      '#..:::::::::::::::::...#',
+      '#..:..,,,,,,,,,,,,..:..#',
+      '#..:..,,,,,B,,,,,,..:..#',
+      '#C.:..,,,,,,,,,,,,..:3.#',
+      '#..::::::::::::::::::..#',
+      '########################',
+    ],
+    signs: {
+      a: 'SIGN: "TONIGHT: THE AMAZING ZOMBIES. Refunds: no. Brains: yes."',
+    },
+    enc: {
+      1: { name: 'Big Top', kind: 'zombie', lvl: 13, waves: [['unicornchupa', 'jack', 'imp'], ['unicornchupa', 'unicornchupa', 'chicken', 'chicken']], reward: { coins: 160 },
+        intro: [['Dave', 'A Unicorn Chupacabra! It steals your sun. And it\'s so sparkly! Squash it anyway.']] },
+      2: { name: 'Rodeo Night', kind: 'zombie', lvl: 13, gimmicks: ['night'], waves: [['wrangler', 'chicken', 'chicken'], ['rodeogarg', 'imp']], reward: { coins: 180 },
+        intro: [['Dave', 'The Rodeo Gargantuar lassoes your plants. Tall-nut laughs at lassos.']] },
+      3: { name: 'Clown Car', kind: 'zombie', lvl: 14, waves: [['jack', 'jack', 'unicornchupa'], ['rodeogarg', 'unicornchupa', 'imp']], reward: { coins: 200 } },
+      B: { name: 'Electric Boogaloo', kind: 'boss', lvl: 14, waves: [['unicornchupa', 'jack', 'imp'], ['boogaloo!', 'backup', 'backup']], reward: { plant: 'combustible', coins: 500 },
+        intro: [['Electric Boogaloo', 'Hit it! Everybody do the Electric Slide! ...Into your FACE!'], ['Dave', 'While his dancers are up he takes less damage. Clear the dance floor first!']] },
+    },
+  },
+
+  // ---- Kongfu World ----
+  {
+    id: 'kongfu', name: 'Kongfu World', gimmick: 'dojo', lvl: 13, floor: '.', foeScale: 2.1,
+    pool: ['sumo', 'impmonk', 'minininja', 'imp', 'cone'],
+    intro: [
+      ['Dave', 'HI-YAH! Kongfu World! I studied kung fu once. For one afternoon. I was very good at bowing.'],
+      ['Dave', 'Every few rounds everyone takes a fighting stance: the next attack aimed at them gets hit right back. Time your big moves!'],
+      ['Impfinity', 'You face one Impfinity? No. You face... INFINITY!'],
+    ],
+    map: [
+      '########################',
+      '#@.D..""....a....""..C.#',
+      '#....HHHH.1...HHHH.....#',
+      '#....H__H.....H__H..2..#',
+      '#....H__H.....H__H.....#',
+      '#.3..HH_H.....H_HH.....#',
+      '#..........B...........#',
+      '########################',
+    ],
+    signs: {
+      a: 'SIGN: "DOJO RULES: 1. Bow. 2. No brains in the dojo. 3. See rule 2."',
+    },
+    enc: {
+      1: { name: 'Temple Steps', kind: 'zombie', lvl: 13, waves: [['impmonk', 'impmonk', 'cone'], ['sumo', 'impmonk', 'minininja']], reward: { coins: 160 },
+        intro: [['Dave', 'Imp Monks swat away straight shots! Lob or hit everyone at once.']] },
+      2: { name: 'Sumo Ring', kind: 'zombie', lvl: 13, waves: [['sumo', 'imp', 'imp'], ['sumo', 'sumo', 'impmonk']], reward: { coins: 180 },
+        intro: [['Dave', 'The Sumo Wrestler shoves your tank right out of its Taunt. Big, slow, and VERY pushy.']] },
+      3: { name: 'Shadow Dojo', kind: 'zombie', lvl: 14, gimmicks: ['fog'], waves: [['minininja', 'minininja', 'impmonk'], ['minininja', 'sumo', 'minininja', 'impmonk']], reward: { coins: 200 } },
+      B: { name: 'Impfinity', kind: 'boss', lvl: 14, waves: [['impmonk', 'minininja', 'sumo'], ['impfinity!', 'impmonk']], reward: { plant: 'knuckles', coins: 500 },
+        intro: [['Impfinity', 'Clone jutsu! ...That\'s a different show. Whatever. CLONES!'], ['Dave', 'Hit-everyone attacks get him and all his clones. Beat him and the clones vanish!']] },
+    },
+  },
+
+  // ---- Sky City ----
+  {
+    id: 'sky', name: 'Sky City', gimmick: 'sky', lvl: 14, floor: '_', foeScale: 2.2,
+    pool: ['lostpilot', 'hovergoat', 'jetpack', 'balloon', 'imp'],
+    intro: [
+      ['Dave', 'Sky City! A city in the clouds! Don\'t look down. I looked down. I\'m fine. I\'m FINE.'],
+      ['Dave', 'Up here the wind blows lobs off course: straight shots hit harder and lobs hit softer. Peas, assemble!'],
+    ],
+    map: [
+      '~~~~~~~~~~~~~~~~~~~~~~~~',
+      '~@_Da_~~~~~~~~~~___C__~~',
+      '~__1__=========__2____~~',
+      '~_____~~~~~~~~~~______~~',
+      '~~~=~~~~~~~~~~~~~~=~~~~~',
+      '~___3___~~~~~~~~~___B_~~',
+      '~_____C_====_====______~',
+      '~~~~~~~~~~~~~~~~~~~~~~~~',
+    ],
+    signs: {
+      a: 'SIGN: "MIND THE GAP." The gap is about two miles.',
+    },
+    enc: {
+      1: { name: 'Cloud Dock', kind: 'zombie', lvl: 14, waves: [['lostpilot', 'balloon', 'imp'], ['hovergoat', 'lostpilot', 'balloon']], reward: { coins: 180 },
+        intro: [['Dave', 'Lost Pilots dive-bomb your back row. Tall-nut blocks them. So does a really tall hat. Probably.']] },
+      2: { name: 'Airship Deck', kind: 'zombie', lvl: 14, gimmicks: ['storm'], waves: [['hovergoat', 'hovergoat', 'jetpack'], ['lostpilot', 'lostpilot', 'hovergoat']], reward: { coins: 200 },
+        intro: [['Dave', 'Hover-Goats are robots! E.M.Peach and Spikeweed love robots. In a fighting way.']] },
+      3: { name: 'Thunderhead', kind: 'zombie', lvl: 15, waves: [['jetpack', 'lostpilot', 'balloon', 'balloon'], ['hovergoat', 'jetpack', 'lostpilot']], reward: { coins: 220 } },
+      B: { name: 'Rustbolt', kind: 'boss', lvl: 15, waves: [['lostpilot', 'hovergoat', 'balloon'], ['rustbolt!', 'hovergoat']], reward: { plant: 'hurrikale', coins: 550 },
+        intro: [['Rustbolt', 'Scrap metal! Rocket fists! I built myself out of junk, and I\'m PROUD of it!'], ['Dave', 'His armor is metal. Pierce it or pull it off with Magnet-shroom!']] },
+    },
+  },
+
+  // ---- Steam Ages ----
+  {
+    id: 'steam', name: 'Steam Ages', gimmick: 'steam', lvl: 15, floor: '_', foeScale: 1.8,
+    pool: ['madchemist', 'cyborg', 'engineer', 'shieldz', 'scientist'],
+    intro: [
+      ['Dave', 'Steam Ages! Gears! Pipes! Whistles! Everything here runs on steam. Even my sandwich.'],
+      ['Dave', 'Every few rounds a steam vent scalds someone and they burn. Burning zombies can\'t be healed, so that might help!'],
+    ],
+    map: [
+      '%%%%%%%%%%%%%%%%%%%%%%%%',
+      '%@_D__M___a____M____C__%',
+      '%_____M__1_____M___2___%',
+      '%__M______MMM______M___%',
+      '%__M__%%%%_____%%%%M___%',
+      '%_3___%C_______B_%_____%',
+      '%_____%%%%%%_%%%%%_____%',
+      '%______________________%',
+      '%%%%%%%%%%%%%%%%%%%%%%%%',
+    ],
+    signs: {
+      a: 'SIGN: "CAUTION: HOT PIPES." Underneath: "and hot zombies."',
+    },
+    enc: {
+      1: { name: 'Boiler Room', kind: 'zombie', lvl: 15, waves: [['madchemist', 'cyborg', 'cone'], ['cyborg', 'cyborg', 'madchemist']], reward: { coins: 200 },
+        intro: [['Dave', 'Beat a Cyborg Zombie and a Vengeful Cyborg pops out. Save something for round two!']] },
+      2: { name: 'Gear Works', kind: 'zombie', lvl: 15, waves: [['engineer', 'cyborg', 'bucket'], ['shieldz', 'cyborg', 'madchemist']], reward: { coins: 220 },
+        intro: [['Dave', 'The Mad Chemist throws random potions and heals zombies. Set them on fire to stop the healing!']] },
+      3: { name: 'Clock Tower', kind: 'zombie', lvl: 15, gimmicks: ['timewarp'], waves: [['madchemist', 'madchemist', 'cyborg'], ['cyborg', 'shieldz', 'engineer', 'madchemist']], reward: { coins: 240 } },
+      B: { name: 'Z-Mech', kind: 'boss', lvl: 15, waves: [['cyborg', 'madchemist', 'engineer'], ['zmech!', 'cyborg']], reward: { plant: 'blueberry', coins: 600 },
+        intro: [['Z-Mech', 'BEEP BOOP. Just kidding, it\'s an Imp in here. A really angry Imp. In a really big robot.'], ['Dave', 'Break the mech and the Imp keeps fighting, angrier and faster. Finish him quick!']] },
     },
   },
 ];

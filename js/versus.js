@@ -35,7 +35,7 @@ const VS_DIFFS = { easy: 'Easy', normal: 'Normal', hard: 'Hard' };
 
 // Gimmicks that make sense when plants fight plants. The left-out ones
 // (Gravestones, Rush, Sandstorm, Neon Jams) only do things to zombies.
-const VS_GIMMICKS = ['day', 'night', 'pool', 'roof', 'fog', 'drought', 'laststand', 'conveyor', 'storm', 'heatwave', 'frostwind', 'timewarp', 'cut', 'arena', 'lowgrav'];
+const VS_GIMMICKS = ['day', 'night', 'pool', 'roof', 'fog', 'drought', 'laststand', 'conveyor', 'storm', 'heatwave', 'frostwind', 'timewarp', 'cut', 'arena', 'lowgrav', 'fairy', 'spotlight', 'dojo', 'sky', 'steam'];
 
 const VS_FOOD_MAX = 3;   // the Plant Food picker goes Off, 1, 2, 3
 
@@ -365,6 +365,7 @@ function aiDamage(u, t, mv, power) {
   if (mv.vsWeak && t.st.weak) d *= mv.vsWeak;
   if (t.st.brittle) d *= BRITTLE_MULT;
   if (B.g.has('roof')) { if (mv.straight && !isLob(u, mv)) d *= 0.75; if (isLob(u, mv)) d *= 1.25; }
+  if (B.g.has('sky')) { if (mv.straight && !isLob(u, mv)) d *= 1.25; if (isLob(u, mv)) d *= 0.75; }
   if (u.data.shroom) d *= B.g.has('night') ? 1.3 : B.g.has('day') ? 0.85 : 1;
   // Attacks aimed at one plant can be dodged.
   if (!mv.sure && mv.target !== 'foes') {
