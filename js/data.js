@@ -346,6 +346,44 @@ const MOVES = {
   mag_recycle:    { name: 'Recycle', cost: 25, cd: 3, target: 'self', special: (u, ts, boost) => healUnit(u, u.maxHp * Math.min(0.4, 0.1 + 0.05 * (u.flags.metal || 0)) * boost, u), desc: 'Turns scrap into food: heal 10%, +5% for each piece of metal pulled this battle (up to 40%).' },
   umb_rain:       { name: 'Rain Dance', cost: 75, cd: 4, target: 'allies', status: ['regen', 2, 1], special: (u, ts) => { for (const t of ts) delete t.st.burn; }, desc: 'Cool rain: every ally stops burning and Regenerates for 2 turns.' },
 
+  // ======== Realm plants (Part 2, batch 1: 2026-11-22) ========
+  // Kernel Corn (Plants vs. Zombies: Garden Warfare)
+  kc_cob:       { name: 'Cob Buster', cost: 0, target: 'foe', power: 6, hits: 2, straight: true, desc: 'Two quick corn shots.' },
+  kc_hop:       { name: 'Husk Hop', cost: 25, cd: 3, target: 'self', self: ['evade', 2], desc: 'Hops out of the way: Evade for 2 turns.' },
+  kc_butter:    { name: 'Butter Blast', cost: 50, cd: 3, target: 'foe', power: 8, status: ['stun', 1, 1], label: 'Buttered', desc: 'A blast of butter: always butters (stuns) for a turn.' },
+  kc_spray:     { name: 'Corn Spray', cost: 50, cd: 2, target: 'randfoe', power: 5, hits: 4, straight: true, desc: 'Four corn shots at random enemies.' },
+  kc_grenade:   { name: 'Kernel Grenade', cost: 50, cd: 3, target: 'foes', power: 7, desc: 'A grenade full of kernels: hits every enemy.' },
+  kc_salute:    { name: 'Commando Salute', cost: 50, cd: 4, target: 'allies', status: ['power', 1, 1], desc: 'Rallies the squad: every ally gets Power for a turn.' },
+  kc_shuck:     { name: 'Shuck Shot', cost: 100, cd: 5, target: 'foes', power: 14, pierce: true, desc: 'Calls in an airstrike: hits every enemy and pierces armor.' },
+  kc_lock:      { name: 'Lock and Load', cost: 25, cd: 3, target: 'self', self: ['power', 2], special: u => { u.flags.barrage = 2; }, desc: 'Power for 2 turns, and its next attack sets off a Butter Barrage.' },
+  // Spartichoke (Plants vs. Zombies 2 and Heroes)
+  sp_jab:       { name: 'Spike Jab', cost: 0, target: 'foe', power: 9, desc: 'A thorny jab.' },
+  sp_shield:    { name: 'Leaf Shield', cost: 25, cd: 2, target: 'self', self: ['guard', 2], desc: 'Raises its leaf shield: Guard for 2 turns.' },
+  sp_spear:     { name: 'Spear Throw', cost: 25, cd: 1, target: 'foe', power: 13, sure: true, desc: 'A thrown spear that never misses.' },
+  sp_charge:    { name: 'Spartan Charge', cost: 50, cd: 2, target: 'foe', power: 18, desc: 'A shield-first charge.' },
+  sp_sparta:    { name: 'This Is Sparta!', cost: 50, cd: 3, target: 'self', self: ['taunt', 2], special: u => addStatus(u, 'power', 2), desc: 'A battle cry: Taunt and Power for 2 turns.' },
+  sp_phalanx:   { name: 'Phalanx', cost: 75, cd: 4, target: 'allies', status: ['guard', 1, 1], desc: 'Shields up, side by side: every ally Guards for a turn.' },
+  sp_kick:      { name: 'Spartan Kick', cost: 100, cd: 4, target: 'foe', power: 30, status: ['stun', 1, 0.5], label: 'Kicked', desc: 'A mighty kick: 50% chance to stun.' },
+  sp_volley:    { name: 'Spear Volley', cost: 75, cd: 3, target: 'foes', power: 9, pierce: true, desc: 'Spears rain on every enemy, piercing armor.' },
+  // Water Chestnut (Plants vs. Zombies Heroes)
+  wc_bonk:      { name: 'Shell Bonk', cost: 0, target: 'foe', power: 8, desc: 'A hard-shelled bonk.' },
+  wc_bob:       { name: 'Bob Up', cost: 25, cd: 2, target: 'self', shield: 0.2, cleanse: true, desc: 'Bobs to the surface: a shield of 20% of its max HP, and it cleanses itself.' },
+  wc_splash:    { name: 'Splash', cost: 25, cd: 2, target: 'foes', power: 4, status: ['chill', 1, 0.5], desc: 'Splashes every enemy; 50% chance each to chill.' },
+  wc_cover:     { name: 'Take Cover', cost: 50, cd: 3, target: 'ally', special: (u, ts) => coverAllies(u, ts, 2), desc: 'For 2 turns, Water Chestnut takes every attack aimed at that ally.' },
+  wc_tide:      { name: 'Tide Pool', cost: 75, cd: 4, target: 'allies', status: ['regen', 2, 1], desc: 'A cool tide pool: every ally Regenerates for 2 turns.' },
+  wc_whirl:     { name: 'Whirlpool', cost: 50, cd: 3, target: 'foe', power: 12, status: ['stun', 1, 0.5], label: 'Spun', desc: 'Spins an enemy around: 50% chance to stun.' },
+  wc_tsunami:   { name: 'Tsunami', cost: 100, cd: 5, target: 'foes', power: 10, status: ['chill', 2, 1], desc: 'A giant wave: hits and chills every enemy for 2 turns.' },
+  wc_wall:      { name: 'Water Wall', cost: 75, cd: 4, target: 'allies', shield: 0.1, desc: 'A wall of water: shields every ally for 10% of Water Chestnut\'s max HP.' },
+  // Shamrocket (Plants vs. Zombies Heroes)
+  sham_pop:     { name: 'Clover Pop', cost: 0, target: 'foe', power: 9, desc: 'A pop of clover leaves.' },
+  sham_launch:  { name: 'Launch', cost: 50, cd: 2, target: 'foe', power: 20, recoil: 0.08, desc: 'Rockets into an enemy, but it costs 8% of its own max HP.' },
+  sham_trail:   { name: 'Rocket Trail', cost: 25, cd: 2, target: 'foes', power: 4, fire: true, status: ['burn', 2, 0.3], desc: 'Flies over everyone, trailing fire; 30% chance each to burn.' },
+  sham_gold:    { name: 'Pot of Gold', cost: 0, cd: 4, target: 'self', sun: 30, desc: 'Finds the pot of gold at the end of the rainbow: +30 sun.' },
+  sham_orbit:   { name: 'Orbit', cost: 25, cd: 2, target: 'self', self: ['evade', 2], desc: 'Flies up into orbit: Evade for 2 turns.' },
+  sham_meteor:  { name: 'Meteor Shower', cost: 75, cd: 3, target: 'randfoe', power: 7, hits: 4, fire: true, desc: 'Four flaming meteors at random enemies.' },
+  sham_moon:    { name: 'Moonshot', cost: 100, cd: 4, target: 'foe', power: 34, sure: true, desc: 'Flies to the moon and back: a huge hit that never misses.' },
+  sham_rainbow: { name: 'Rainbow Blast', cost: 75, cd: 4, target: 'foes', power: 10, special: (u, ts) => { for (const t of ts) if (t.hp > 0) addStatus(t, pick(['weak', 'chill', 'blind']), 2, { src: u }); }, desc: 'A blast of rainbow: hits every enemy, and each one is Weak, chilled or blinded for 2 turns.' },
+
   // ======== Signature moves (each belongs to one plant) ========
   pea_shot:    { name: 'Pea Shot', cost: 0, target: 'foe', power: 10, straight: true, desc: 'The classic pea.' },
   pea_barrage: { name: 'Pea Barrage', cost: 50, cd: 2, target: 'foe', power: 6, hits: 3, straight: true, desc: 'Three peas at one enemy.' },
@@ -498,6 +536,23 @@ const MOVES = {
   z_zpg:        { name: 'ZPG Rocket', cd: 2, target: 'foes', power: 8, w: 2 },
   z_blaster:    { name: 'Z-6 Blaster', target: 'foe', power: 10 },
   z_crush:      { name: 'Sarcophagus Slam', target: 'foe', power: 13 },
+  // ---- Realm zombies (Part 2, batch 1) ----
+  z_flash:      { name: 'Flash Photo', cd: 2, target: 'foe', status: ['blind', 2, 1], w: 2 },
+  z_rocket:     { name: 'Rocket Launcher', cd: 3, target: 'foes', power: 8, w: 3 },
+  z_villain:    { name: 'Evil Punch', target: 'foe', power: 16 },
+  z_henchmen:   { name: 'Henchmen!', cd: 4, target: 'self', special: u => summon(u, [pick(['paparazzi', 'actionhero'])]), w: 2 },
+  z_trample:    { name: 'Trample', target: 'foe', power: 13, vault: true, ai: 'back' },
+  z_spear:      { name: 'Spear Throw', target: 'foe', power: 12, ai: 'weak' },
+  z_bodyslam:   { name: 'Body Slam', target: 'foe', power: 15, status: ['stun', 1, 0.5], label: 'Slammed' },
+  z_flex:       { name: 'Flex', cd: 3, target: 'self', status: ['power', 2, 1], special: u => addStatus(u, 'guard', 1), w: 2 },
+  z_ink:        { name: 'Ink Squirt', cd: 3, target: 'foes', status: ['blind', 2, 0.4], w: 2 },
+  z_trident:    { name: 'Trident', target: 'foe', power: 14 },
+  z_tide:       { name: 'Tidal Wave', cd: 3, target: 'foes', power: 7, status: ['chill', 2, 1], w: 2 },
+  z_school:     { name: 'School of Fish', cd: 4, target: 'self', special: u => summon(u, ['fishyimp']), w: 2 },
+  z_podblaster: { name: 'Pod Blaster', target: 'foe', power: 10, sure: true },
+  z_cosmicray:  { name: 'Cosmic Ray', cd: 2, target: 'foe', power: 5, status: ['brittle', 2, 1], w: 2 },
+  z_gascloud:   { name: 'Gas Cloud', cd: 2, target: 'foes', power: 4, status: ['weak', 2, 1], special: (u, ts) => { for (const t of ts) if (t.hp > 0 && chance(0.3)) addStatus(t, 'burn', 2, { src: u }); }, w: 2 },
+  z_swell:      { name: 'Swell Up', cd: 4, target: 'self', shield: 0.15, w: 2 },
 };
 
 // ---- Helpers for the special moves above ----
@@ -746,7 +801,7 @@ function jumpstart(u, targets) {
 }
 
 // Magnet-shroom: which armor is metal, and pulling it off.
-const METAL = new Set(['bucket', 'helmet', 'door', 'mech', 'robo', 'crown', 'ladder', 'pogo', 'boombox']);
+const METAL = new Set(['bucket', 'helmet', 'door', 'mech', 'robo', 'crown', 'ladder', 'pogo', 'boombox', 'pod']);
 function ripMetal(u, t, amount) {
   if (!t || t.armor <= 0 || !METAL.has(t.armorKind)) return false;
   t.armor = Math.max(0, t.armor - Math.round(amount));
@@ -1217,6 +1272,46 @@ const PLANTS = {
     learn: [['um_slap', 1], ['um_open', 1], ['um_rain', 2], ['um_bounce', 4], ['um_shade', 6], ['um_pour', 8], ['um_fort', 10], ['umb_rain', 13]],
     unlock: { how: 'achievement', id: 'dunk' }, flavor: 'Always ready for a rainy day. Or a basketball.',
   },
+  // ================= REALM PLANTS =================
+  // (Part 2, batch 1, 2026-11-22.) Won from the mini realms' bosses. Each is a
+  // real plant from one of the odder official games.
+  kernelcorn: {
+    name: 'Kernel Corn', cls: 'shooter', stats: [62, 13, 4, 14],
+    passive: {
+      name: 'Butter Barrage', desc: 'Every 3rd attack calls in a Butter Barrage: every enemy takes 5 power, and each has a 25% chance to be buttered (stunned).',
+      afterAttack(u) {
+        u.flags.barrage = (u.flags.barrage || 0) + 1;
+        if (u.flags.barrage < 3) return;
+        u.flags.barrage = 0;
+        log('BUTTER BARRAGE!', 'good');
+        for (const f of foesOf(u)) if (hit(u, f, 5, { aoe: true, lob: true }) > 0 && chance(0.25)) addStatus(f, 'stun', 1, { src: u, label: 'Buttered' });
+      },
+    },
+    passive2: { name: 'Air Support', desc: 'When it wilts, it calls in one last Shuck Shot: every enemy takes 10 power.', onFall(u) { log(`${u.name} calls in air support!`, 'good'); for (const f of foesOf(u)) hit(u, f, 10, { aoe: true }); } },
+    learn: [['kc_cob', 1], ['kc_hop', 1], ['kc_butter', 2], ['kc_spray', 4], ['kc_grenade', 6], ['kc_salute', 8], ['kc_shuck', 10], ['kc_lock', 13]],
+    unlock: { how: 'story' }, flavor: 'A commando from Garden Warfare. Butter makes everything better, especially airstrikes.',
+  },
+  spartichoke: {
+    name: 'Spartichoke', cls: 'hearty', stats: [100, 11, 7, 8],
+    passive: { name: 'Spartan', desc: '+50% damage to enemies wearing armor. Hits harder than most Hearty plants.', dealMult(u, t) { return t.armor > 0 ? 1.5 : 1; } },
+    passive2: { name: 'Shield Wall', desc: 'Starts every wave Guarding for 2 turns.', waveStart(u) { addStatus(u, 'guard', 2); } },
+    learn: [['sp_jab', 1], ['sp_shield', 1], ['sp_spear', 2], ['sp_charge', 4], ['sp_sparta', 6], ['sp_phalanx', 8], ['sp_kick', 10], ['sp_volley', 13]],
+    unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies 2 and Heroes. Tonight, it dines in the garden!',
+  },
+  waterchestnut: {
+    name: 'Water Chestnut', cls: 'hearty', stats: [120, 6, 9, 7],
+    passive: { name: 'Amphibious', desc: 'Any of its attacks can reach diving or dug-in zombies, and in Pool battles it takes 20% less damage.', amphibious: true, takeMult() { return B.g.has('pool') ? 0.8 : 1; } },
+    passive2: { name: 'Waterlogged', desc: 'Heals 4% each round (8% in Pool battles).', roundStart(u) { healUnit(u, u.maxHp * (B.g.has('pool') ? 0.08 : 0.04)); } },
+    learn: [['wc_bonk', 1], ['wc_bob', 1], ['wc_splash', 2], ['wc_cover', 4], ['wc_tide', 6], ['wc_whirl', 8], ['wc_tsunami', 10], ['wc_wall', 13]],
+    unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies Heroes. Happiest in the water. Grumpiest out of it.',
+  },
+  shamrocket: {
+    name: 'Shamrocket', cls: 'volatile', stats: [54, 15, 3, 15],
+    passive: { name: 'Lucky Launch', desc: '25% chance for any hit to do double damage (a lucky clover!).', dealMult(u) { if (chance(0.25 + (u.data.passive.luck || 0))) { log('Lucky!', 'good'); return 2; } return 1; } },
+    passive2: { name: 'Four-Leaf', desc: 'Lucky Launch happens 40% of the time.', luck: 0.15 },
+    learn: [['sham_pop', 1], ['sham_launch', 1], ['sham_trail', 2], ['sham_gold', 4], ['sham_orbit', 6], ['sham_meteor', 8], ['sham_moon', 10], ['sham_rainbow', 13]],
+    unlock: { how: 'story' }, flavor: 'From Plants vs. Zombies Heroes. A clover with a rocket strapped on. What could go wrong?',
+  },
 };
 const PLANT_ORDER = Object.keys(PLANTS);
 
@@ -1506,6 +1601,79 @@ const ZOMBIES = {
     desc: 'Locked inside a huge golden sarcophagus. Very slow.',
     counter: 'Piercing attacks go straight through the sarcophagus.',
   },
+
+  // ---- Realm zombies (Part 2, batch 1, 2026-11-22). Each is a real character
+  // from an official game, picked from the odder corners of the series
+  // (owner: "as weird of games as possible but still have them be official"). ----
+  // Movie Studio
+  paparazzi: {
+    name: 'Paparazzi Zombie', stats: [42, 9, 4, 13], moves: ['z_bite', 'z_flash'], coins: 11,
+    desc: 'From Plants vs. Zombies Heroes. Snaps photos: the flash blinds a plant (its next attack misses).',
+    counter: 'Fragile, and cleansing moves wipe the Blind off.',
+  },
+  actionhero: {
+    name: '80s Action Hero', stats: [58, 11, 2, 9], moves: ['z_bite', 'z_rocket'], coins: 14,
+    desc: 'From Garden Warfare 2. Fires a rocket that hits your whole team.',
+    counter: 'Almost no defense: big single hits wreck him. Guard soaks the rocket.',
+  },
+  huge: {
+    name: 'Huge-Gigantacus', stats: [80, 14, 7, 10], moves: ['z_villain', 'z_henchmen'], coins: 150,
+    desc: 'A super-villain from Plants vs. Zombies Heroes. Calls in henchmen and LOVES giving evil speeches.',
+    counter: 'Every 3rd round he stops to give a speech and skips his turn: that\'s the time for your biggest moves.',
+    passive: { name: 'Monologue', turnStart(u) { if (B.round % 3 === 0) { log(`${u.name} gives a long evil speech...`, 'good'); return 'skip'; } } },
+  },
+  // Rome
+  gladiantaur: {
+    name: 'Gladiantaur', stats: [52, 12, 5, 18], moves: ['z_trample'], coins: 13,
+    desc: 'A gladiator centaur from Plants vs. Zombies Heroes. Gallops past taunting plants to trample your back line.',
+    counter: 'Tall-nut is too tall to jump over, and chill slows it right down.',
+  },
+  valkyrie: {
+    name: 'Valkyrie', stats: [50, 11, 5, 11], armor: [40, 'helmet'], moves: ['z_bite', 'z_spear'], coins: 13,
+    desc: 'From Plants vs. Zombies Heroes. Every time another zombie falls, she gets Power for 2 turns.',
+    counter: 'Defeat her first, or Weaken her: Weak cancels out her Power.',
+    passive: { name: 'Fallen Warriors', onAllyFall(u) { addStatus(u, 'power', 2); log(`${u.name} grows stronger!`, 'bad'); } },
+  },
+  smash: {
+    name: 'The Smash', stats: [90, 15, 7, 7], moves: ['z_bodyslam', 'z_flex'], coins: 150,
+    desc: 'A wrestling champion from Plants vs. Zombies Heroes. His body slams stun, and he flexes for Power and Guard.',
+    counter: 'Very slow. Plants that can\'t be stunned (Tall-nut, or Squash at Lv15) shrug off his slams, and Weak takes the sting out.',
+  },
+  // Underwater Palace
+  fishyimp: {
+    name: 'Fishy Imp', stats: [30, 11, 2, 18], moves: ['z_scratch'], coins: 6,
+    desc: 'An imp riding a fish, from Plants vs. Zombies Heroes. Dives underwater every other round: only lobs and hit-everyone attacks reach it then.',
+    counter: 'Tiny: any hit-everyone attack or lob finishes it off.',
+    passive: { name: 'Amphibious', roundStart(u) { u.flags.under = B.round % 2 === 0; if (u.flags.under) log(`${u.name} dives under!`); } },
+  },
+  octopet: {
+    name: 'Octo-Pet', stats: [46, 9, 4, 10], moves: ['z_bite', 'z_ink'], coins: 11,
+    desc: 'A pet octopus from Plants vs. Zombies Heroes. Squirts ink that can blind your whole team, and slips away from 30% of single attacks.',
+    counter: 'Hit-everyone attacks never miss it, and cleansing wipes off the ink.',
+    passive: { name: 'Slippery', dodge: 0.3 },
+  },
+  neptuna: {
+    name: 'Neptuna', stats: [76, 13, 6, 12], moves: ['z_trident', 'z_tide', 'z_school'], coins: 150,
+    desc: 'Queen of the deep, from Plants vs. Zombies Heroes. Tidal waves chill your team, she calls in Fishy Imps, and at half health her siren song hypnotizes a plant.',
+    counter: 'A Ward (Garlic Ward, Aloe Wrap) blocks her song, and hit-everyone attacks clear out her Fishy Imps.',
+    passive: { name: 'Siren Song', onHurt(u) { if (!u.flags.sang && u.hp > 0 && u.hp < u.maxHp / 2) { u.flags.sang = true; const t = pick(foesOf(u)); if (t) { log(`${u.name} sings a siren song!`, 'bad'); addStatus(t, 'hypno', 2); } } } },
+  },
+  // Moon Base
+  spacecadet: {
+    name: 'Space Cadet', stats: [40, 10, 4, 12], armor: [45, 'pod'], moves: ['z_podblaster'], coins: 11,
+    desc: 'From Garden Warfare 2 and Battle for Neighborville. Flies in a metal space pod, and its blaster never misses.',
+    counter: 'The pod is metal: Magnet-shroom rips it off, and piercing attacks go straight through.',
+  },
+  cosmicimp: {
+    name: 'Cosmic Imp', stats: [28, 11, 2, 19], moves: ['z_scratch', 'z_cosmicray'], coins: 6,
+    desc: 'A tiny imp from outer space, from Plants vs. Zombies Heroes. Its cosmic ray makes a plant Brittle (its next hit taken does 50% more).',
+    counter: 'Very fragile. A Ward blocks Brittle, and a shield soaks up the cracked hit.',
+  },
+  gasgiant: {
+    name: 'Gas Giant', stats: [95, 12, 6, 6], moves: ['z_gascloud', 'z_swell', 'z_bite'], coins: 150,
+    desc: 'A huge, gassy zombie from Plants vs. Zombies Heroes. Its gas makes your team Weak and can burn, and it swells up behind a shield.',
+    counter: 'Ward and cleansing moves clear the gas, and it\'s very slow. Shield poppers (Punk-style, or Spikeweed at Lv15) undo its swell.',
+  },
 };
 
 // How to beat the original zombies (shown in the Almanac and when you
@@ -1559,4 +1727,8 @@ const GIMMICKS = {
   frostwind: { name: 'Freezing Wind', desc: 'Every round, a random plant gets chilled.' },
   neon:      { name: 'Neon Jams', desc: 'The music changes every 2 rounds: Punk Jam Powers up zombies, Pop Jam Weakens them.' },
   timewarp:  { name: 'Time Warp', desc: 'Time is broken: the turn order is random every round. Speed doesn\'t matter.' },
+  // From the mini realms (Part 2):
+  cut:       { name: 'Cut!', desc: 'Every 3 rounds the director yells CUT: every status on everyone (good and bad) is cleared. Shields stay.' },
+  arena:     { name: 'Arena', desc: 'The crowd loves a knockout: whoever defeats an enemy gets Power for 2 turns.' },
+  lowgrav:   { name: 'Low Gravity', desc: 'Plant attacks float: every plant attack is lobbed (over Screen Doors, and down to diving zombies).' },
 };

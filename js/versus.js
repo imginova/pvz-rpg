@@ -35,7 +35,7 @@ const VS_DIFFS = { easy: 'Easy', normal: 'Normal', hard: 'Hard' };
 
 // Gimmicks that make sense when plants fight plants. The left-out ones
 // (Gravestones, Rush, Sandstorm, Neon Jams) only do things to zombies.
-const VS_GIMMICKS = ['day', 'night', 'pool', 'roof', 'fog', 'drought', 'laststand', 'conveyor', 'storm', 'heatwave', 'frostwind', 'timewarp'];
+const VS_GIMMICKS = ['day', 'night', 'pool', 'roof', 'fog', 'drought', 'laststand', 'conveyor', 'storm', 'heatwave', 'frostwind', 'timewarp', 'cut', 'arena', 'lowgrav'];
 
 const VS_FOOD_MAX = 3;   // the Plant Food picker goes Off, 1, 2, 3
 

@@ -34,6 +34,7 @@ The game is split into files by job, so each file is small enough to read:
 | `js/config.js` | The tuning numbers. **Change balance here first** |
 | `js/data.js` | Every class, move, plant, zombie and battle gimmick |
 | `js/world.js` | The story: chapter maps, battles, dialogue, shop, achievements |
+| `js/realms.js` | The mini realms Crazy Dave takes you to after the story: their maps and battles |
 | `js/art.js` | The ASCII drawings |
 | `js/sound.js` | Sound effects, made by the browser (no sound files) |
 | `js/save.js` | Your progress: plants, levels, moves, coins, achievements |

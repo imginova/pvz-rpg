@@ -133,7 +133,7 @@ function tileLook(x, y) {
   const ch = CHAPTERS[i];
   const c = MAPS[i].grid[y][x];
   const enc = ch.enc[c];
-  const floor = ch.gimmick === 'roof' ? (ch.id === 'lair' ? '_' : '^') : '.';
+  const floor = ch.floor || (ch.gimmick === 'roof' ? (ch.id === 'lair' ? '_' : '^') : '.');
   if (enc) {
     // A beaten battle is just floor, until the chapter's boss is beaten:
     // then it comes back, drawn dim, and you can refight it (see moveWorld).
@@ -170,12 +170,14 @@ function renderWorld() {
   $('map').innerHTML = html;
   $('map').className = 'map map-' + ch.id;
 
-  $('chapterTabs').innerHTML = CHAPTERS.slice(0, Math.min(progress.reached, CHAPTERS.length))
-    .map((c, j) => `<button type="button" class="small ${j === i ? 'on' : ''}" data-chapter="${j}">${j + 1}. ${esc(c.name)}${bossBeaten(j) ? ' &#10003;' : ''}</button>`).join('');
+  // The story chapters you've reached, plus the realm you're in (if any).
+  const tab = (c, j) => `<button type="button" class="small ${j === i ? 'on' : ''}" data-chapter="${j}">${c.realm ? 'Realm' : j + 1}. ${esc(c.name)}${bossBeaten(j) ? ' &#10003;' : ''}</button>`;
+  $('chapterTabs').innerHTML = CHAPTERS.slice(0, Math.min(progress.reached, STORY_COUNT)).map(tab).join('') + (ch.realm ? tab(ch, i) : '');
 
   const left = Object.keys(ch.enc).filter(c => !['boss', 'secret'].includes(ch.enc[c].kind) && !progress.cleared[encKey(i, c)]).length;
   $('worldHint').textContent = bossBeaten(i)
-    ? (i === CHAPTERS.length - 1 ? 'You beat Tomorrow-tron! Keep battling to level up and collect every plant.' : 'Boss beaten! Walk to the gate (G) to go on.')
+    ? (ch.realm ? 'Realm boss beaten! Talk to Crazy Dave (D) to visit another realm or go home.'
+      : i === STORY_COUNT - 1 ? 'You beat Tomorrow-tron! Crazy Dave (D) can take you to the mini realms now.' : 'Boss beaten! Walk to the gate (G) to go on.')
       + ' Dim letters are battles you can fight again: step on one.'
     : left ? `${left} battle${left > 1 ? 's' : ''} left before the boss. Battle: ${GIMMICKS[ch.gimmick].name} (${GIMMICKS[ch.gimmick].desc})`
       : 'The boss (B) is ready for you.';
@@ -234,7 +236,7 @@ function openChest(x, y) {
 function useGate() {
   const i = progress.chapter;
   if (!bossBeaten(i)) return dialog([['Gate', 'The gate is locked. Beat this chapter\'s boss to open it.']]);
-  if (i + 1 >= CHAPTERS.length) return;
+  if (i + 1 >= STORY_COUNT) return;   // the last story chapter (and the realms) have no next chapter
   progress.chapter = i + 1;
   progress.reached = Math.max(progress.reached, i + 2);
   saveProgress();
@@ -273,9 +275,27 @@ function daveMenu() {
   dialog([['Dave', 'Hey neighbor! Need something? I\'ve got stuff. And things. Mostly stuff.']], null, [
     ['Shop', () => openSide('shop')],
     ['Practice battle', practiceBattle],
+    ...(bossBeaten(STORY_COUNT - 1) ? [['Visit a realm', realmMenu]] : []),
     ['Any tips?', () => dialog([['Dave', pick(DAVE_TIPS)]])],
     ['Bye', null],
   ]);
+}
+
+// After the story, Dave takes you to the mini realms (realms.js), and back.
+function realmMenu() {
+  const choices = REALMS.map((r, n) => {
+    const j = STORY_COUNT + n;
+    return [r.name + (bossBeaten(j) ? ' (done)' : ''), () => goRealm(j)];
+  });
+  if (chapterNow().realm) choices.push(['Home (the Time Rift)', () => goRealm(STORY_COUNT - 1)]);
+  choices.push(['Never mind', null]);
+  dialog([['Dave', 'Hop in my time-traveling RV, neighbor! Where to? Each realm has a boss guarding a brand new plant.']], null, choices);
+}
+
+function goRealm(j) {
+  progress.chapter = j;
+  saveProgress();
+  renderWorld();
 }
 
 // A practice fight against random zombies from this chapter. It gives
