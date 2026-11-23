@@ -38,8 +38,35 @@ function later(fn, ms) {
 }
 
 // ---- Making units ------------------------------------------------------------------
+/* Second abilities: at level SECOND_ABILITY_LEVEL a plant also gets its
+   `passive2` (versus plants always have it). The two are merged into one
+   passive, so the rest of the code only ever looks at u.data.passive:
+   hooks run one after the other, damage multipliers multiply, numbers
+   add up (Repeater's 40% echo + 30% = 70%), lists join, and yes/no flags
+   are yes if either says yes. Its name and text are kept as name2/desc2. */
+const withSecondCache = {};
+function withSecond(id) {
+  if (withSecondCache[id]) return withSecondCache[id];
+  const data = PLANTS[id], p1 = data.passive, p2 = data.passive2;
+  const p = { ...p1, name2: p2.name, desc2: p2.desc };
+  for (const k in p2) {
+    if (k === 'name' || k === 'desc') continue;
+    const a = p1[k], b = p2[k];
+    if (a === undefined) p[k] = b;
+    else if (typeof b === 'function') {
+      if (k === 'dealMult' || k === 'takeMult') p[k] = (...x) => a(...x) * b(...x);
+      else p[k] = (...x) => { const r = a(...x); const r2 = b(...x); return r ?? r2; };
+    } else if (typeof b === 'number') p[k] = a + b;
+    else if (Array.isArray(b)) p[k] = [...a, ...b];
+    else p[k] = a || b;
+  }
+  // Object.create keeps everything else (name, stats...) from the plant itself.
+  return (withSecondCache[id] = Object.assign(Object.create(data), { passive: p }));
+}
+
 function makeUnit(kind, id, side, lvl, opts = {}) {
-  const data = kind === 'plant' ? PLANTS[id] : ZOMBIES[id];
+  const second = kind === 'plant' && PLANTS[id].passive2 && (opts.versus || lvl >= SECOND_ABILITY_LEVEL);
+  const data = kind === 'plant' ? (second ? withSecond(id) : PLANTS[id]) : ZOMBIES[id];
   const [hp, atk, dfn, spd] = data.stats;
   // In versus both teams are plants at full strength (opts.versus).
   const s = opts.versus ? PLANT_STAT_SCALE : statScale(side);
@@ -170,7 +197,7 @@ function hit(src, t, power, mv = {}) {
   // Umbrella Leaf catches lobbed enemy attacks meant for its team, at half damage.
   if (lob && t.side !== src.side && (t.side === 'ally' || B.versus) && !mv.counter) {
     const brolly = sideList(t.side).find(p => p.hp > 0 && p.data.passive?.umbrella);
-    if (brolly) { if (brolly !== t) log(`${brolly.name} catches it!`, 'good'); t = brolly; mult *= 0.5; }
+    if (brolly) { if (brolly !== t) log(`${brolly.name} catches it!`, 'good'); t = brolly; mult *= brolly.data.passive.wideBrim ? 0.25 : 0.5; }
   }
   const TP = t.data.passive || {};
 
@@ -205,6 +232,10 @@ function hit(src, t, power, mv = {}) {
   if (mv.execute && t.hp < t.maxHp * 0.4) dmg *= mv.execute;
   // Combo moves (Frostbite) hit much harder on enemies that are already chilled or frozen.
   if (mv.vsChilled && (t.st.chill || t.st.freeze)) dmg *= mv.vsChilled;
+  // ...and Clove Bomb on enemies that are Weak.
+  if (mv.vsWeak && t.st.weak) dmg *= mv.vsWeak;
+  // A Brittle unit takes extra damage from the next hit, which cracks it open.
+  if (t.st.brittle && !mv.counter) { dmg *= BRITTLE_MULT; delete t.st.brittle; log(`${t.name} cracks!`, t.side === 'ally' ? 'bad' : 'good'); }
   dmg *= mult;
 
   // Battle gimmicks.
@@ -315,7 +346,7 @@ function healUnit(u, amount, src) {
   if (u.st.burn) { pop(u, 'NO HEAL', 'miss'); return 0; }
   const boost = src?.data.passive?.healBoost || 1;
   const gain = Math.min(u.maxHp - u.hp, Math.round(amount * boost));
-  if (gain > 0) { u.hp += gain; pop(u, '+' + gain, 'heal'); }
+  if (gain > 0) { u.hp += gain; pop(u, '+' + gain, 'heal'); src?.data.passive?.onHeal?.(src, u, gain); }
   return gain;
 }
 
@@ -351,7 +382,7 @@ function addStatus(t, name, turns, o = {}) {
   const stopsTurn = name === 'stun' || name === 'freeze' || name === 'sleep';
   // A Ward (Garlic) keeps new bad statuses off.
   if (STATUS[name].bad && t.st.ward) { log(`${t.name}'s ward blocks it!`, t.side === 'ally' ? 'good' : ''); return false; }
-  if (stopsTurn && TP.noStun) { log(`${t.name} is too tall to stun!`); return false; }
+  if (stopsTurn && TP.noStun) { log(TP.blocksVault ? `${t.name} is too tall to stun!` : `${t.name} can't be stopped!`); return false; }
   if (name === 'hypno' && t.boss) { log(`${t.name} resists the hypnosis!`); return false; }
   // E.M.Peach's stuns always work on machines, even boss machines.
   const emp = o.src?.data.passive?.emp && t.data.vehicle;
@@ -362,6 +393,7 @@ function addStatus(t, name, turns, o = {}) {
   if (icy && o.src && mine(o.src) && t.side === 'foe') progress.stats.chilled++;
   if (t === B.actor) turns += 1;
   t.st[name] = Math.max(t.st[name] || 0, turns);
+  if (name === 'freeze' && o.src?.data.passive?.brittleFreeze) addStatus(t, 'brittle', 2, { src: o.src });
   if (name === 'stun') t.stunLabel = o.label || 'Stunned';
   pop(t, STATUS[name].tag, STATUS[name].bad ? 'debuff' : 'buff');
   if (name === 'hypno') log(`${t.name} is hypnotized!`, 'good');
@@ -585,11 +617,12 @@ function useMove(u, id, chosen) {
 
   // Laser Bean's Beam: an attack on one enemy hits every enemy at half power.
   let mult = boost;
+  let halfBeam = false;
   // Its Charge Up move makes the next beam full power.
   const beam = !!(P.beam && mv.power && mv.target === 'foe');
   if (beam) {
     targets = foesOf(u);
-    if (u.flags.fullBeam) { u.flags.fullBeam = false; log('Full power beam!', 'good'); } else mult *= P.beam;
+    if (u.flags.fullBeam) { u.flags.fullBeam = false; log('Full power beam!', 'good'); } else { mult *= P.beam; halfBeam = true; }
   }
 
   const aoe = beam || mv.target === 'foes' || mv.target === 'foe2';
@@ -615,12 +648,14 @@ function useMove(u, id, chosen) {
   }
   for (const t of targets) {
     if (mv.power) {
+      // Focusing Lens: the enemy the beam is aimed at takes full power.
+      const tMult = halfBeam && P.lens && t === chosen ? mult / P.beam : mult;
       for (let h = 0; h < (mv.hits || 1) && t.hp > 0; h++) {
-        strike(t, mv.power * mult);
+        strike(t, mv.power * tMult);
         // Bloomerang's Comeback: each throw bounces on to 2 other enemies
         // (or to every other enemy after Wind Up).
         if (P.ricochet && single) {
-          const bounces = u.flags.windup ? 99 : 2;
+          const bounces = u.flags.windup ? 99 : 2 + (P.extraBounce || 0);
           for (const o of shuffle(foesOf(u).filter(x => x !== t)).slice(0, bounces)) hit(u, o, mv.power * mult * P.ricochet, { ...mv, aoe: true });
         }
       }

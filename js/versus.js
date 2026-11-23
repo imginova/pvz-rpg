@@ -224,7 +224,7 @@ function vsDetail(id) {
         <p class="dim">${esc(p.flavor)}</p>
       </div>
     </div>
-    <p class="passive"><b>${esc(p.passive.name)}:</b> ${esc(p.passive.desc)}</p>
+    <p class="passive">${abilityHtml(p, MAX_LEVEL)}</p>
     <div class="row"><button type="button" id="btnVsToggle">${inTeam ? `Remove from ${esc(vsLabel(side))}` : `Add to ${esc(vsLabel(side))}`}</button></div>
     <h3>Moves for ${esc(vsLabel(side))} <span class="dim">(${eq.length}/${MAX_MOVES} equipped, click to change)</span></h3>
     <div class="mlist">${moves}</div>`;
@@ -329,7 +329,7 @@ const AI_FOOD_VALUE = { normal: 30, hard: 45 };
 const AI_STATUS = {
   stun: t => t.atk * 0.8, freeze: t => t.atk * 0.8, sleep: t => t.atk * 0.6, sheep: t => t.atk * 0.8,
   hypno: t => t.atk * 1.2, weak: t => t.atk * 0.25, blind: t => t.atk * 0.5, burn: t => Math.max(2, t.maxHp * BURN_PART),
-  chill: () => 3, marked: () => 5, silence: () => 5, bounty: () => 6,
+  chill: () => 3, marked: () => 5, brittle: () => 6, silence: () => 5, bounty: () => 6,
   power: t => t.atk * 0.35, guard: () => 6, regen: t => t.maxHp * REGEN_PART * (t.hp < t.maxHp ? 1 : 0.3),
   ward: () => 3, evade: () => 7, counter: () => 6, taunt: () => 5, fiery: () => 5, thorns: () => 5,
   invuln: () => 12, cover: () => 6,
@@ -362,6 +362,8 @@ function aiDamage(u, t, mv, power) {
   if (t.st.sheep) d *= 1.3;
   if (mv.execute && t.hp < t.maxHp * 0.4) d *= mv.execute;
   if (mv.vsChilled && (t.st.chill || t.st.freeze)) d *= mv.vsChilled;
+  if (mv.vsWeak && t.st.weak) d *= mv.vsWeak;
+  if (t.st.brittle) d *= BRITTLE_MULT;
   if (B.g.has('roof')) { if (mv.straight && !isLob(u, mv)) d *= 0.75; if (isLob(u, mv)) d *= 1.25; }
   if (u.data.shroom) d *= B.g.has('night') ? 1.3 : B.g.has('day') ? 0.85 : 1;
   // Attacks aimed at one plant can be dodged.

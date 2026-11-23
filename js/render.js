@@ -99,6 +99,17 @@ function moveButton(u, id, n) {
   </button>`;
 }
 
+// A plant's abilities as HTML: its first one, then its second one, which
+// is dimmed with "(at Lv15)" until the plant reaches that level.
+function abilityHtml(p, lvl) {
+  let html = `<b>${esc(p.passive.name)}:</b> ${esc(p.passive.desc)}`;
+  if (p.passive2) {
+    const has = lvl >= SECOND_ABILITY_LEVEL;
+    html += `<br><span class="${has ? '' : 'dim'}"><b>${esc(p.passive2.name)}:</b> ${esc(p.passive2.desc)}${has ? '' : ` <i>(at Lv${SECOND_ABILITY_LEVEL})</i>`}</span>`;
+  }
+  return html;
+}
+
 // The info box shown when you click a unit outside of choosing a target.
 function inspectHtml() {
   const u = B.inspect && unitById(B.inspect);
@@ -106,7 +117,7 @@ function inspectHtml() {
   const fog = fogHides(u);
   const p = u.data.passive;
   const about = u.kind === 'plant'
-    ? `${CLASSES[u.data.cls].name}. <b>${esc(p.name)}:</b> ${esc(p.desc)}`
+    ? `${CLASSES[u.data.cls].name}. <b>${esc(p.name)}:</b> ${esc(p.desc)}` + (p.name2 ? ` <b>${esc(p.name2)}:</b> ${esc(p.desc2)}` : '')
     : esc(u.data.desc) + ` <span class="counter"><b>Counter:</b> ${esc(u.data.counter || '')}</span>`
       + (u.boss ? ' <b>Boss:</b> can\'t be devoured or hypnotized, and shrugs off half of all stuns.' : '');
   return `<div class="inspect"><b>${esc(u.name)}</b> Lv${u.lvl} · ATK ${Math.round(u.atk)} · DEF ${u.dfn} · SPD ${Math.round(effSpeed(u))}${fog ? '' : ` · HP ${u.hp}/${u.maxHp}`}<br>${about}</div>`;
@@ -149,7 +160,7 @@ function render() {
     const p = u.data.passive;
     const head = B.choice
       ? `<div class="phead">Choose a target for <b>${esc(MOVES[B.choice].name)}</b> <button type="button" class="small" id="btnCancel">Cancel (Esc)</button></div>`
-      : `<div class="phead">${sideTag(u.side)}<b class="${CLASSES[u.data.cls].color}">${esc(u.name)}</b>'s turn <span class="dim">· ${esc(p.name)}: ${esc(p.desc)}</span></div>`;
+      : `<div class="phead">${sideTag(u.side)}<b class="${CLASSES[u.data.cls].color}">${esc(u.name)}</b>'s turn <span class="dim">· ${esc(p.name)}: ${esc(p.desc)}${p.name2 ? ` · ${esc(p.name2)}: ${esc(p.desc2)}` : ''}</span></div>`;
     const fed = u.st.fed ? '<span class="tag good">FED: next move free, x2</span>' : '';
     const food = foodLeft(u.side);
     // Versus with Plant Food switched off has no Plant Food button at all.

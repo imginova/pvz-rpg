@@ -7,6 +7,8 @@
    ability) is a small object of functions called "hooks": battle.js
    calls a hook at the right moment, for example roundStart() at the
    start of every round, or onHurt() whenever the plant takes damage.
+   From level 15 a plant also has a second ability, `passive2`, written
+   the same way; battle.js merges the two (see withSecond there).
 
    Helpers the hooks use (hit, healUnit, addStatus, gainSun, log,
    alliesOf, foesOf...) are defined in battle.js. That works because a
@@ -46,6 +48,7 @@ const STATUS = {
   sheep:  { tag: 'SHEEP',  bad: true,  desc: 'Turned into a sheep: can\'t act and takes 30% more damage.' },
   invuln: { tag: 'RAINBOW', bad: false, desc: 'Attacks aimed at it alone do nothing. Hit-everyone attacks still work.' },
   marked: { tag: 'MARKED', bad: true,  desc: 'Takes 30% more damage.' },
+  brittle:{ tag: 'BRITTLE', bad: true, desc: 'The next hit it takes does 50% more damage, then it wears off.' },
   bounty: { tag: 'BOUNTY', bad: true,  desc: 'Defeat it while it has this for +50 sun.' },
   blind:  { tag: 'BLIND',  bad: true,  desc: 'Its next attack aimed at one target misses.' },
   sleep:  { tag: 'ASLEEP', bad: true,  desc: 'Skips its turns until it\'s hit or wakes up.' },
@@ -300,6 +303,48 @@ const MOVES = {
   berg_glacier:  { name: 'Glacier', cost: 100, cd: 5, target: 'self', special: glacier, desc: 'Every chilled enemy freezes solid; every other enemy is chilled for 2 turns.' },
   emp_blackout:  { name: 'Total Blackout', cost: 100, cd: 5, target: 'foes', status: ['silence', 2, 1], special: u => { for (const f of foesOf(u)) if (f.data.vehicle) addStatus(f, 'stun', 2, { src: u, label: 'Shorted' }); }, desc: 'Every enemy is silenced for 2 turns; machines are stunned too.' },
   mag_storm:     { name: 'Magnetic Storm', cost: 100, cd: 5, target: 'self', special: u => { for (const f of foesOf(u)) ripMetal(u, f, f.boss ? Math.ceil(f.armor / 2) : f.armor); }, desc: 'Rips the metal armor off every enemy (robot bosses lose half).' },
+
+  // ======== Level 13 moves: a second big move for every plant (2026-11-22, when the max level went to 15) ========
+  pea_tracer:     { name: 'Tracer Pea', cost: 50, cd: 3, target: 'foe', power: 10, straight: true, status: ['marked', 2, 1], desc: 'A glowing pea: the enemy is Marked (takes 30% more damage) for 2 turns.' },
+  rep_cross:      { name: 'Crossfire', cost: 50, cd: 2, target: 'foe2', power: 11, straight: true, desc: 'Two streams of peas: hits an enemy and one more.' },
+  snow_hail:      { name: 'Hailstorm', cost: 75, cd: 3, target: 'randfoe', power: 6, hits: 4, straight: true, status: ['chill', 1, 1], desc: 'Four icy peas at random enemies; each one chills.' },
+  cab_stuffed:    { name: 'Stuffed Cabbage', cost: 75, cd: 3, target: 'foe', power: 18, special: u => { const h = mostHurt(u); if (h) healUnit(h, h.maxHp * 0.15, u); }, desc: 'A big lob, and the most hurt ally eats the leftovers: heal 15%.' },
+  cac_bloom:      { name: 'Desert Bloom', cost: 50, cd: 4, target: 'self', heal: 0.25, self: ['thorns', 3], desc: 'Blooms a flower: heal itself 25% and get Thorns for 3 turns.' },
+  puff_sleep:     { name: 'Sleepy Spores', cost: 50, cd: 3, target: 'foes', power: 3, status: ['sleep', 2, 0.3], desc: 'Drowsy spores at every enemy; 30% chance each to fall asleep for 2 turns.' },
+  wn_explode:     { name: 'Explode-o-nut', cost: 100, cd: 4, target: 'foes', power: 12, useDef: true, fire: true, desc: 'A red-hot nut that blows up on every enemy. DEFENSE-based.' },
+  tn_timber:      { name: 'Timber!', cost: 75, cd: 4, target: 'foes', power: 10, useDef: true, status: ['stun', 1, 0.3], label: 'Flattened', desc: 'Falls across the whole crowd (DEFENSE-based); 30% chance each to stun.' },
+  pump_pie:       { name: 'Pumpkin Pie', cost: 50, cd: 3, target: 'ally', heal: 0.15, status: ['regen', 2, 1], desc: 'Bakes an ally a pie: heal 15% and Regenerate for 2 turns.' },
+  gar_bomb:       { name: 'Clove Bomb', cost: 50, cd: 3, target: 'foes', power: 6, vsWeak: 2, desc: 'Garlic cloves at every enemy: DOUBLE damage to Weak enemies.' },
+  spk_wall:       { name: 'Thorn Wall', cost: 50, cd: 3, target: 'ally', status: ['thorns', 2, 1], special: (u, ts) => { if (ts[0]) addStatus(ts[0], 'guard', 1); }, desc: 'Grows spikes around an ally: Thorns for 2 turns, and it Guards for a turn.' },
+  sun_twin:       { name: 'Twin Sunflower', cost: 50, cd: ONCE_PER_BATTLE, target: 'self', special: u => { u.flags.twin = true; log(`${u.name} grows a second head!`, 'good'); }, desc: 'Grows a second head: Sunny Disposition makes 20 sun a round for the rest of the battle. Once per battle.' },
+  ss_beam:        { name: 'Moonbeam', cost: 25, cd: 2, target: 'ally', heal: 0.25, special: (u, ts, boost) => { if (B.g.has('night') && ts[0]) healUnit(ts[0], ts[0].maxHp * 0.15 * boost, u); }, desc: 'Heal an ally 25% (40% at Night).' },
+  mari_rush:      { name: 'Gold Rush', cost: 50, cd: 3, target: 'foes', power: 6, special: (u, ts) => gainSun(5 * ts.length, u), desc: 'Coins rain on every enemy: +5 sun for each one hit.' },
+  aloe_wrap:      { name: 'Aloe Wrap', cost: 50, cd: 3, target: 'ally', heal: 0.2, status: ['ward', 2, 1], desc: 'Wraps an ally in gel: heal 20% and Ward it (no new bad statuses) for 2 turns.' },
+  cherry_sparkler: { name: 'Sparkler', cost: 25, cd: 2, target: 'foes', power: 4, fire: true, status: ['burn', 2, 0.3], desc: 'Fizzy sparks at every enemy; 30% chance each to burn.' },
+  jal_ghost:      { name: 'Ghost Pepper', cost: 50, cd: 3, target: 'foe', power: 10, fire: true, status: ['burn', 3, 1], special: (u, ts) => { if (ts[0]?.hp > 0) addStatus(ts[0], 'weak', 2, { src: u }); }, desc: 'The hottest pepper there is: burns for 3 turns and makes the enemy Weak for 2.' },
+  sq_mighty:      { name: 'Mighty Leap', cost: 25, cd: 2, target: 'foe', power: 13, vault: true, sure: true, desc: 'Leaps over everyone onto any enemy: ignores Taunt and never misses.' },
+  mel_mortar:     { name: 'Melon Mortar', cost: 75, cd: 3, target: 'randfoe', power: 9, hits: 3, desc: 'Three melons at random enemies.' },
+  fume_choke:     { name: 'Choking Fumes', cost: 50, cd: 3, target: 'foe2', power: 10, status: ['silence', 1, 1], desc: 'Hits an enemy and one more; both are Silenced for a turn.' },
+  bonk_kick:      { name: 'Spinning Kick', cost: 50, cd: 3, target: 'foes', power: 8, desc: 'A spinning kick that hits every enemy.' },
+  chomp_seconds:  { name: 'Second Helping', cost: 25, cd: 4, target: 'self', self: ['power', 1], special: u => { delete u.cd.chomp_devour; }, desc: 'Still hungry: Devour is ready again, and Power for a turn.' },
+  hyp_mirror:     { name: 'Mirror Swirl', cost: 50, cd: 3, target: 'self', special: u => { u.flags.mirror = true; }, desc: 'Swirly mirror eyes: the next enemy that hits it is hypnotized for 2 turns (not bosses).' },
+  ice_grip:       { name: 'Winter\'s Grip', cost: 75, cd: 4, target: 'foe', status: ['freeze', 2, 1], desc: 'Freezes an enemy solid for 2 turns (3 with Permafrost).' },
+  torch_wild:     { name: 'Wildfire', cost: 75, cd: 3, target: 'foes', power: 8, fire: true, status: ['burn', 2, 0.4], desc: 'Fire spreads to every enemy; 40% chance each to burn.' },
+  kern_pop:       { name: 'Pop Pop Pop', cost: 50, cd: 2, target: 'randfoe', power: 5, hits: 3, desc: 'Three popping kernels at random enemies.' },
+  pm_mash:        { name: 'Mashed Potato', cost: 75, cd: 4, target: 'foes', power: 10, pierce: true, status: ['stun', 1, 0.3], label: 'Mashed', desc: 'Blows up under the whole crowd (pierces armor); 30% chance each to stun.' },
+  bloom_return:   { name: 'Return to Sender', cost: 25, cd: 3, target: 'self', self: ['counter', 2], desc: 'Ready to catch: the next enemy that attacks it alone gets hit back.' },
+  laser_scorch:   { name: 'Scorching Beam', cost: 50, cd: 2, target: 'foe', power: 14, fire: true, status: ['burn', 2, 0.3], desc: 'A burning beam (Beam spreads it); 30% chance to burn each enemy it hits.' },
+  cit_hunter:     { name: 'Bounty Hunter', cost: 50, cd: 3, target: 'foe', power: 16, special: (u, ts) => { if (ts[0] && ts[0].hp <= 0) { gainSun(25, u); log('Bounty claimed! +25 sun.', 'good'); } }, desc: 'A hunter\'s shot: +25 sun if it defeats the enemy.' },
+  inf_decoy:      { name: 'Holo Decoy', cost: 50, cd: 3, target: 'ally', status: ['evade', 2, 1], desc: 'Projects a decoy next to an ally: it Evades for 2 turns.' },
+  gold_ray:       { name: 'Golden Ray', cost: 50, cd: 3, target: 'foes', power: 6, status: ['blind', 2, 0.3], desc: 'A ray of gold at every enemy; 30% chance each to blind.' },
+  bean_stalk:     { name: 'Beanstalk', cost: 50, cd: 4, target: 'allies', heal: 0.1, special: (u, ts) => gainSun(5 * ts.length, u), desc: 'Grows a beanstalk: heal every ally 10% and +5 sun for each one.' },
+  snap_tail:      { name: 'Tail Swipe', cost: 50, cd: 3, target: 'foe2', power: 12, status: ['stun', 1, 0.3], label: 'Swiped', desc: 'Swipes an enemy and one more; 30% chance each to stun.' },
+  coco_grape:     { name: 'Grapeshot', cost: 50, cd: 3, target: 'foes', power: 6, hits: 2, desc: 'A spray of shot: hits every enemy twice.' },
+  ice_avalanche:  { name: 'Avalanche', cost: 75, cd: 4, target: 'foes', power: 10, vsChilled: 2, desc: 'Snow buries every enemy: DOUBLE damage to chilled or frozen ones.' },
+  emp_brown:      { name: 'Brownout', cost: 50, cd: 3, target: 'foes', power: 4, status: ['weak', 2, 1], special: (u, ts) => { for (const t of ts) if (t.hp > 0 && t.data.vehicle) addStatus(t, 'silence', 2, { src: u }); }, desc: 'Dims everything: every enemy is Weak for 2 turns, and machines are Silenced too.' },
+  lr_rod:         { name: 'Lightning Rod', cost: 25, cd: 3, target: 'self', self: ['taunt', 2], special: u => { u.flags.rod = true; }, desc: 'Draws the storm: Taunt for 2 turns, and every hit it takes adds a charge.' },
+  mag_recycle:    { name: 'Recycle', cost: 25, cd: 3, target: 'self', special: (u, ts, boost) => healUnit(u, u.maxHp * Math.min(0.4, 0.1 + 0.05 * (u.flags.metal || 0)) * boost, u), desc: 'Turns scrap into food: heal 10%, +5% for each piece of metal pulled this battle (up to 40%).' },
+  umb_rain:       { name: 'Rain Dance', cost: 75, cd: 4, target: 'allies', status: ['regen', 2, 1], special: (u, ts) => { for (const t of ts) delete t.st.burn; }, desc: 'Cool rain: every ally stops burning and Regenerates for 2 turns.' },
 
   // ======== Signature moves (each belongs to one plant) ========
   pea_shot:    { name: 'Pea Shot', cost: 0, target: 'foe', power: 10, straight: true, desc: 'The classic pea.' },
@@ -586,6 +631,12 @@ function goldenAge(u) {
   log('A Golden Age! Every ally gets an extra turn!', 'good');
 }
 
+// The ally on u's side with the smallest share of its HP left.
+function mostHurt(u) { return alliesOf(u).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; }
+
+// How many charges Lightning Reed's Overcharge needs (2 with Supercell).
+const chargeNeed = u => 3 - (u.data.passive.quickCharge || 0);
+
 // Cherry Bomb's Kamikaze Kaboom: it wilts after the blast, and its own
 // Last Blast ability goes off as it wilts. Together they were too strong
 // in versus (its team won 9 battles in 10), so on 2026-11-22 the blast
@@ -735,7 +786,8 @@ const PLANTS = {
         u.flags.lastTarget = t.uid;
       },
     },
-    learn: [['pea_shot', 1], ['pea_aim', 1], ['pea_volley', 2], ['pea_barrage', 3], ['pea_head', 5], ['pea_duck', 7], ['pea_gatling', 10]],
+    passive2: { name: 'Finisher', desc: '+30% damage to enemies below half HP.', dealMult(u, t) { return t.hp < t.maxHp / 2 ? 1.3 : 1; } },
+    learn: [['pea_shot', 1], ['pea_aim', 1], ['pea_volley', 2], ['pea_barrage', 3], ['pea_head', 5], ['pea_duck', 7], ['pea_gatling', 10], ['pea_tracer', 13]],
     unlock: { how: 'start' }, flavor: 'Doesn\'t do much, but does it every turn.',
   },
   repeater: {
@@ -744,7 +796,8 @@ const PLANTS = {
       name: 'Double Tap', desc: 'Single-hit attacks on one enemy fire a second pea at 40% power. Slower than Peashooter.',
       echo: 0.4,
     },
-    learn: [['rep_double', 1], ['rep_grit', 1], ['pea_aim', 2], ['rep_storm', 4], ['pea_volley', 6], ['rep_rapid', 8], ['rep_rampage', 10]],
+    passive2: { name: 'Triple Tap', desc: 'Double Tap\'s second pea hits at 70% power instead of 40%.', echo: 0.3 },
+    learn: [['rep_double', 1], ['rep_grit', 1], ['pea_aim', 2], ['rep_storm', 4], ['pea_volley', 6], ['rep_rapid', 8], ['rep_rampage', 10], ['rep_cross', 13]],
     unlock: { how: 'shop', price: 400 }, flavor: 'Two peas are better than one, if you can wait for them.',
   },
   snowpea: {
@@ -753,13 +806,15 @@ const PLANTS = {
       name: 'Cold Snap', desc: 'Deals 30% more damage to chilled or frozen enemies.',
       dealMult(u, t) { return (t.st.chill || t.st.freeze) ? 1.3 : 1; },
     },
-    learn: [['snow_pea', 1], ['frost_snare', 1], ['pea_aim', 3], ['snow_volley', 4], ['snow_icicle', 6], ['pea_volley', 8], ['snow_zero', 10]],
+    passive2: { name: 'Frosty Coat', desc: 'Enemies that hit it are chilled for a turn.', onHurt(u, src) { if (src && src.hp > 0 && src !== u) addStatus(src, 'chill', 1, { src: u }); } },
+    learn: [['snow_pea', 1], ['frost_snare', 1], ['pea_aim', 3], ['snow_volley', 4], ['snow_icicle', 6], ['pea_volley', 8], ['snow_zero', 10], ['snow_hail', 13]],
     unlock: { how: 'story' }, flavor: 'Cool, calm and very, very cold.',
   },
   cabbagepult: {
     name: 'Cabbage-pult', cls: 'shooter', stats: [60, 12, 4, 13],
     passive: { name: 'Lobber', desc: 'All its attacks are lobbed: they fly over Screen Doors and reach diving or dug-in zombies.', lobAll: true },
-    learn: [['cab_lob', 1], ['cab_crisp', 1], ['cab_rain', 3], ['pult_arc', 5], ['cab_slaw', 6], ['cab_salad', 8], ['cab_head', 10]],
+    passive2: { name: 'Fresh Greens', desc: 'Each round, the most hurt ally heals 5%.', roundStart(u) { const h = mostHurt(u); if (h) healUnit(h, h.maxHp * 0.05, u); } },
+    learn: [['cab_lob', 1], ['cab_crisp', 1], ['cab_rain', 3], ['pult_arc', 5], ['cab_slaw', 6], ['cab_salad', 8], ['cab_head', 10], ['cab_stuffed', 13]],
     unlock: { how: 'story' }, flavor: 'Throws cabbages. Nobody asked why.',
   },
   cactus: {
@@ -769,13 +824,15 @@ const PLANTS = {
       pierceAll: true,
       dealMult(u, t) { return t.armor > 0 ? 1 : 0.85; },
     },
-    learn: [['cac_spike', 1], ['cac_bristle', 1], ['cac_rain', 3], ['cac_needle', 5], ['cac_hug', 6], ['cac_heat', 8], ['cac_sniper', 10]],
+    passive2: { name: 'Armor Piercer', desc: '+20% damage to enemies wearing armor.', dealMult(u, t) { return t.armor > 0 ? 1.2 : 1; } },
+    learn: [['cac_spike', 1], ['cac_bristle', 1], ['cac_rain', 3], ['cac_needle', 5], ['cac_hug', 6], ['cac_heat', 8], ['cac_sniper', 10], ['cac_bloom', 13]],
     unlock: { how: 'achievement', id: 'seedvault' }, flavor: 'Hugs not recommended.',
   },
   puffshroom: {
     name: 'Puff-shroom', cls: 'shooter', shroom: true, stats: [40, 10, 2, 20],
     passive: { name: 'Tiny', desc: '30% chance to dodge attacks aimed at it alone. Very fragile.', dodge: 0.3 },
-    learn: [['puff', 1], ['puff_scatter', 1], ['puff_cloud', 3], ['puff_pep', 4], ['puff_hide', 6], ['puff_shot', 8], ['puff_army', 10]],
+    passive2: { name: 'Small Target', desc: 'Hit-everyone attacks do 30% less damage to it.', takeMult(u, src, mv) { return mv.aoe ? 0.7 : 1; } },
+    learn: [['puff', 1], ['puff_scatter', 1], ['puff_cloud', 3], ['puff_pep', 4], ['puff_hide', 6], ['puff_shot', 8], ['puff_army', 10], ['puff_sleep', 13]],
     unlock: { how: 'story' }, flavor: 'Small, fast and hard to hit.',
   },
 
@@ -786,7 +843,8 @@ const PLANTS = {
       name: 'Tough Shell', desc: 'Takes 25% less damage while above half HP.',
       takeMult(u) { return u.hp > u.maxHp / 2 ? 0.75 : 1; },
     },
-    learn: [['nut_roll', 1], ['nut_stare', 1], ['nut_shell', 2], ['nut_regrow', 3], ['nut_block', 5], ['nut_wall', 7], ['nut_bowl', 10]],
+    passive2: { name: 'Nutty Resolve', desc: 'Heals 6% each round while below half HP.', roundStart(u) { if (u.hp < u.maxHp / 2) healUnit(u, u.maxHp * 0.06); } },
+    learn: [['nut_roll', 1], ['nut_stare', 1], ['nut_shell', 2], ['nut_regrow', 3], ['nut_block', 5], ['nut_wall', 7], ['nut_bowl', 10], ['wn_explode', 13]],
     unlock: { how: 'start' }, flavor: 'A nut that refuses to crack.',
   },
   tallnut: {
@@ -795,7 +853,8 @@ const PLANTS = {
       name: 'Towering', desc: 'Leaping and vaulting attacks must hit it, and it can\'t be stunned. No Tough Shell, and very slow.',
       blocksVault: true, noStun: true,
     },
-    learn: [['tall_stand', 1], ['tall_thump', 1], ['nut_shell', 2], ['tall_topple', 4], ['tall_shade', 6], ['nut_wall', 8], ['tall_tower', 10]],
+    passive2: { name: 'Immovable', desc: 'Takes 20% less damage while Taunting.', takeMult(u) { return u.st.taunt ? 0.8 : 1; } },
+    learn: [['tall_stand', 1], ['tall_thump', 1], ['nut_shell', 2], ['tall_topple', 4], ['tall_shade', 6], ['nut_wall', 8], ['tall_tower', 10], ['tn_timber', 13]],
     unlock: { how: 'story' }, flavor: 'Nobody jumps over Tall-nut.',
   },
   pumpkin: {
@@ -807,7 +866,8 @@ const PLANTS = {
         if (hurt) addShield(hurt, u.maxHp * 0.04);   // was 8%: Pumpkin was far stronger than any other plant
       },
     },
-    learn: [['pump_bash', 1], ['pump_shell', 1], ['pump_grin', 2], ['pump_vines', 4], ['pump_hollow', 5], ['pump_harvest', 7], ['pump_lantern', 10]],
+    passive2: { name: 'Hollow Guard', desc: 'When an ally wilts, shields every ally still standing for 4% of Pumpkin\'s max HP.', onAllyFall(u) { for (const a of alliesOf(u)) addShield(a, u.maxHp * 0.04); } },
+    learn: [['pump_bash', 1], ['pump_shell', 1], ['pump_grin', 2], ['pump_vines', 4], ['pump_hollow', 5], ['pump_harvest', 7], ['pump_lantern', 10], ['pump_pie', 13]],
     unlock: { how: 'story' }, flavor: 'A plant that wears a plant.',
   },
   garlic: {
@@ -816,7 +876,8 @@ const PLANTS = {
       name: 'Stinky', desc: 'Enemies that hit Garlic become Weak for a turn.',
       onHurt(u, src) { if (src && src.hp > 0 && src !== u) addStatus(src, 'weak', 1); },
     },
-    learn: [['gar_breath', 1], ['gar_reek', 1], ['gar_stench', 3], ['gar_clove', 4], ['gar_bitter', 6], ['gar_ward', 8], ['gar_gas', 10]],
+    passive2: { name: 'Pungent', desc: 'Weak enemies do 20% less damage to it (on top of being Weak).', takeMult(u, src) { return src?.st.weak ? 0.8 : 1; } },
+    learn: [['gar_breath', 1], ['gar_reek', 1], ['gar_stench', 3], ['gar_clove', 4], ['gar_bitter', 6], ['gar_ward', 8], ['gar_gas', 10], ['gar_bomb', 13]],
     unlock: { how: 'shop', price: 450 }, flavor: 'Smells awful. That\'s the point.',
   },
   spikeweed: {
@@ -826,7 +887,8 @@ const PLANTS = {
       reflect: 0.3,
       dealMult(u, t) { return t.data.vehicle ? 2 : 1; },
     },
-    learn: [['spike_prick', 1], ['spike_sharpen', 1], ['spike_strip', 3], ['spike_dig', 4], ['spike_trap', 6], ['spike_field', 8], ['spike_rock', 10]],
+    passive2: { name: 'Puncture', desc: 'Its hits pop enemy shields.', onHit(u, t) { if (t.st.shield) { delete t.st.shield; log(`${u.name} pops ${t.name}'s shield!`, 'good'); } } },
+    learn: [['spike_prick', 1], ['spike_sharpen', 1], ['spike_strip', 3], ['spike_dig', 4], ['spike_trap', 6], ['spike_field', 8], ['spike_rock', 10], ['spk_wall', 13]],
     unlock: { how: 'rogue' }, flavor: 'Pops tires for fun.',
   },
 
@@ -835,9 +897,10 @@ const PLANTS = {
     name: 'Sunflower', cls: 'sunny', stats: [72, 7, 5, 13],
     passive: {
       name: 'Sunny Disposition', desc: '+10 sun at the start of every round.',
-      roundStart(u) { gainSun(10, u); },
+      roundStart(u) { gainSun(u.flags.twin ? 20 : 10, u); },   // 20 after Twin Sunflower
     },
-    learn: [['sun_petal', 1], ['sun_make', 1], ['sun_glow', 2], ['flower_bloom', 4], ['sun_smile', 6], ['flower_revive', 8], ['sun_flare', 10]],
+    passive2: { name: 'Parting Gift', desc: 'When it wilts, its team gets 75 sun.', onFall(u) { gainSun(75, u); log(`${u.name} leaves a parting gift: +75 sun.`, 'good'); } },
+    learn: [['sun_petal', 1], ['sun_make', 1], ['sun_glow', 2], ['flower_bloom', 4], ['sun_smile', 6], ['flower_revive', 8], ['sun_flare', 10], ['sun_twin', 13]],
     unlock: { how: 'start' }, flavor: 'Always smiling, always making sun.',
   },
   sunshroom: {
@@ -849,7 +912,8 @@ const PLANTS = {
         gainSun(u.flags.grown ? 15 : 5, u);
       },
     },
-    learn: [['ss_puff', 1], ['ss_spurt', 1], ['ss_glow', 2], ['ss_moon', 4], ['puff_cloud', 6], ['ss_dawn', 8], ['ss_fullmoon', 10]],
+    passive2: { name: 'Big Cap', desc: 'Once grown up, it takes 20% less damage.', takeMult(u) { return u.flags.grown ? 0.8 : 1; } },
+    learn: [['ss_puff', 1], ['ss_spurt', 1], ['ss_glow', 2], ['ss_moon', 4], ['puff_cloud', 6], ['ss_dawn', 8], ['ss_fullmoon', 10], ['ss_beam', 13]],
     unlock: { how: 'story' }, flavor: 'Starts small. Doesn\'t stay small.',
   },
   marigold: {
@@ -859,7 +923,8 @@ const PLANTS = {
       coinBonus: 0.5,
       roundStart(u) { if (chance(0.25)) gainSun(20, u); },
     },
-    learn: [['mari_petal', 1], ['mari_bright', 1], ['mari_polish', 2], ['mari_coin', 3], ['flower_bloom', 5], ['flower_revive', 7], ['mari_age', 10]],
+    passive2: { name: 'Midas Touch', desc: 'Every enemy it defeats gives +25 sun.', onHit(u, t) { if (t.hp <= 0) { gainSun(25, u); log('Midas Touch! +25 sun.', 'good'); } } },
+    learn: [['mari_petal', 1], ['mari_bright', 1], ['mari_polish', 2], ['mari_coin', 3], ['flower_bloom', 5], ['flower_revive', 7], ['mari_age', 10], ['mari_rush', 13]],
     unlock: { how: 'shop', price: 300 }, flavor: 'Pretty, and pretty rich.',
   },
   aloe: {
@@ -869,7 +934,8 @@ const PLANTS = {
       healBoost: 1.3,
       roundStart(u) { healUnit(u, u.maxHp * 0.08); },
     },
-    learn: [['aloe_spray', 1], ['aloe_squirt', 1], ['aloe_gel', 3], ['aloe_rub', 4], ['aloe_regrow', 6], ['aloe_dew', 8], ['aloe_bath', 10]],
+    passive2: { name: 'Spiky Leaves', desc: 'Bounces 15% of the damage it takes back.', reflect: 0.15 },
+    learn: [['aloe_spray', 1], ['aloe_squirt', 1], ['aloe_gel', 3], ['aloe_rub', 4], ['aloe_regrow', 6], ['aloe_dew', 8], ['aloe_bath', 10], ['aloe_wrap', 13]],
     unlock: { how: 'shop', price: 350 }, flavor: 'Good for sunburns and zombie bites.',
   },
 
@@ -884,7 +950,8 @@ const PLANTS = {
         for (const f of foesOf(u)) hit(u, f, 12, { aoe: true });
       },
     },
-    learn: [['cherry_fizz', 1], ['cherry_blast', 1], ['boom_fuse', 2], ['cherry_double', 4], ['boom_kaboom', 6], ['cherry_temper', 8], ['cherry_kamikaze', 10]],
+    passive2: { name: 'Hair Trigger', desc: 'The first time it drops below 30% HP, it gets Power for 2 turns.', onHurt(u) { if (!u.flags.trigger && u.hp > 0 && u.hp < u.maxHp * 0.3) { u.flags.trigger = true; addStatus(u, 'power', 2); log(`${u.name}'s fuse is lit!`, 'good'); } } },
+    learn: [['cherry_fizz', 1], ['cherry_blast', 1], ['boom_fuse', 2], ['cherry_double', 4], ['boom_kaboom', 6], ['cherry_temper', 8], ['cherry_kamikaze', 10], ['cherry_sparkler', 13]],
     unlock: { how: 'story' }, flavor: 'Two cherries, one very short temper.',
   },
   jalapeno: {
@@ -893,7 +960,8 @@ const PLANTS = {
       name: 'Hot Headed', desc: '+50% damage to burning enemies. Careful: its fire melts chill and freeze.',
       dealMult(u, t) { return t.st.burn ? 1.5 : 1; },
     },
-    learn: [['jal_sauce', 1], ['fire_ignite', 1], ['jal_row', 3], ['jal_wave', 4], ['jal_spicy', 6], ['jal_kick', 8], ['jal_inferno', 10]],
+    passive2: { name: 'Fireproof', desc: 'Can\'t be burned (so Extra Spicy never hurts it).', immune: ['burn'] },
+    learn: [['jal_sauce', 1], ['fire_ignite', 1], ['jal_row', 3], ['jal_wave', 4], ['jal_spicy', 6], ['jal_kick', 8], ['jal_inferno', 10], ['jal_ghost', 13]],
     unlock: { how: 'story' }, flavor: 'Hot. Very hot.',
   },
   squash: {
@@ -904,19 +972,22 @@ const PLANTS = {
       dealMult(u) { return u.flags.grudge ? 2 : 1; },
       afterAttack(u) { u.flags.grudge = false; },
     },
-    learn: [['sq_leap', 1], ['sq_squash', 1], ['sq_bounce', 2], ['sq_belly', 4], ['sq_slam', 6], ['sq_glare', 8], ['sq_giant', 10]],
+    passive2: { name: 'Heavyweight', desc: 'Can\'t be stunned, frozen or put to sleep.', noStun: true },
+    learn: [['sq_leap', 1], ['sq_squash', 1], ['sq_bounce', 2], ['sq_belly', 4], ['sq_slam', 6], ['sq_glare', 8], ['sq_giant', 10], ['sq_mighty', 13]],
     unlock: { how: 'achievement', id: 'untouchable' }, flavor: 'Hmm? HMM!',
   },
   melonpult: {
     name: 'Melon-pult', cls: 'volatile', stats: [72, 17, 5, 5],
     passive: { name: 'Heavy Lob', desc: 'All its attacks are lobbed, and 30% of the damage splashes the other enemies. The slowest attacker.', lobAll: true, splashAll: 0.3 },
-    learn: [['mel_seed', 1], ['mel_melon', 1], ['mel_rind', 2], ['pult_arc', 4], ['mel_smash', 6], ['mel_juice', 8], ['mel_winter', 10]],
+    passive2: { name: 'Tough Rind', desc: 'Takes 20% less damage from straight shots.', takeMult(u, src, mv) { return mv.straight ? 0.8 : 1; } },
+    learn: [['mel_seed', 1], ['mel_melon', 1], ['mel_rind', 2], ['pult_arc', 4], ['mel_smash', 6], ['mel_juice', 8], ['mel_winter', 10], ['mel_mortar', 13]],
     unlock: { how: 'rogue' }, flavor: 'One melon. Big trouble.',
   },
   fumeshroom: {
     name: 'Fume-shroom', cls: 'volatile', shroom: true, stats: [66, 12, 5, 9],
     passive: { name: 'Fumes', desc: 'All its attacks pierce armor and go through Screen Doors.', pierceAll: true },
-    learn: [['fume_puff', 1], ['puff_cloud', 1], ['fume_cloud', 3], ['fume_blast', 4], ['fume_breath', 6], ['fume_storm', 8], ['fume_gloom', 10]],
+    passive2: { name: 'Lingering Fumes', desc: '25% chance its hits Mark the enemy (takes 30% more damage) for a turn.', onHit(u, t) { if (t.hp > 0 && chance(0.25)) addStatus(t, 'marked', 1, { src: u }); } },
+    learn: [['fume_puff', 1], ['puff_cloud', 1], ['fume_cloud', 3], ['fume_blast', 4], ['fume_breath', 6], ['fume_storm', 8], ['fume_gloom', 10], ['fume_choke', 13]],
     unlock: { how: 'story' }, flavor: 'Bad breath, armor-proof.',
   },
   bonkchoy: {
@@ -925,7 +996,8 @@ const PLANTS = {
       name: 'Counterpunch', desc: 'When an enemy hits it, 35% chance to punch back for 6 power.',
       onHurt(u, src) { if (src && src.hp > 0 && src !== u && u.hp > 0 && chance(0.35)) { log(`${u.name} punches back!`); hit(u, src, 6, { counter: true }); } },
     },
-    learn: [['bonk_rapid', 1], ['bonk_upper', 1], ['bonk_hay', 2], ['bonk_pump', 4], ['bonk_combo', 6], ['bonk_rope', 8], ['bonk_flurry', 10]],
+    passive2: { name: 'Second Wind', desc: 'The first time it drops below 30% HP, it heals 30%.', onHurt(u) { if (!u.flags.wind && u.hp > 0 && u.hp < u.maxHp * 0.3) { u.flags.wind = true; log(`${u.name} gets a second wind!`, 'good'); healUnit(u, u.maxHp * 0.3); } } },
+    learn: [['bonk_rapid', 1], ['bonk_upper', 1], ['bonk_hay', 2], ['bonk_pump', 4], ['bonk_combo', 6], ['bonk_rope', 8], ['bonk_flurry', 10], ['bonk_kick', 13]],
     unlock: { how: 'shop', price: 500 }, flavor: 'Float like a leaf, punch like a cabbage.',
   },
 
@@ -936,34 +1008,44 @@ const PLANTS = {
       name: 'Big Appetite', desc: 'Swallowing an enemy with Devour heals it 30%.',
       onDevour(u) { healUnit(u, u.maxHp * 0.3); },
     },
-    learn: [['chomp_bite', 1], ['chomp_devour', 1], ['chomp_burp', 2], ['chomp_drool', 4], ['chomp_snap', 6], ['chomp_lunge', 8], ['chomp_mega', 10]],
+    passive2: { name: 'Leftovers', desc: 'Heals 3% each round.', roundStart(u) { healUnit(u, u.maxHp * 0.03); } },
+    learn: [['chomp_bite', 1], ['chomp_devour', 1], ['chomp_burp', 2], ['chomp_drool', 4], ['chomp_snap', 6], ['chomp_lunge', 8], ['chomp_mega', 10], ['chomp_seconds', 13]],
     unlock: { how: 'rogue' }, flavor: 'Chews slowly. Eats anything.',
   },
   hypnoshroom: {
     name: 'Hypno-shroom', cls: 'grower', shroom: true, stats: [58, 8, 5, 13],
     passive: {
       name: 'Mesmerize', desc: 'Zombies that hit it have a 30% chance to be hypnotized for a turn (not bosses).',
-      onHurt(u, src) { if (src && (src.kind === 'zombie' || B.versus) && src.side !== u.side && src.hp > 0 && !src.boss && chance(0.3)) addStatus(src, 'hypno', 1); },
+      onHurt(u, src) {
+        if (!src || !(src.kind === 'zombie' || B.versus) || src.side === u.side || src.hp <= 0 || src.boss) return;
+        // Mirror Swirl (its level-13 move) hypnotizes the next attacker for sure.
+        if (u.flags.mirror) { u.flags.mirror = false; log(`${src.name} stares into the swirl...`, 'good'); addStatus(src, 'hypno', 2); }
+        else if (chance(0.3 + (u.data.passive.mesmerBonus || 0))) addStatus(src, 'hypno', 1);   // 50% with Swirly Aura
+      },
     },
-    learn: [['hyp_swirl', 1], ['hyp_hypno', 1], ['puff_cloud', 2], ['hyp_trance', 4], ['hyp_dazzle', 6], ['hyp_calm', 8], ['hyp_mass', 10]],
+    passive2: { name: 'Swirly Aura', desc: 'Mesmerize works 50% of the time instead of 30%.', mesmerBonus: 0.2 },
+    learn: [['hyp_swirl', 1], ['hyp_hypno', 1], ['puff_cloud', 2], ['hyp_trance', 4], ['hyp_dazzle', 6], ['hyp_calm', 8], ['hyp_mass', 10], ['hyp_mirror', 13]],
     unlock: { how: 'rogue' }, flavor: 'Look into its eyes...',
   },
   iceshroom: {
     name: 'Ice-shroom', cls: 'grower', shroom: true, stats: [60, 9, 6, 8],
     passive: { name: 'Permafrost', desc: 'Its chills and freezes last 1 turn longer.', icyBonus: 1 },
-    learn: [['ice_chip', 1], ['frost_snare', 1], ['ice_deep', 2], ['puff_cloud', 4], ['ice_shiver', 6], ['ice_pack', 8], ['ice_shatter', 10]],
+    passive2: { name: 'Brittle Air', desc: 'Each round, a random enemy becomes Brittle (its next hit taken does 50% more) for 2 turns.', roundStart(u) { const t = pick(foesOf(u)); if (t) addStatus(t, 'brittle', 2, { src: u }); } },
+    learn: [['ice_chip', 1], ['frost_snare', 1], ['ice_deep', 2], ['puff_cloud', 4], ['ice_shiver', 6], ['ice_pack', 8], ['ice_shatter', 10], ['ice_grip', 13]],
     unlock: { how: 'rogue' }, flavor: 'Brrr.',
   },
   torchwood: {
     name: 'Torchwood', cls: 'grower', stats: [80, 8, 7, 8],
     passive: { name: 'Flaming Peas', desc: 'While it stands, allies\' straight shots catch fire: +40% damage and a 30% chance to burn.', torch: true },
-    learn: [['torch_ember', 1], ['torch_bark', 1], ['torch_bonfire', 2], ['fire_ignite', 4], ['torch_smoke', 6], ['torch_flare', 8], ['torch_lane', 10]],
+    passive2: { name: 'Fire Bark', desc: 'Enemies that hit it have a 30% chance to burn for 2 turns.', onHurt(u, src) { if (src && src.hp > 0 && src !== u && chance(0.3)) addStatus(src, 'burn', 2, { src: u }); } },
+    learn: [['torch_ember', 1], ['torch_bark', 1], ['torch_bonfire', 2], ['fire_ignite', 4], ['torch_smoke', 6], ['torch_flare', 8], ['torch_lane', 10], ['torch_wild', 13]],
     unlock: { how: 'rogue' }, flavor: 'Best friends with every Peashooter.',
   },
   kernelpult: {
     name: 'Kernel-pult', cls: 'grower', stats: [58, 10, 4, 12],
     passive: { name: 'Butter Luck', desc: 'All its attacks are lobbed and have a 25% chance to butter (stun) for a turn.', lobAll: true, butter: 0.25 },
-    learn: [['ker_kernel', 1], ['ker_husk', 1], ['ker_butter', 2], ['pult_arc', 4], ['ker_pop', 6], ['ker_slick', 8], ['ker_cob', 10]],
+    passive2: { name: 'Extra Butter', desc: 'Butter Luck goes up to a 35% chance.', butter: 0.1 },
+    learn: [['ker_kernel', 1], ['ker_husk', 1], ['ker_butter', 2], ['pult_arc', 4], ['ker_pop', 6], ['ker_slick', 8], ['ker_cob', 10], ['kern_pop', 13]],
     unlock: { how: 'story' }, flavor: 'Corn or butter? It\'s a surprise.',
   },
   potatomine: {
@@ -976,10 +1058,12 @@ const PLANTS = {
           u.flags.armed = false;
           log('SPUDOW! The mine goes off!', 'good');
           hit(u, src, 25, { pierce: true, counter: true });
+          if (u.data.passive.mineStun && src.hp > 0) addStatus(src, 'stun', 1, { src: u, label: 'Blasted' });   // Stun Mine
         }
       },
     },
-    learn: [['pm_pop', 1], ['pm_rearm', 1], ['pm_spudow', 2], ['boom_fuse', 4], ['pm_dirt', 6], ['pm_burrow', 8], ['pm_field', 10]],
+    passive2: { name: 'Stun Mine', desc: 'Its Buried blast also stuns the enemy for a turn.', mineStun: true },
+    learn: [['pm_pop', 1], ['pm_rearm', 1], ['pm_spudow', 2], ['boom_fuse', 4], ['pm_dirt', 6], ['pm_burrow', 8], ['pm_field', 10], ['pm_mash', 13]],
     unlock: { how: 'story' }, flavor: 'Step on it. We dare you.',
   },
 
@@ -989,13 +1073,15 @@ const PLANTS = {
   bloomerang: {
     name: 'Bloomerang', cls: 'shooter', stats: [62, 12, 4, 14],
     passive: { name: 'Comeback', desc: 'Its attacks on one enemy bounce on to 2 other enemies for 40% damage.', ricochet: 0.4 },
-    learn: [['bloom_throw', 1], ['bloom_wind', 1], ['bloom_spin', 3], ['bloom_curve', 5], ['bloom_catch', 6], ['bloom_storm', 8], ['bloom_tornado', 10]],
+    passive2: { name: 'Wide Arc', desc: 'Comeback bounces to 3 other enemies instead of 2.', extraBounce: 1 },
+    learn: [['bloom_throw', 1], ['bloom_wind', 1], ['bloom_spin', 3], ['bloom_curve', 5], ['bloom_catch', 6], ['bloom_storm', 8], ['bloom_tornado', 10], ['bloom_return', 13]],
     unlock: { how: 'story' }, flavor: 'What goes around comes around. Usually into a zombie.',
   },
   laserbean: {
     name: 'Laser Bean', cls: 'shooter', stats: [58, 11, 4, 12],
     passive: { name: 'Beam', desc: 'Its attacks on one enemy hit EVERY enemy instead, but at half power, and they never land critical hits.', beam: 0.5 },
-    learn: [['laser', 1], ['laser_scope', 1], ['laser_burst', 3], ['laser_deflect', 5], ['laser_focus', 6], ['future_overclock', 8], ['laser_ray', 10]],
+    passive2: { name: 'Focusing Lens', desc: 'Beam hits the enemy it aims at with FULL power (the others still take half).', lens: true },
+    learn: [['laser', 1], ['laser_scope', 1], ['laser_burst', 3], ['laser_deflect', 5], ['laser_focus', 6], ['future_overclock', 8], ['laser_ray', 10], ['laser_scorch', 13]],
     unlock: { how: 'story' }, flavor: 'From the future. Still a bean.',
   },
   citron: {
@@ -1004,7 +1090,8 @@ const PLANTS = {
       name: 'Peel Shield', desc: 'Starts every wave with a shield of 25% of its max HP. Hits harder than other Hearty plants.',
       waveStart(u) { addShield(u, u.maxHp * 0.25); },
     },
-    learn: [['cit_plasma', 1], ['cit_lock', 1], ['cit_charge', 3], ['cit_peel', 4], ['cit_cover', 6], ['future_overclock', 8], ['cit_overload', 10]],
+    passive2: { name: 'Citrus Burst', desc: 'Starts every wave with Power for 2 turns.', waveStart(u) { addStatus(u, 'power', 2); } },
+    learn: [['cit_plasma', 1], ['cit_lock', 1], ['cit_charge', 3], ['cit_peel', 4], ['cit_cover', 6], ['future_overclock', 8], ['cit_overload', 10], ['cit_hunter', 13]],
     unlock: { how: 'shop', price: 600 }, flavor: 'A bounty-hunting orange from the future.',
   },
   infinut: {
@@ -1012,13 +1099,15 @@ const PLANTS = {
     passive: {
       name: 'Holo-Rebuild', desc: 'The first time it wilts in a battle, it rebuilds itself 2 rounds later with half its HP.',
       onFall(u) {
-        if (u.flags.rebuilt) return;
-        u.flags.rebuilt = true;
+        // Once per battle, or twice with Infinite Rebuild.
+        if ((u.flags.rebuilt || 0) >= 1 + (u.data.passive.extraRebuild || 0)) return;
+        u.flags.rebuilt = (u.flags.rebuilt || 0) + 1;
         u.flags.rebuildAt = B.round + 2;
         log(`${u.name}'s hologram flickers... it will rebuild!`, 'good');
       },
     },
-    learn: [['infi_zap', 1], ['infi_lure', 1], ['infi_barrier', 3], ['nut_shell', 4], ['infi_project', 6], ['future_overclock', 8], ['infi_infinite', 10]],
+    passive2: { name: 'Infinite Rebuild', desc: 'Holo-Rebuild works twice per battle.', extraRebuild: 1 },
+    learn: [['infi_zap', 1], ['infi_lure', 1], ['infi_barrier', 3], ['nut_shell', 4], ['infi_project', 6], ['future_overclock', 8], ['infi_infinite', 10], ['inf_decoy', 13]],
     unlock: { how: 'story' }, flavor: 'A wall-nut made of light. Hard to get rid of.',
   },
   goldbloom: {
@@ -1027,7 +1116,8 @@ const PLANTS = {
       name: 'Golden Burst', desc: '+100 sun in the first round of every battle, and no sun after that.',
       roundStart(u) { if (B.round === 1) { gainSun(100, u); log(`${u.name} bursts with gold! +100 sun.`, 'good'); } },
     },
-    learn: [['gold_flash', 1], ['gold_glint', 1], ['gold_shower', 3], ['gold_gleam', 4], ['flower_revive', 6], ['flower_bloom', 8], ['gold_reburst', 10]],
+    passive2: { name: 'Shimmer', desc: 'Allies it heals also get a shield of 5% of Gold Bloom\'s max HP.', onHeal(u, t) { addShield(t, u.maxHp * 0.05); } },
+    learn: [['gold_flash', 1], ['gold_glint', 1], ['gold_shower', 3], ['gold_gleam', 4], ['flower_revive', 6], ['flower_bloom', 8], ['gold_reburst', 10], ['gold_ray', 13]],
     unlock: { how: 'achievement', id: 'sunnyside' }, flavor: 'Blooms once. Blooms BIG.',
   },
   sunbean: {
@@ -1036,13 +1126,15 @@ const PLANTS = {
       name: 'Sunny Bruise', desc: 'Every time an enemy hits it, you get 10 sun. Tougher than other Sunny plants, but makes no sun on its own.',
       onHurt(u, src) { if (src) gainSun(10, u); },
     },
-    learn: [['bean_bonk', 1], ['bean_bait', 1], ['bean_shine', 2], ['bean_sprout', 4], ['bean_huddle', 6], ['bean_skin', 8], ['bean_fortress', 10]],
+    passive2: { name: 'Solar Skin', desc: 'Takes 15% less damage while its team has 200 sun or more.', takeMult(u) { return B.suns[u.side] >= 200 ? 0.85 : 1; } },
+    learn: [['bean_bonk', 1], ['bean_bait', 1], ['bean_shine', 2], ['bean_sprout', 4], ['bean_huddle', 6], ['bean_skin', 8], ['bean_fortress', 10], ['bean_stalk', 13]],
     unlock: { how: 'shop', price: 400 }, flavor: 'Hit it. Go on. It wants you to.',
   },
   snapdragon: {
     name: 'Snapdragon', cls: 'volatile', stats: [64, 14, 4, 11],
     passive: { name: 'Firebreather', desc: 'Its fire attacks on one enemy also scorch one more enemy for 50%, and its burns last a turn longer.', scorch: 0.5 },
-    learn: [['snap_breath', 1], ['fire_ignite', 1], ['snap_inferno', 3], ['snap_bite', 4], ['snap_stoke', 6], ['snap_roar', 8], ['snap_storm', 10]],
+    passive2: { name: 'Dragon Heart', desc: 'Its fire attacks heal it for 15% of the damage they deal.', onHit(u, t, dmg, mv) { if (mv.fire) healUnit(u, dmg * 0.15); } },
+    learn: [['snap_breath', 1], ['fire_ignite', 1], ['snap_inferno', 3], ['snap_bite', 4], ['snap_stoke', 6], ['snap_roar', 8], ['snap_storm', 10], ['snap_tail', 13]],
     unlock: { how: 'story' }, flavor: 'A dragon. A small one. Still a dragon.',
   },
   coconut: {
@@ -1053,7 +1145,8 @@ const PLANTS = {
       dealMult(u) { return u.flags.loaded ? 2 : 1; },
       afterAttack(u) { u.flags.loaded = false; },
     },
-    learn: [['coco_shot', 1], ['coco_cannon', 1], ['boom_fuse', 3], ['coco_broadside', 4], ['boom_kaboom', 6], ['coco_reload', 8], ['coco_full', 10]],
+    passive2: { name: 'Powder Keg', desc: 'When it wilts, it fires one last coconut (20 power) at the healthiest enemy.', onFall(u) { const t = foesOf(u).sort((a, b) => b.hp - a.hp)[0]; if (t) { log(`${u.name} fires one last coconut!`, 'good'); hit(u, t, 20, { aoe: true }); } } },
+    learn: [['coco_shot', 1], ['coco_cannon', 1], ['boom_fuse', 3], ['coco_broadside', 4], ['boom_kaboom', 6], ['coco_reload', 8], ['coco_full', 10], ['coco_grape', 13]],
     unlock: { how: 'rogue' }, flavor: 'Arr! One shot, one zombie.',
   },
   iceberg: {
@@ -1069,7 +1162,8 @@ const PLANTS = {
         }
       },
     },
-    learn: [['berg_chip', 1], ['berg_freeze', 1], ['frost_snare', 2], ['berg_slide', 4], ['berg_crunch', 6], ['berg_chill', 8], ['berg_glacier', 10]],
+    passive2: { name: 'Cracking Cold', desc: 'Enemies it freezes also become Brittle (their next hit taken does 50% more) for 2 turns.', brittleFreeze: true },
+    learn: [['berg_chip', 1], ['berg_freeze', 1], ['frost_snare', 2], ['berg_slide', 4], ['berg_crunch', 6], ['berg_chill', 8], ['berg_glacier', 10], ['ice_avalanche', 13]],
     unlock: { how: 'story' }, flavor: 'Cold, crunchy and slippery.',
   },
   empeach: {
@@ -1079,7 +1173,8 @@ const PLANTS = {
       emp: true,
       dealMult(u, t) { return t.data.vehicle ? 2 : 1; },
     },
-    learn: [['emp_zap', 1], ['emp_short', 1], ['emp_pulse', 3], ['emp_static', 4], ['emp_overload', 6], ['emp_recharge', 8], ['emp_blackout', 10]],
+    passive2: { name: 'Overcharged', desc: '+50% damage to stunned, frozen or Silenced enemies.', dealMult(u, t) { return t.st.stun || t.st.freeze || t.st.silence ? 1.5 : 1; } },
+    learn: [['emp_zap', 1], ['emp_short', 1], ['emp_pulse', 3], ['emp_static', 4], ['emp_overload', 6], ['emp_recharge', 8], ['emp_blackout', 10], ['emp_brown', 13]],
     unlock: { how: 'rogue' }, flavor: 'Robots hate this peach.',
   },
 
@@ -1088,9 +1183,11 @@ const PLANTS = {
     name: 'Lightning Reed', cls: 'shooter', stats: [56, 12, 3, 16],
     passive: {
       name: 'Overcharge', desc: 'Every attack adds a charge. At 3 charges its next attack does 50% more and stuns, then the charges reset.',
-      dealMult(u) { return (u.flags.charge || 0) >= 3 ? 1.5 : 1; },
+      dealMult(u) { return (u.flags.charge || 0) >= chargeNeed(u) ? 1.5 : 1; },
+      // Lightning Rod (its level-13 move): hits taken while it Taunts add charges.
+      onHurt(u) { if (u.flags.rod && u.st.taunt) u.flags.charge = Math.min(chargeNeed(u), (u.flags.charge || 0) + 1); },
       afterAttack(u, t) {
-        if ((u.flags.charge || 0) >= 3) {
+        if ((u.flags.charge || 0) >= chargeNeed(u)) {
           u.flags.charge = 0;
           if (t && t !== u && t.hp > 0) addStatus(t, 'stun', 1, { src: u, label: 'Shocked' });
         } else {
@@ -1098,7 +1195,8 @@ const PLANTS = {
         }
       },
     },
-    learn: [['lr_zap', 1], ['lr_static', 1], ['lr_storm', 2], ['lr_chain', 4], ['lr_clap', 6], ['lr_jump', 8], ['lr_superstorm', 10]],
+    passive2: { name: 'Supercell', desc: 'Overcharge only needs 2 charges.', quickCharge: 1 },
+    learn: [['lr_zap', 1], ['lr_static', 1], ['lr_storm', 2], ['lr_chain', 4], ['lr_clap', 6], ['lr_jump', 8], ['lr_superstorm', 10], ['lr_rod', 13]],
     unlock: { how: 'achievement', id: 'stormchaser' }, flavor: 'Crackles when it\'s happy. It\'s always crackling.',
   },
   magnetshroom: {
@@ -1108,13 +1206,15 @@ const PLANTS = {
       dealMult(u) { return 1 + 0.1 * Math.min(6, u.flags.metal || 0); },
       onHit(u, t) { if (t.hp > 0) ripMetal(u, t, t.armorMax * 0.25); },
     },
-    learn: [['mag_junk', 1], ['mag_pull', 1], ['puff_cloud', 2], ['mag_scrap', 4], ['mag_flip', 6], ['mag_attract', 8], ['mag_storm', 10]],
+    passive2: { name: 'Strong Field', desc: 'Each round, it tugs a little metal off a random armored enemy.', roundStart(u) { const t = pick(foesOf(u).filter(x => x.armor > 0)); if (t) ripMetal(u, t, t.armorMax * 0.1); } },
+    learn: [['mag_junk', 1], ['mag_pull', 1], ['puff_cloud', 2], ['mag_scrap', 4], ['mag_flip', 6], ['mag_attract', 8], ['mag_storm', 10], ['mag_recycle', 13]],
     unlock: { how: 'achievement', id: 'scrapper' }, flavor: 'Loves metal. Keeps all of it.',
   },
   umbrellaleaf: {
     name: 'Umbrella Leaf', cls: 'hearty', stats: [92, 6, 9, 8],
     passive: { name: 'Umbrella', desc: 'Catches every lobbed enemy attack meant for the team (basketballs, Bungee Zombies) and takes it at half damage.', umbrella: true },
-    learn: [['um_slap', 1], ['um_open', 1], ['um_rain', 2], ['um_bounce', 4], ['um_shade', 6], ['um_pour', 8], ['um_fort', 10]],
+    passive2: { name: 'Wide Brim', desc: 'Umbrella takes lobbed attacks at a quarter damage instead of half.', wideBrim: true },
+    learn: [['um_slap', 1], ['um_open', 1], ['um_rain', 2], ['um_bounce', 4], ['um_shade', 6], ['um_pour', 8], ['um_fort', 10], ['umb_rain', 13]],
     unlock: { how: 'achievement', id: 'dunk' }, flavor: 'Always ready for a rainy day. Or a basketball.',
   },
 };

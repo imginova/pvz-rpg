@@ -16,7 +16,11 @@ const WAIT_SUN = 15;     // "Soak up sun" (skipping a turn) gives this much
 // ---- Team and moves ---------------------------------------------------
 const MAX_TEAM = 5;      // plants you can bring into a battle
 const MAX_MOVES = 4;     // moves a plant can have equipped at once
-const MAX_LEVEL = 10;
+// The level cap went from 10 to 15 on 2026-11-22. Every plant learns an
+// 8th move at level 13 and gets a second ability at level 15 (passive2 in
+// data.js). Levels still don't raise stats.
+const MAX_LEVEL = 15;
+const SECOND_ABILITY_LEVEL = 15;
 
 // statScale(side): how strong a unit's health (HP) and attack are compared
 // to the numbers in data.js. Levels DON'T make anything stronger (owner's
@@ -60,6 +64,7 @@ const THORNS_PART = 0.3;   // "Thorns" status: 30% of damage bounces back
 const CHILL_SPEED = 0.5;   // "Chill" status: half speed
 const BOSS_RESIST = 0.5;   // bosses shrug off stuns, freezes and sleep half the time
 const MARK_MULT = 1.3;     // "Marked" status: takes 30% more damage
+const BRITTLE_MULT = 1.5;  // "Brittle" status: the next hit taken does 50% more
 const EVADE_CHANCE = 0.5;  // "Evade" status: dodges half of the attacks aimed at it
 const REGEN_PART = 0.08;   // "Regen" status: heals 8% of max HP each turn
 const COUNTER_POWER = 12;  // "Counter" status: the power of the hit back
