@@ -283,7 +283,7 @@ const MOVES = {
   aloe_bath:     { name: 'Aloe Bath', cost: 100, cd: 5, target: 'allies', heal: 0.35, cleanse: true, desc: 'Heal every ally 35% and cleanse them.' },
   gold_reburst:  { name: 'Second Burst', cost: 0, cd: 99, target: 'self', sun: 100, desc: 'Bursts with gold again: +100 sun. Once per battle.' },
   bean_fortress: { name: 'Sunny Fortress', cost: 50, cd: 5, target: 'self', sun: 50, self: ['taunt', 2], special: u => addStatus(u, 'guard', 2), desc: '+50 sun, then Taunt and Guard for 2 turns: every hit it takes makes even more sun.' },
-  cherry_kamikaze: { name: 'Kamikaze Kaboom', cost: 50, target: 'foes', power: 30, special: kamikaze, desc: 'Blows itself up: hits every enemy for 30, then wilts (and Last Blast goes off too).' },
+  cherry_kamikaze: { name: 'Kamikaze Kaboom', cost: 50, target: 'foes', power: 22, special: kamikaze, desc: 'Blows itself up: hits every enemy for 22, then wilts (and Last Blast goes off too).' },
   jal_inferno:   { name: 'Inferno Row', cost: 100, cd: 5, target: 'foes', power: 16, fire: true, status: ['burn', 3, 1], desc: 'Burns every enemy for 3 turns.' },
   sq_giant:      { name: 'Giant Squash', cost: 100, cd: 4, target: 'foe', power: 40, pierce: true, execute: 2, desc: 'The biggest squish. Pierces armor; double damage below 40% HP.' },
   mel_winter:    { name: 'Winter Melon', cost: 100, cd: 4, target: 'foe', power: 20, special: u => { for (const f of foesOf(u)) addStatus(f, 'chill', 2, { src: u }); }, desc: 'A frozen melon: big splash, and every enemy is chilled for 2 turns.' },
@@ -587,7 +587,9 @@ function goldenAge(u) {
 }
 
 // Cherry Bomb's Kamikaze Kaboom: it wilts after the blast, and its own
-// Last Blast ability goes off as it wilts.
+// Last Blast ability goes off as it wilts. Together they were too strong
+// in versus (its team won 9 battles in 10), so on 2026-11-22 the blast
+// went from 30 to 22 power and Last Blast from 20 to 12.
 function kamikaze(u) {
   log(`${u.name} gives everything!`, 'good');
   u.hp = 0;
@@ -875,10 +877,11 @@ const PLANTS = {
   cherrybomb: {
     name: 'Cherry Bomb', cls: 'volatile', stats: [56, 15, 3, 14],
     passive: {
-      name: 'Last Blast', desc: 'When it wilts, it explodes for 20 power on every enemy.',
+      name: 'Last Blast', desc: 'When it wilts, it explodes for 12 power on every enemy.',
+      // Was 20 power until 2026-11-22 (see kamikaze() above).
       onFall(u) {
         log(`${u.name} goes out with a BANG!`, 'good');
-        for (const f of foesOf(u)) hit(u, f, 20, { aoe: true });
+        for (const f of foesOf(u)) hit(u, f, 12, { aoe: true });
       },
     },
     learn: [['cherry_fizz', 1], ['cherry_blast', 1], ['boom_fuse', 2], ['cherry_double', 4], ['boom_kaboom', 6], ['cherry_temper', 8], ['cherry_kamikaze', 10]],
